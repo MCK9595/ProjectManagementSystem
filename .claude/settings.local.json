@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet new:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet sln add:*)",
+      "Bash(dotnet build)",
+      "Bash(tree:*)",
+      "Bash(dotnet add:*)"
+    ],
+    "deny": []
+  }
+}

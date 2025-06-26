@@ -1,0 +1,6 @@
+@ProjectManagementSystem.ApiServiceGateway_HostAddress = http://localhost:5057
+
+GET {{ProjectManagementSystem.ApiServiceGateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
