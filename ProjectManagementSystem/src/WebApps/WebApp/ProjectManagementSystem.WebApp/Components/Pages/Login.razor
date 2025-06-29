@@ -1,0 +1,220 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components.Authorization
+@using ProjectManagementSystem.WebApp.Services
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using Microsoft.AspNetCore.Components
+@using ProjectManagementSystem.Shared.Common.Services
+@rendermode InteractiveServer
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILogger<Login> Logger
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Login - Project Management System</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="text-center">Login</h4>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin" FormName="LoginForm">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @errorMessage
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username or Email</label>
+                            <InputText id="username" @bind-Value="loginModel.Username" class="form-control" placeholder="Enter username or email" />
+                            <ValidationMessage For="@(() => loginModel.Username)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <InputText id="password" @bind-Value="loginModel.Password" type="password" class="form-control" placeholder="Enter password" />
+                            <ValidationMessage For="@(() => loginModel.Password)" />
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                Login
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private LoginDto loginModel { get; set; } = new();
+    private string errorMessage = string.Empty;
+    private bool isLoading = false;
+    
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation("=== LOGIN COMPONENT INITIALIZED (SYNC) ===");
+        Logger.LogInformation("Render mode: {RenderMode}", OperatingSystem.IsBrowser() ? "WebAssembly" : "Server");
+        base.OnInitialized();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("=== LOGIN PAGE INITIALIZED ===");
+        Logger.LogInformation("Navigation URI: {Uri}", Navigation.Uri);
+        Logger.LogInformation("Base URI: {BaseUri}", Navigation.BaseUri);
+        
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            Logger.LogInformation("Auth state retrieved - IsAuthenticated: {IsAuthenticated}", authState.User.Identity?.IsAuthenticated ?? false);
+            Logger.LogInformation("User Identity Name: {Name}", authState.User.Identity?.Name ?? "NULL");
+            
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                Logger.LogInformation("User already authenticated, redirecting to home");
+                Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                Logger.LogInformation("User not authenticated, showing login form");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error checking authentication state");
+        }
+    }
+    
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            Logger.LogInformation("=== HANDLE LOGIN STARTED ===");
+            Logger.LogInformation("Login attempt for user: {Username}", loginModel.Username);
+            Logger.LogInformation("Model state - Username: '{Username}', Password length: {PasswordLength}", 
+                loginModel.Username, loginModel.Password?.Length ?? 0);
+            // ModelState is not available in Blazor, validation is handled differently
+            Logger.LogInformation("Login model populated - proceeding with login");
+            
+            isLoading = true;
+            errorMessage = string.Empty;
+            StateHasChanged();
+            Logger.LogInformation("Loading state set to true");
+
+            Logger.LogInformation("Calling AuthService.LoginAsync");
+            var result = await AuthService.LoginAsync(loginModel);
+            Logger.LogInformation("AuthService.LoginAsync completed, result is null: {IsNull}", result == null);
+            
+            if (result != null)
+            {
+                Logger.LogInformation("Login result successful, notifying authentication state provider");
+                
+                // Login successful
+                if (AuthStateProvider is ServerAuthenticationStateProvider serverAuthStateProvider)
+                {
+                    Logger.LogInformation("Notifying ServerAuthenticationStateProvider");
+                    await serverAuthStateProvider.NotifyUserAuthenticationAsync();
+                    Logger.LogInformation("ServerAuthenticationStateProvider notified");
+                }
+                
+                // Clear form 
+                Logger.LogInformation("Login successful - Token: {HasToken}, User: {Username}", 
+                    !string.IsNullOrEmpty(result.Token), result.User?.Username ?? "NULL");
+                Logger.LogInformation("Clearing form and preparing navigation");
+                loginModel = new LoginDto();
+                
+                // Force UI update to reflect authentication state change
+                StateHasChanged();
+                
+                // Multiple verification attempts to ensure authentication state is fully propagated
+                bool isFinallyAuthenticated = false;
+                AuthenticationState? finalAuthState = null;
+                
+                for (int attempt = 1; attempt <= 5; attempt++)
+                {
+                    await Task.Delay(100 * attempt); // Increasing delay: 100ms, 200ms, 300ms, 400ms, 500ms
+                    
+                    finalAuthState = await AuthStateProvider.GetAuthenticationStateAsync();
+                    isFinallyAuthenticated = finalAuthState.User.Identity?.IsAuthenticated ?? false;
+                    
+                    Logger.LogInformation("Authentication verification attempt {Attempt}: IsAuthenticated = {IsAuthenticated}, Name = {Name}", 
+                        attempt, isFinallyAuthenticated, finalAuthState.User.Identity?.Name ?? "NULL");
+                    
+                    if (isFinallyAuthenticated)
+                    {
+                        Logger.LogInformation("Authentication confirmed on attempt {Attempt}", attempt);
+                        break;
+                    }
+                }
+                
+                if (isFinallyAuthenticated)
+                {
+                    Logger.LogInformation("Authentication confirmed, navigating to home page");
+                    
+                    // For Interactive Server mode, force reload is necessary to ensure proper navigation
+                    try 
+                    {
+                        Logger.LogInformation("Attempting navigation with forceLoad=true");
+                        Navigation.NavigateTo("/", forceLoad: true);
+                    }
+                    catch (Exception navEx)
+                    {
+                        Logger.LogError(navEx, "Navigation failed, trying alternative approach");
+                        // Alternative: Use window.location.href via JS
+                        try 
+                        {
+                            Logger.LogInformation("Attempting JavaScript navigation");
+                            await JSRuntime.InvokeVoidAsync("window.location.assign", "/");
+                        }
+                        catch (Exception jsEx)
+                        {
+                            Logger.LogError(jsEx, "JavaScript navigation also failed");
+                            errorMessage = "Login successful! Please click here to continue or refresh the page.";
+                            StateHasChanged();
+                        }
+                    }
+                }
+                else
+                {
+                    Logger.LogWarning("Authentication state not confirmed after notification");
+                    errorMessage = "Authentication succeeded but state update failed. Please refresh the page.";
+                }
+            }
+            else
+            {
+                // Login failed - get specific error message from service
+                errorMessage = AuthService.GetLastError() ?? "Invalid username or password.";
+                Logger.LogWarning("Login failed with error: {ErrorMessage}", errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred during login. Please try again.";
+            Logger.LogError(ex, "Exception in HandleLogin for user: {Username}", loginModel.Username);
+        }
+        finally
+        {
+            Logger.LogInformation("=== HANDLE LOGIN COMPLETED ===");
+            Logger.LogInformation("Final state - isLoading: false, errorMessage: '{ErrorMessage}'", errorMessage);
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

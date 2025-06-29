@@ -7,12 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ProjectManagementSystem.WebApp.Client\ProjectManagementSystem.WebApp.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.6" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\..\..\ProjectManagementSystem.ServiceDefaults\ProjectManagementSystem.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\..\Shared\ProjectManagementSystem.Shared.Models\ProjectManagementSystem.Shared.Models.csproj" />
+    <ProjectReference Include="..\..\..\Shared\ProjectManagementSystem.Shared.Common\ProjectManagementSystem.Shared.Common.csproj" />
   </ItemGroup>
 
 </Project>

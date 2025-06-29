@@ -8,7 +8,16 @@
       "Bash(dotnet sln add:*)",
       "Bash(dotnet build)",
       "Bash(tree:*)",
-      "Bash(dotnet add:*)"
+      "Bash(dotnet add:*)",
+      "mcp__Microsoft_Docs__microsoft_docs_search",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet test:*)",
+      "Bash(rm:*)",
+      "Bash(dotnet remove:*)",
+      "Bash(dotnet build:*)",
+      "Bash(grep:*)",
+      "Bash(cp:*)",
+      "WebFetch(domain:timdeschryver.dev)"
     ],
     "deny": []
   }

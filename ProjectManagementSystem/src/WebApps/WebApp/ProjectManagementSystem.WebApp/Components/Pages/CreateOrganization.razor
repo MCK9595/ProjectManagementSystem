@@ -1,0 +1,105 @@
+@page "/organizations/create"
+@using Microsoft.AspNetCore.Authorization
+@using ProjectManagementSystem.WebApp.Services
+@using ProjectManagementSystem.Shared.Models.DTOs
+@rendermode InteractiveServer
+@attribute [Authorize]
+@inject IOrganizationService OrganizationService
+@inject NavigationManager Navigation
+
+<PageTitle>Create Organization - Project Management System</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4>Create New Organization</h4>
+                        <button class="btn btn-outline-secondary" @onclick="GoBack">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@createModel" OnValidSubmit="@HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @errorMessage
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Organization Name <span class="text-danger">*</span></label>
+                            <InputText id="name" @bind-Value="createModel.Name" class="form-control" placeholder="Enter organization name" />
+                            <ValidationMessage For="@(() => createModel.Name)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <InputTextArea id="description" @bind-Value="createModel.Description" class="form-control" rows="4" placeholder="Enter organization description" />
+                            <ValidationMessage For="@(() => createModel.Description)" />
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-outline-secondary me-md-2" @onclick="GoBack">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                Create Organization
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateOrganizationDto createModel = new() { Name = "", Description = "" };
+    private string errorMessage = string.Empty;
+    private bool isLoading = false;
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = string.Empty;
+
+            var result = await OrganizationService.CreateOrganizationAsync(createModel);
+            
+            if (result != null)
+            {
+                Navigation.NavigateTo("/organizations");
+            }
+            else
+            {
+                errorMessage = "Failed to create organization. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred while creating the organization. Please try again.";
+            Console.WriteLine($"Create organization error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/organizations");
+    }
+}

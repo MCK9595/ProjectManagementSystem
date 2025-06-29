@@ -9,19 +9,19 @@
 .NET Aspire を活用し、各機能を独立したマイクロサービスとして開発します。
 
 - **AppHost:** .NET Aspireのオーケストレーションプロジェクト。
-- **ApiServiceGateway:** 各マイクロサービスへの単一窓口となるAPIゲートウェイ。
+- **API Gateway (YARP):** YARP (Yet Another Reverse Proxy)を使用した各マイクロサービスへの単一窓口となるAPIゲートウェイ。
 - **IdentityService:** ユーザー認証とグローバルなユーザー情報を管理するサービス。
 - **OrganizationService:** 組織、組織へのユーザー招待、組織レベルの役割を管理するサービス。
 - **ProjectService:** プロジェクト、プロジェクトメンバー、プロジェクトレベルの役割を管理するサービス。
 - **TaskService:** タスク、担当者、コメントなどを管理するサービス。
-- **WebApp:** ユーザーが操作するためのフロントエンドアプリケーション (Blazor Web App)。
+- **WebApp:** 対話型サーバーサイドレンダリング (Interactive SSR) を使用したBlazor Serverフロントエンドアプリケーション。
 
 ```mermaid
 graph TD
     subgraph .NET Aspire AppHost
         direction LR
         WebApp
-        ApiServiceGateway
+        YARP[API Gateway YARP]
         IdentityService
         OrganizationService
         ProjectService
@@ -29,11 +29,11 @@ graph TD
     end
 
     User -- HTTPS --> WebApp
-    WebApp -- HTTP/gRPC --> ApiServiceGateway
-    ApiServiceGateway -- ルーティング --> IdentityService
-    ApiServiceGateway -- ルーティング --> OrganizationService
-    ApiServiceGateway -- ルーティング --> ProjectService
-    ApiServiceGateway -- ルーティング --> TaskService
+    WebApp -- SignalR/HTTP --> YARP
+    YARP -- ルーティング --> IdentityService
+    YARP -- ルーティング --> OrganizationService
+    YARP -- ルーティング --> ProjectService
+    YARP -- ルーティング --> TaskService
 ```
 
 ## 3. データモデル

@@ -78,42 +78,42 @@
 
 ### フェーズ4: マイクロサービス実装 ⏱️ 想定期間: 3週間
 
-#### 4.1 IdentityService の実装 [高優先度] - 5日
-- [ ] Entity Framework Core の設定
-- [ ] User エンティティの実装
-- [ ] 認証エンドポイントの実装
-  - [ ] POST /api/v1/auth/login
-  - [ ] POST /api/v1/auth/logout
-  - [ ] POST /api/v1/auth/refresh
-  - [ ] GET /api/v1/auth/me
-- [ ] JWT トークン生成ロジック
-- [ ] パスワードハッシュ化
-- [ ] マイグレーションの作成
+#### 4.1 IdentityService の実装 [高優先度] - 5日 ✅ **完了**
+- [x] Entity Framework Core の設定
+- [x] User エンティティの実装
+- [x] 認証エンドポイントの実装
+  - [x] POST /api/v1/auth/login
+  - [x] POST /api/v1/auth/logout
+  - [x] POST /api/v1/auth/refresh
+  - [x] GET /api/v1/auth/me
+- [x] JWT トークン生成ロジック
+- [x] パスワードハッシュ化
+- [x] マイグレーションの作成
 
-#### 4.2 OrganizationService の実装 [中優先度] - 3日
-- [ ] データモデルの実装（Organization, OrganizationUser）
-- [ ] CRUD API の実装
-- [ ] 権限チェックミドルウェア
-- [ ] マイグレーションの作成
+#### 4.2 OrganizationService の実装 [中優先度] - 3日 ✅ **完了**
+- [x] データモデルの実装（Organization, OrganizationUser）
+- [x] CRUD API の実装
+- [x] 権限チェックミドルウェア
+- [x] マイグレーションの作成
 
-#### 4.3 ProjectService の実装 [中優先度] - 3日
-- [ ] データモデルの実装（Project, ProjectMember）
-- [ ] CRUD API の実装
-- [ ] プロジェクトメンバー管理API
-- [ ] マイグレーションの作成
+#### 4.3 ProjectService の実装 [中優先度] - 3日 ✅ **完了**
+- [x] データモデルの実装（Project, ProjectMember）
+- [x] CRUD API の実装
+- [x] プロジェクトメンバー管理API
+- [x] マイグレーションの作成
 
-#### 4.4 TaskService の実装 [中優先度] - 4日
-- [ ] データモデルの実装（Task, Comment）
-- [ ] タスクCRUD API
-- [ ] コメント機能の実装
-- [ ] タスク状態管理
-- [ ] マイグレーションの作成
+#### 4.4 TaskService の実装 [中優先度] - 4日 ✅ **完了**
+- [x] データモデルの実装（Task, Comment）
+- [x] タスクCRUD API
+- [x] コメント機能の実装
+- [x] タスク状態管理
+- [x] マイグレーションの作成
 
-#### 4.5 ApiServiceGateway の実装 [高優先度] - 2日
-- [ ] Ocelot パッケージのインストール
-- [ ] ルーティング設定（ocelot.json）
-- [ ] 認証ミドルウェアの設定
-- [ ] レート制限の実装
+#### 4.5 ApiServiceGateway の実装 [高優先度] - 2日 ✅ **完了**
+- [x] Ocelot パッケージのインストール
+- [x] ルーティング設定（ocelot.json）
+- [x] 認証ミドルウェアの設定
+- [x] レート制限の実装
 
 ### フェーズ5: フロントエンド実装 ⏱️ 想定期間: 2週間
 
@@ -165,7 +165,6 @@
 #### 7.1 CI/CD パイプライン
 - [ ] GitHub Actions の設定
 - [ ] ビルド・テストの自動化
-- [ ] Dockerイメージのビルド
 
 #### 7.2 本番環境準備
 - [ ] 環境変数の設定

@@ -1,7 +1,53 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@inject ILogger<Home> Logger
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+<div class="mt-4">
+    <h3>Logging Test</h3>
+    <button class="btn btn-primary" @onclick="TestLogging">Test Server Logging</button>
+    @if (!string.IsNullOrEmpty(lastLogMessage))
+    {
+        <div class="alert alert-info mt-2">
+            Last log: @lastLogMessage
+        </div>
+    }
+</div>
+
+@code {
+    private string lastLogMessage = string.Empty;
+    
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation("=== HOME COMPONENT INITIALIZED (Server-side) ===");
+        Logger.LogDebug("Home component OnInitialized called at {Time}", DateTime.Now);
+        base.OnInitialized();
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("=== HOME COMPONENT ASYNC INITIALIZATION (Server-side) ===");
+        Logger.LogDebug("Home component OnInitializedAsync called at {Time}", DateTime.Now);
+        await base.OnInitializedAsync();
+    }
+    
+    private void TestLogging()
+    {
+        var timestamp = DateTime.Now.ToString("HH:mm:ss");
+        
+        Logger.LogTrace("TRACE: Test logging button clicked at {Time}", timestamp);
+        Logger.LogDebug("DEBUG: Test logging button clicked at {Time}", timestamp);
+        Logger.LogInformation("INFO: Test logging button clicked at {Time}", timestamp);
+        Logger.LogWarning("WARNING: Test logging button clicked at {Time}", timestamp);
+        Logger.LogError("ERROR: Test logging button clicked at {Time}", timestamp);
+        Logger.LogCritical("CRITICAL: Test logging button clicked at {Time}", timestamp);
+        
+        lastLogMessage = $"Logging test completed at {timestamp} - Check server console for output";
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,80 @@
+{
+  "ReverseProxy": {
+    "Routes": {
+      "identity-route": {
+        "ClusterId": "identity-cluster",
+        "Match": {
+          "Path": "/api/auth/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/api/auth/{**catch-all}"
+          }
+        ]
+      },
+      "organization-route": {
+        "ClusterId": "organization-cluster",
+        "Match": {
+          "Path": "/api/organizations/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/api/organizations/{**catch-all}"
+          }
+        ]
+      },
+      "project-route": {
+        "ClusterId": "project-cluster",
+        "Match": {
+          "Path": "/api/projects/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/api/projects/{**catch-all}"
+          }
+        ]
+      },
+      "task-route": {
+        "ClusterId": "task-cluster",
+        "Match": {
+          "Path": "/api/tasks/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/api/tasks/{**catch-all}"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "identity-cluster": {
+        "Destinations": {
+          "identity-service": {
+            "Address": "http://identity-service"
+          }
+        }
+      },
+      "organization-cluster": {
+        "Destinations": {
+          "organization-service": {
+            "Address": "http://organization-service"
+          }
+        }
+      },
+      "project-cluster": {
+        "Destinations": {
+          "project-service": {
+            "Address": "http://project-service"
+          }
+        }
+      },
+      "task-cluster": {
+        "Destinations": {
+          "task-service": {
+            "Address": "http://task-service"
+          }
+        }
+      }
+    }
+  }
+}

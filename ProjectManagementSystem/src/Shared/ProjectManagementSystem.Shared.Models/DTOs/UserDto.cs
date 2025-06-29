@@ -9,6 +9,7 @@ public class UserDto
     public required string Email { get; set; }
     public required string FirstName { get; set; }
     public required string LastName { get; set; }
+    public required string Role { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
     public bool IsActive { get; set; }
@@ -52,10 +53,10 @@ public class UpdateUserDto
 public class LoginDto
 {
     [Required]
-    public required string Username { get; set; }
+    public string Username { get; set; } = string.Empty;
     
     [Required]
-    public required string Password { get; set; }
+    public string Password { get; set; } = string.Empty;
 }
 
 public class AuthResponseDto
