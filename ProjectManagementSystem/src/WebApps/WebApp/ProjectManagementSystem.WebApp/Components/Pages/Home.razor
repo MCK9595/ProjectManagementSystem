@@ -1,53 +1,232 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @inject ILogger<Home> Logger
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
-<PageTitle>Home</PageTitle>
+<PageTitle>プロジェクト管理システム - ホーム</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
-
-<div class="mt-4">
-    <h3>Logging Test</h3>
-    <button class="btn btn-primary" @onclick="TestLogging">Test Server Logging</button>
-    @if (!string.IsNullOrEmpty(lastLogMessage))
-    {
-        <div class="alert alert-info mt-2">
-            Last log: @lastLogMessage
+<!-- Hero Section -->
+<div class="modern-card modern-shadow-lg animate-page-enter" style="background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-700) 50%, var(--color-secondary-700) 100%); color: white; margin-bottom: var(--space-8);">
+    <div class="modern-card-body" style="padding: var(--space-10) var(--space-8);">
+        <div style="display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-6);">
+            <div style="font-size: 3rem;" class="animate-bounce-in animate-delay-300">🚀</div>
+            <div>
+                <h1 style="font-size: var(--font-size-4xl); font-weight: var(--font-weight-bold); margin: 0; margin-bottom: var(--space-2);" class="animate-slide-in-left animate-delay-200">
+                    プロジェクト管理システム
+                </h1>
+                <p style="font-size: var(--font-size-lg); opacity: 0.9; margin: 0;" class="animate-slide-in-left animate-delay-500">
+                    効率的なチーム協働とプロジェクト管理のためのモダンプラットフォーム
+                </p>
+            </div>
         </div>
-    }
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-6); margin-top: var(--space-8);">
+            <div style="text-align: center;" class="animate-fade-in animate-delay-700">
+                <div style="font-size: var(--font-size-2xl); margin-bottom: var(--space-2);" class="hover-float">📊</div>
+                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-1);">プロジェクト管理</h3>
+                <p style="font-size: var(--font-size-sm); opacity: 0.8; margin: 0;">進捗の可視化と効率的な管理</p>
+            </div>
+            <div style="text-align: center;" class="animate-fade-in animate-delay-1000">
+                <div style="font-size: var(--font-size-2xl); margin-bottom: var(--space-2);" class="hover-pulse">👥</div>
+                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-1);">チーム協働</h3>
+                <p style="font-size: var(--font-size-sm); opacity: 0.8; margin: 0;">シームレスなコミュニケーション</p>
+            </div>
+            <div style="text-align: center;" class="animate-fade-in animate-delay-1000">
+                <div style="font-size: var(--font-size-2xl); margin-bottom: var(--space-2);" class="hover-wiggle">📋</div>
+                <h3 style="font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-1);">タスク管理</h3>
+                <p style="font-size: var(--font-size-sm); opacity: 0.8; margin: 0;">詳細な進捗トラッキング</p>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Quick Actions Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-8);">
+    
+    <!-- Organizations Card -->
+    <div class="modern-card modern-hover-lift animate-slide-in-bottom animate-delay-200">
+        <div class="modern-card-header">
+            <h3 class="modern-card-title">
+                <span style="font-size: var(--font-size-xl);" class="hover-bounce">🏢</span>
+                組織管理
+            </h3>
+            <p class="modern-card-subtitle">組織とメンバーシップの管理</p>
+        </div>
+        <div class="modern-card-body">
+            <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+                組織の作成、編集、メンバーの招待や権限管理を行います。
+            </p>
+            <AuthorizeView>
+                <Authorized>
+                    <div style="display: flex; gap: var(--space-3);">
+                        <a href="/organizations" class="btn btn-primary btn-sm btn-animated ripple">
+                            組織一覧を見る
+                        </a>
+                        <a href="/organizations/create" class="btn btn-outline btn-sm btn-animated ripple">
+                            新規作成
+                        </a>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div style="padding: var(--space-3); background: var(--color-gray-100); border-radius: var(--radius-md); border: 1px solid var(--color-gray-200);">
+                        <p style="color: var(--color-gray-600); margin: 0; font-size: var(--font-size-sm);">
+                            ログイン後にご利用いただけます
+                        </p>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </div>
+
+    <!-- Projects Card -->
+    <div class="modern-card modern-hover-lift animate-slide-in-bottom animate-delay-500">
+        <div class="modern-card-header">
+            <h3 class="modern-card-title">
+                <span style="font-size: var(--font-size-xl);" class="hover-bounce">📁</span>
+                プロジェクト管理
+            </h3>
+            <p class="modern-card-subtitle">プロジェクトの作成と進捗管理</p>
+        </div>
+        <div class="modern-card-body">
+            <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+                プロジェクトの計画、実行、監視を一元的に管理します。
+            </p>
+            <AuthorizeView>
+                <Authorized>
+                    <div style="display: flex; gap: var(--space-3);">
+                        <a href="/projects" class="btn btn-primary btn-sm btn-animated ripple">
+                            プロジェクト一覧
+                        </a>
+                        <a href="/projects/create" class="btn btn-outline btn-sm btn-animated ripple">
+                            新規作成
+                        </a>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div style="padding: var(--space-3); background: var(--color-gray-100); border-radius: var(--radius-md); border: 1px solid var(--color-gray-200);">
+                        <p style="color: var(--color-gray-600); margin: 0; font-size: var(--font-size-sm);">
+                            ログイン後にご利用いただけます
+                        </p>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </div>
+
+    <!-- Tasks Card -->
+    <div class="modern-card modern-hover-lift animate-slide-in-bottom animate-delay-700">
+        <div class="modern-card-header">
+            <h3 class="modern-card-title">
+                <span style="font-size: var(--font-size-xl);" class="hover-bounce">✅</span>
+                タスク管理
+            </h3>
+            <p class="modern-card-subtitle">詳細なタスクトラッキング</p>
+        </div>
+        <div class="modern-card-body">
+            <p style="color: var(--color-gray-600); margin-bottom: var(--space-4);">
+                個別タスクの作成、割り当て、進捗状況の追跡を行います。
+            </p>
+            <AuthorizeView>
+                <Authorized>
+                    <div style="display: flex; gap: var(--space-3);">
+                        <a href="/tasks" class="btn btn-primary btn-sm btn-animated ripple">
+                            タスク一覧
+                        </a>
+                        <a href="/tasks/create" class="btn btn-outline btn-sm btn-animated ripple">
+                            新規作成
+                        </a>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div style="padding: var(--space-3); background: var(--color-gray-100); border-radius: var(--radius-md); border: 1px solid var(--color-gray-200);">
+                        <p style="color: var(--color-gray-600); margin: 0; font-size: var(--font-size-sm);">
+                            ログイン後にご利用いただけます
+                        </p>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </div>
+</div>
+
+
+<!-- Recent Activity Section - Only for authenticated users -->
+<AuthorizeView>
+    <Authorized>
+        <div class="modern-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">
+                    <span style="font-size: var(--font-size-lg);">📈</span>
+                    あなたのアクティビティ
+                </h3>
+                <p class="modern-card-subtitle">個人の利用状況</p>
+            </div>
+            <div class="modern-card-body">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-6);">
+                    <div style="text-align: center; padding: var(--space-4); background: var(--color-primary-50); border-radius: var(--radius-lg);" class="modern-hover-lift animate-scale-in animate-delay-200">
+                        <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-primary-600);" class="count-up">@(userStats?.ActiveProjects ?? 0)</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">参加プロジェクト</div>
+                    </div>
+                    <div style="text-align: center; padding: var(--space-4); background: var(--color-success-50); border-radius: var(--radius-lg);" class="modern-hover-lift animate-scale-in animate-delay-300">
+                        <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-success-600);" class="count-up">@(userStats?.CompletedTasks ?? 0)</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">完了タスク</div>
+                    </div>
+                    <div style="text-align: center; padding: var(--space-4); background: var(--color-warning-50); border-radius: var(--radius-lg);" class="modern-hover-lift animate-scale-in animate-delay-500">
+                        <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-warning-600);" class="count-up">@(userStats?.PendingTasks ?? 0)</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">進行中タスク</div>
+                    </div>
+                    <div style="text-align: center; padding: var(--space-4); background: var(--color-secondary-50); border-radius: var(--radius-lg);" class="modern-hover-lift animate-scale-in animate-delay-700">
+                        <div style="font-size: var(--font-size-2xl); font-weight: var(--font-weight-bold); color: var(--color-secondary-600);" class="count-up">@(userStats?.OrganizationCount ?? 0)</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">所属組織</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
 @code {
-    private string lastLogMessage = string.Empty;
-    
-    protected override void OnInitialized()
-    {
-        Logger.LogInformation("=== HOME COMPONENT INITIALIZED (Server-side) ===");
-        Logger.LogDebug("Home component OnInitialized called at {Time}", DateTime.Now);
-        base.OnInitialized();
-    }
-    
+    private UserActivityStats? userStats;
+
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogInformation("=== HOME COMPONENT ASYNC INITIALIZATION (Server-side) ===");
-        Logger.LogDebug("Home component OnInitializedAsync called at {Time}", DateTime.Now);
+        Logger.LogInformation("Home component initialized");
+        
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            await LoadUserStats();
+        }
+        
         await base.OnInitializedAsync();
     }
-    
-    private void TestLogging()
+
+    private async Task LoadUserStats()
     {
-        var timestamp = DateTime.Now.ToString("HH:mm:ss");
-        
-        Logger.LogTrace("TRACE: Test logging button clicked at {Time}", timestamp);
-        Logger.LogDebug("DEBUG: Test logging button clicked at {Time}", timestamp);
-        Logger.LogInformation("INFO: Test logging button clicked at {Time}", timestamp);
-        Logger.LogWarning("WARNING: Test logging button clicked at {Time}", timestamp);
-        Logger.LogError("ERROR: Test logging button clicked at {Time}", timestamp);
-        Logger.LogCritical("CRITICAL: Test logging button clicked at {Time}", timestamp);
-        
-        lastLogMessage = $"Logging test completed at {timestamp} - Check server console for output";
-        StateHasChanged();
+        try
+        {
+            // TODO: Implement API call to get user statistics
+            // For now, using placeholder data
+            userStats = new UserActivityStats
+            {
+                ActiveProjects = 0,
+                CompletedTasks = 0,
+                PendingTasks = 0,
+                OrganizationCount = 0
+            };
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load user statistics");
+        }
+    }
+
+    public class UserActivityStats
+    {
+        public int ActiveProjects { get; set; }
+        public int CompletedTasks { get; set; }
+        public int PendingTasks { get; set; }
+        public int OrganizationCount { get; set; }
     }
 }

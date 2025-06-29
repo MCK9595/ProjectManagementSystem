@@ -27,13 +27,19 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginDto loginDto)
     {
         var requestId = Guid.NewGuid().ToString("N")[..8];
-        _logger.LogInformation("=== LOGIN REQUEST {RequestId} RECEIVED ===", requestId);
-        _logger.LogInformation("Request received for user: {Username}", loginDto?.Username ?? "null");
-        _logger.LogInformation("Request Method: {Method}, Path: {Path}", HttpContext.Request.Method, HttpContext.Request.Path);
-        _logger.LogInformation("Request Headers: {Headers}", 
-            string.Join(", ", HttpContext.Request.Headers.Select(h => $"{h.Key}: {string.Join(", ", h.Value.ToArray())}")));
-        _logger.LogInformation("Remote IP: {RemoteIp}", HttpContext.Connection.RemoteIpAddress);
-        _logger.LogInformation("Content-Type: {ContentType}", HttpContext.Request.ContentType);
+        _logger.LogInformation("Login request received for user: {Username} [{RequestId}]", loginDto?.Username ?? "null", requestId);
+        
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            var sanitizedHeaders = HttpContext.Request.Headers
+                .Where(h => !h.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase) && 
+                           !h.Key.Equals("Cookie", StringComparison.OrdinalIgnoreCase))
+                .Select(h => $"{h.Key}: {string.Join(", ", h.Value.ToArray())}");
+            
+            _logger.LogDebug("Login request details [{RequestId}] - Method: {Method}, Path: {Path}, Headers: {Headers}, RemoteIP: {RemoteIp}", 
+                requestId, HttpContext.Request.Method, HttpContext.Request.Path, 
+                string.Join(", ", sanitizedHeaders), HttpContext.Connection.RemoteIpAddress);
+        }
         
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         
@@ -49,25 +55,25 @@ public class AuthController : ControllerBase
                 return BadRequest(ApiResponse<AuthResponseDto>.ErrorResult("Invalid input", errors));
             }
 
-            _logger.LogInformation("Calling auth service for user: {Username}", loginDto.Username);
+            _logger.LogDebug("Calling auth service for user: {Username} [{RequestId}]", loginDto.Username, requestId);
             var authResponse = await _authService.LoginAsync(loginDto);
             
             if (authResponse == null)
             {
                 stopwatch.Stop();
-                _logger.LogWarning("=== LOGIN FAILED {RequestId} === Duration: {Duration}ms", requestId, stopwatch.ElapsedMilliseconds);
+                _logger.LogWarning("Login failed for user: {Username} [{RequestId}] - Duration: {Duration}ms", loginDto.Username, requestId, stopwatch.ElapsedMilliseconds);
                 return Unauthorized(ApiResponse<AuthResponseDto>.ErrorResult("Invalid username or password"));
             }
 
             stopwatch.Stop();
-            _logger.LogInformation("=== LOGIN SUCCESSFUL {RequestId} === Duration: {Duration}ms", requestId, stopwatch.ElapsedMilliseconds);
+            _logger.LogInformation("Login successful for user: {Username} [{RequestId}] - Duration: {Duration}ms", loginDto.Username, requestId, stopwatch.ElapsedMilliseconds);
             return Ok(ApiResponse<AuthResponseDto>.SuccessResult(authResponse, "Login successful"));
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            _logger.LogError(ex, "=== LOGIN EXCEPTION {RequestId} === Error during login for user {Username}, Duration: {Duration}ms", 
-                requestId, loginDto.Username, stopwatch.ElapsedMilliseconds);
+            _logger.LogError(ex, "Login exception for user: {Username} [{RequestId}] - Duration: {Duration}ms", 
+                loginDto.Username, requestId, stopwatch.ElapsedMilliseconds);
             return StatusCode(500, ApiResponse<AuthResponseDto>.ErrorResult("An error occurred during login"));
         }
     }
@@ -141,14 +147,23 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponse<UserDto>>> GetCurrentUser()
     {
         var requestId = Guid.NewGuid().ToString("N")[..8];
-        _logger.LogInformation("=== GET CURRENT USER REQUEST {RequestId} ===", requestId);
-        _logger.LogInformation("Request Headers: {Headers}", 
-            string.Join(", ", HttpContext.Request.Headers.Select(h => $"{h.Key}: {string.Join(", ", h.Value.ToArray())}")));
+        _logger.LogInformation("Get current user request [{RequestId}]", requestId);
+        
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            var sanitizedHeaders = HttpContext.Request.Headers
+                .Where(h => !h.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase) && 
+                           !h.Key.Equals("Cookie", StringComparison.OrdinalIgnoreCase))
+                .Select(h => $"{h.Key}: {string.Join(", ", h.Value.ToArray())}");
+            
+            _logger.LogDebug("Get current user request details [{RequestId}] - Headers: {Headers}", 
+                requestId, string.Join(", ", sanitizedHeaders));
+        }
         
         try
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            _logger.LogInformation("User ID from token: {UserId}", userIdClaim);
+            _logger.LogDebug("User ID from token: {UserId} [{RequestId}]", userIdClaim, requestId);
             
             if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
             {

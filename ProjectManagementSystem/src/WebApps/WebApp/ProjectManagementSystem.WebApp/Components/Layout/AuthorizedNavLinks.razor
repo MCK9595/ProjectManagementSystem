@@ -2,33 +2,38 @@
 @using ProjectManagementSystem.Shared.Common.Constants
 @rendermode InteractiveServer
 @inject AuthenticationStateProvider AuthStateProvider
+@inject ILogger<AuthorizedNavLinks> Logger
 
 <AuthorizeView>
     <Authorized>
+        <div class="nav-category">プロジェクト管理</div>
+        
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="organizations">
-                <span class="bi bi-building-nav-menu" aria-hidden="true"></span> Organizations
+            <NavLink class="nav-link animate-slide-in-left animate-delay-100" href="organizations">
+                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> 組織
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="projects">
-                <span class="bi bi-folder-nav-menu" aria-hidden="true"></span> Projects
+            <NavLink class="nav-link animate-slide-in-left animate-delay-200" href="projects">
+                <span class="bi bi-kanban-fill-nav-menu" aria-hidden="true"></span> プロジェクト
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="tasks">
-                <span class="bi bi-list-check-nav-menu" aria-hidden="true"></span> Tasks
+            <NavLink class="nav-link animate-slide-in-left animate-delay-300" href="tasks">
+                <span class="bi bi-clipboard-check-fill-nav-menu" aria-hidden="true"></span> タスク
             </NavLink>
         </div>
 
         <!-- User Management - Only for SystemAdmin -->
         @if (showUserManagement)
         {
+            <div class="nav-category">システム管理</div>
             <div class="nav-item px-3">
-                <NavLink class="nav-link" href="users">
-                    <span class="bi bi-people-nav-menu" aria-hidden="true"></span> Users
+                <NavLink class="nav-link animate-slide-in-left animate-delay-500" href="users">
+                    <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> ユーザー管理
+                    <span class="nav-badge admin-badge">Admin</span>
                 </NavLink>
             </div>
         }
@@ -45,9 +50,9 @@
         if (authState.User.Identity?.IsAuthenticated == true)
         {
             var userRole = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            Console.WriteLine($"[AuthorizedNavLinks] User role: '{userRole}', Expected: '{Roles.SystemAdmin}'");
+            Logger.LogDebug("User role: {UserRole}, Expected: {ExpectedRole}", userRole, Roles.SystemAdmin);
             showUserManagement = userRole == Roles.SystemAdmin;
-            Console.WriteLine($"[AuthorizedNavLinks] Show user management: {showUserManagement}");
+            Logger.LogDebug("Show user management: {ShowUserManagement}", showUserManagement);
         }
     }
 }
