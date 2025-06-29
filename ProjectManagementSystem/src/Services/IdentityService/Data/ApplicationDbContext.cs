@@ -22,10 +22,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         modelBuilder.Entity<ApplicationUser>(entity =>
         {
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
                 
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
         });
 
         // Configure RefreshToken entity
@@ -39,16 +39,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                 .OnDelete(DeleteBehavior.Cascade);
                 
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
         });
 
-        // Configure Identity tables with PostgreSQL-specific naming
+        // Configure Identity tables with SQL Server naming
         ConfigureIdentityTables(modelBuilder);
     }
 
     private static void ConfigureIdentityTables(ModelBuilder modelBuilder)
     {
-        // Configure Identity table names for PostgreSQL
+        // Configure Identity table names for SQL Server
         modelBuilder.Entity<ApplicationUser>().ToTable("Users");
         modelBuilder.Entity<ApplicationRole>().ToTable("Roles");
         modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");

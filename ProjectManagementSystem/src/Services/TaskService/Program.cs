@@ -9,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add PostgreSQL DbContext
-builder.AddNpgsqlDbContext<TaskDbContext>(connectionName: "taskdb");
+// Add SQL Server DbContext
+builder.AddSqlServerDbContext<TaskDbContext>(connectionName: "taskdb");
 
 // Add JWT authentication
 var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("JWT Key not configured");
@@ -90,11 +90,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Ensure database is created
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<TaskDbContext>();
-    await context.Database.EnsureCreatedAsync();
-}
 
 app.Run();

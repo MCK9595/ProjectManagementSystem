@@ -10,8 +10,8 @@ public class TaskDbContextFactory : IDesignTimeDbContextFactory<TaskDbContext>
         var optionsBuilder = new DbContextOptionsBuilder<TaskDbContext>();
         
         // Use a default connection string for design-time operations
-        var connectionString = "Host=localhost;Database=projectmanagement_taskdb;Username=postgres;Password=postgres";
-        optionsBuilder.UseNpgsql(connectionString);
+        var connectionString = "Server=localhost,1433;Database=projectmanagement_taskdb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;";
+        optionsBuilder.UseSqlServer(connectionString);
 
         return new TaskDbContext(optionsBuilder.Options);
     }

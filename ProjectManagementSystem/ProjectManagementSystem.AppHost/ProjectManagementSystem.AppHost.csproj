@@ -12,12 +12,14 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.3.1" />
+    <PackageReference Include="Aspire.Hosting.Azure.Sql" Version="9.3.2" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.3.1" />
     <PackageReference Include="Aspire.Hosting.Yarp" Version="9.3.1-preview.1.25305.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\src\Services\IdentityService\ProjectManagementSystem.IdentityService.csproj" />
+    <ProjectReference Include="..\src\Services\MigrationService\ProjectManagementSystem.MigrationService.csproj" />
     <ProjectReference Include="..\src\Services\OrganizationService\ProjectManagementSystem.OrganizationService.csproj" />
     <ProjectReference Include="..\src\Services\ProjectService\ProjectManagementSystem.ProjectService.csproj" />
     <ProjectReference Include="..\src\Services\TaskService\ProjectManagementSystem.TaskService.csproj" />

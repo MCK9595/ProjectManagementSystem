@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add PostgreSQL database context using .NET Aspire
-builder.AddNpgsqlDbContext<ApplicationDbContext>(connectionName: "identitydb");
+// Add SQL Server database context using .NET Aspire
+builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "identitydb");
 
 // Configure ASP.NET Core Identity with custom authentication setup
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -152,14 +152,5 @@ app.MapGet("/debug/ping", () => Results.Ok(new {
 .WithName("DebugPing")
 .WithTags("Diagnostics");
 
-// Ensure database is created and seeded
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await context.Database.EnsureCreatedAsync();
-    
-    // Seed initial data
-    await DataSeeder.SeedAsync(app.Services);
-}
 
 app.Run();

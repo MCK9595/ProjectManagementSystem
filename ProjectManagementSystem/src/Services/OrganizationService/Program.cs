@@ -9,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add PostgreSQL database context using .NET Aspire
-builder.AddNpgsqlDbContext<OrganizationDbContext>(connectionName: "organizationdb");
+// Add SQL Server database context using .NET Aspire
+builder.AddSqlServerDbContext<OrganizationDbContext>(connectionName: "organizationdb");
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -93,11 +93,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Ensure database is created
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<OrganizationDbContext>();
-    await context.Database.EnsureCreatedAsync();
-}
 
 app.Run();

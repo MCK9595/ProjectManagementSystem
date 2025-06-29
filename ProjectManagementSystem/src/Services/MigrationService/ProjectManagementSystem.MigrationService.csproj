@@ -1,26 +1,28 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-ProjectManagementSystem.MigrationService-6f97ab6e-a9f7-449a-abfe-16d23c95e858</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.3.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.6" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\ProjectManagementSystem.ServiceDefaults\ProjectManagementSystem.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\Shared\ProjectManagementSystem.Shared.Models\ProjectManagementSystem.Shared.Models.csproj" />
+    <ProjectReference Include="..\IdentityService\ProjectManagementSystem.IdentityService.csproj" />
+    <ProjectReference Include="..\OrganizationService\ProjectManagementSystem.OrganizationService.csproj" />
+    <ProjectReference Include="..\ProjectService\ProjectManagementSystem.ProjectService.csproj" />
+    <ProjectReference Include="..\TaskService\ProjectManagementSystem.TaskService.csproj" />
     <ProjectReference Include="..\..\Shared\ProjectManagementSystem.Shared.Common\ProjectManagementSystem.Shared.Common.csproj" />
   </ItemGroup>
-
 </Project>

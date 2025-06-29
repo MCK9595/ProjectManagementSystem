@@ -22,10 +22,10 @@ public class OrganizationDbContext : DbContext
             entity.HasIndex(e => e.Name).IsUnique();
             
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
                 
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
 
             // Configure relationship with OrganizationUsers
             entity.HasMany(o => o.Members)
@@ -43,7 +43,7 @@ public class OrganizationDbContext : DbContext
                 .HasDatabaseName("IX_OrganizationUsers_OrganizationId_UserId");
                 
             entity.Property(e => e.JoinedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
         });
     }
 

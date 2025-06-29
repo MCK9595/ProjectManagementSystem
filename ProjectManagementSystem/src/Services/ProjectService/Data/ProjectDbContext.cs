@@ -24,10 +24,10 @@ public class ProjectDbContext : DbContext
                 .HasDatabaseName("IX_Projects_Name_OrganizationId");
             
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
                 
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
 
             // Configure relationship with ProjectMembers
             entity.HasMany(p => p.Members)
@@ -45,7 +45,7 @@ public class ProjectDbContext : DbContext
                 .HasDatabaseName("IX_ProjectMembers_ProjectId_UserId");
                 
             entity.Property(e => e.JoinedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
         });
     }
 

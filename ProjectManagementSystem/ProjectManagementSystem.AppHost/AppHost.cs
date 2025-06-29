@@ -1,41 +1,50 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-// データベースの追加 (PostgreSQL)
-var postgres = builder.AddPostgres("postgres")
-    .WithPgAdmin();
+// データベースの追加 (Azure SQL Server - ローカルではコンテナ、本番ではAzure SQL Database)
+var azureSql = builder.AddAzureSqlServer("azuresql")
+    .RunAsContainer(container => container.WithDataVolume());
 
-var identityDb = postgres.AddDatabase("identitydb");
-var organizationDb = postgres.AddDatabase("organizationdb");
-var projectDb = postgres.AddDatabase("projectdb");
-var taskDb = postgres.AddDatabase("taskdb");
+var identityDb = azureSql.AddDatabase("identitydb");
+var organizationDb = azureSql.AddDatabase("organizationdb");
+var projectDb = azureSql.AddDatabase("projectdb");
+var taskDb = azureSql.AddDatabase("taskdb");
 
-// IdentityService - 基盤サービスとして最初に起動
+// MigrationService - データベースマイグレーションを最初に実行（Microsoft Docs準拠）
+var migrationService = builder.AddProject<Projects.ProjectManagementSystem_MigrationService>("migration-service")
+    .WithReference(azureSql)
+    .WithReference(identityDb)
+    .WithReference(organizationDb)
+    .WithReference(projectDb)
+    .WithReference(taskDb)
+    .WaitFor(azureSql);
+
+// IdentityService - MigrationServiceの完了を待機してから起動
 var identityService = builder.AddProject<Projects.ProjectManagementSystem_IdentityService>("identity-service")
     .WithReference(identityDb)
-    .WaitFor(identityDb);
+    .WaitFor(migrationService);
 
-// OrganizationService - IdentityServiceの起動を待機
+// OrganizationService - MigrationServiceとIdentityServiceの起動を待機
 var organizationService = builder.AddProject<Projects.ProjectManagementSystem_OrganizationService>("organization-service")
     .WithReference(organizationDb)
     .WithReference(identityService)
-    .WaitFor(organizationDb)
+    .WaitFor(migrationService)
     .WaitFor(identityService);
 
-// ProjectService - IdentityServiceとOrganizationServiceの起動を待機
+// ProjectService - MigrationService、IdentityService、OrganizationServiceの起動を待機
 var projectService = builder.AddProject<Projects.ProjectManagementSystem_ProjectService>("project-service")
     .WithReference(projectDb)
     .WithReference(identityService)
     .WithReference(organizationService)
-    .WaitFor(projectDb)
+    .WaitFor(migrationService)
     .WaitFor(identityService)
     .WaitFor(organizationService);
 
-// TaskService - IdentityServiceとProjectServiceの起動を待機
+// TaskService - MigrationService、IdentityService、ProjectServiceの起動を待機
 var taskService = builder.AddProject<Projects.ProjectManagementSystem_TaskService>("task-service")
     .WithReference(taskDb)
     .WithReference(identityService)
     .WithReference(projectService)
-    .WaitFor(taskDb)
+    .WaitFor(migrationService)
     .WaitFor(identityService)
     .WaitFor(projectService);
 

@@ -10,8 +10,8 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
         
         // Use a default connection string for design-time operations
-        var connectionString = "Host=localhost;Database=projectmanagement_identitydb;Username=postgres;Password=postgres";
-        optionsBuilder.UseNpgsql(connectionString);
+        var connectionString = "Server=localhost,1433;Database=projectmanagement_identitydb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;";
+        optionsBuilder.UseSqlServer(connectionString);
 
         return new ApplicationDbContext(optionsBuilder.Options);
     }

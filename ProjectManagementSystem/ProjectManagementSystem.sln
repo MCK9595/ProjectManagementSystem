@@ -48,6 +48,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagementSystem.Sha
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagementSystem.Shared.Common", "src\Shared\ProjectManagementSystem.Shared.Common\ProjectManagementSystem.Shared.Common.csproj", "{215B49FC-AC6C-4CCF-A589-75D8726D6349}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjectManagementSystem.MigrationService", "src\Services\MigrationService\ProjectManagementSystem.MigrationService.csproj", "{A735AF98-81E6-4EA6-8184-E79CFE9EF168}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,6 +116,10 @@ Global
 		{215B49FC-AC6C-4CCF-A589-75D8726D6349}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{215B49FC-AC6C-4CCF-A589-75D8726D6349}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{215B49FC-AC6C-4CCF-A589-75D8726D6349}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A735AF98-81E6-4EA6-8184-E79CFE9EF168}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A735AF98-81E6-4EA6-8184-E79CFE9EF168}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A735AF98-81E6-4EA6-8184-E79CFE9EF168}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A735AF98-81E6-4EA6-8184-E79CFE9EF168}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -141,5 +147,6 @@ Global
 		{36A04A8B-368F-44C6-87E0-4ADFC935A069} = {DEAD585E-B624-484F-98D9-24D2474AA5C9}
 		{7958C7AE-1EC2-43A5-B770-AAE02A64563C} = {36A04A8B-368F-44C6-87E0-4ADFC935A069}
 		{215B49FC-AC6C-4CCF-A589-75D8726D6349} = {36A04A8B-368F-44C6-87E0-4ADFC935A069}
+		{A735AF98-81E6-4EA6-8184-E79CFE9EF168} = {D248493C-5B81-4CCB-8676-5A129ADEB4DD}
 	EndGlobalSection
 EndGlobal

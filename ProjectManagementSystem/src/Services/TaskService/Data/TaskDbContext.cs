@@ -32,10 +32,10 @@ public class TaskDbContext : DbContext
                 .HasDatabaseName("IX_Tasks_Priority");
             
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
                 
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
 
             // Configure relationship with Comments
             entity.HasMany(t => t.Comments)
@@ -54,10 +54,10 @@ public class TaskDbContext : DbContext
                 .HasDatabaseName("IX_Comments_UserId");
                 
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
                 
             entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("NOW()");
+                .HasDefaultValueSql("GETUTCDATE()");
         });
     }
 

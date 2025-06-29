@@ -9,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add PostgreSQL DbContext
-builder.AddNpgsqlDbContext<ProjectDbContext>(connectionName: "projectdb");
+// Add SQL Server DbContext
+builder.AddSqlServerDbContext<ProjectDbContext>(connectionName: "projectdb");
 
 // Add JWT authentication
 var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("JWT Key not configured");
