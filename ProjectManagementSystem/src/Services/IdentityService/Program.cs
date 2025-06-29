@@ -73,11 +73,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SystemAdminOnly", policy =>
+        policy.RequireRole(ProjectManagementSystem.Shared.Common.Constants.Roles.SystemAdmin));
+});
 
 // Register application services
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
 // Add OpenAPI with JWT authentication
 builder.Services.AddEndpointsApiExplorer();

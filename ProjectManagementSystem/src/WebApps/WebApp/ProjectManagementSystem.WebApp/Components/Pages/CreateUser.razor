@@ -1,0 +1,367 @@
+@page "/users/create"
+@using Microsoft.AspNetCore.Components.Authorization
+@using ProjectManagementSystem.WebApp.Services
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Common.Constants
+@rendermode InteractiveServer
+@inject IUserService UserService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSInterop
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Create User - Project Management System</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Create New User</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="/users" class="text-decoration-none">Users</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Create</li>
+                        </ol>
+                    </nav>
+                </div>
+                <button class="btn btn-outline-secondary" @onclick="GoBack">
+                    <i class="bi bi-arrow-left"></i> Back to Users
+                </button>
+            </div>
+
+            <!-- Check if user is authenticated and SystemAdmin -->
+            @if (!isAuthenticated)
+            {
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Please Login:</strong> You need to be logged in to access this page.
+                </div>
+            }
+            else if (!isSystemAdmin)
+            {
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Access Denied:</strong> You don't have permission to create users.
+                </div>
+            }
+            else
+            {
+                <!-- User Creation Form -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-person-plus"></i> User Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <EditForm Model="@createUserRequest" OnValidSubmit="@HandleCreateUser" FormName="CreateUserForm">
+                                    <DataAnnotationsValidator />
+                                    
+                                    @if (!string.IsNullOrEmpty(errorMessage))
+                                    {
+                                        <div class="alert alert-danger">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            @errorMessage
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(successMessage))
+                                    {
+                                        <div class="alert alert-success">
+                                            <i class="bi bi-check-circle"></i>
+                                            @successMessage
+                                        </div>
+                                    }
+
+                                    <div class="row">
+                                        <!-- Username -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                            <InputText id="username" @bind-Value="createUserRequest.Username" 
+                                                      class="form-control" placeholder="Enter username" />
+                                            <ValidationMessage For="@(() => createUserRequest.Username)" class="text-danger" />
+                                            <div class="form-text">Username must be 3-50 characters long and unique.</div>
+                                        </div>
+
+                                        <!-- Email -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                            <InputText id="email" @bind-Value="createUserRequest.Email" 
+                                                      class="form-control" placeholder="Enter email address" type="email" />
+                                            <ValidationMessage For="@(() => createUserRequest.Email)" class="text-danger" />
+                                            <div class="form-text">Must be a valid email address.</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- First Name -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                                            <InputText id="firstName" @bind-Value="createUserRequest.FirstName" 
+                                                      class="form-control" placeholder="Enter first name" />
+                                            <ValidationMessage For="@(() => createUserRequest.FirstName)" class="text-danger" />
+                                        </div>
+
+                                        <!-- Last Name -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                            <InputText id="lastName" @bind-Value="createUserRequest.LastName" 
+                                                      class="form-control" placeholder="Enter last name" />
+                                            <ValidationMessage For="@(() => createUserRequest.LastName)" class="text-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- Role -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                                            <InputSelect id="role" @bind-Value="createUserRequest.Role" class="form-select">
+                                                <option value="">Select a role...</option>
+                                                @if (availableRoles != null)
+                                                {
+                                                    @foreach (var role in availableRoles)
+                                                    {
+                                                        <option value="@role">@role</option>
+                                                    }
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="@(() => createUserRequest.Role)" class="text-danger" />
+                                            <div class="form-text">Select the user's role in the system.</div>
+                                        </div>
+
+                                        <!-- Status -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="isActive" class="form-label">Status</label>
+                                            <div class="form-check form-switch mt-2">
+                                                <InputCheckbox id="isActive" @bind-Value="createUserRequest.IsActive" class="form-check-input" />
+                                                <label class="form-check-label" for="isActive">
+                                                    User is active
+                                                </label>
+                                            </div>
+                                            <div class="form-text">Active users can log in to the system.</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- Password -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <InputText id="password" @bind-Value="createUserRequest.Password" 
+                                                          class="form-control" placeholder="Enter password" 
+                                                          type="@(showPassword ? "text" : "password")" />
+                                                <button class="btn btn-outline-secondary" type="button" 
+                                                        @onclick="TogglePasswordVisibility">
+                                                    <i class="bi bi-@(showPassword ? "eye-slash" : "eye")"></i>
+                                                </button>
+                                            </div>
+                                            <ValidationMessage For="@(() => createUserRequest.Password)" class="text-danger" />
+                                            <div class="form-text">Password must be at least 8 characters with uppercase, lowercase, digit, and special character.</div>
+                                        </div>
+
+                                        <!-- Confirm Password -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="confirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <InputText id="confirmPassword" @bind-Value="confirmPassword" 
+                                                          class="form-control" placeholder="Confirm password" 
+                                                          type="@(showConfirmPassword ? "text" : "password")" />
+                                                <button class="btn btn-outline-secondary" type="button" 
+                                                        @onclick="ToggleConfirmPasswordVisibility">
+                                                    <i class="bi bi-@(showConfirmPassword ? "eye-slash" : "eye")"></i>
+                                                </button>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(createUserRequest.Password) && !string.IsNullOrEmpty(confirmPassword) && createUserRequest.Password != confirmPassword)
+                                            {
+                                                <div class="text-danger">Passwords do not match.</div>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <!-- Form Actions -->
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-outline-secondary" @onclick="GoBack">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                        </button>
+                                        
+                                        <button type="submit" class="btn btn-primary" disabled="@(isSubmitting || !IsFormValid())">
+                                            @if (isSubmitting)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                            }
+                                            <i class="bi bi-person-plus"></i> Create User
+                                        </button>
+                                    </div>
+                                </EditForm>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private CreateUserRequest createUserRequest { get; set; } = new()
+    {
+        Username = string.Empty,
+        Email = string.Empty,
+        FirstName = string.Empty,
+        LastName = string.Empty,
+        Password = string.Empty,
+        Role = Roles.User, // Default to regular user
+        IsActive = true
+    };
+    private List<string>? availableRoles;
+    private string confirmPassword = string.Empty;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isSubmitting = false;
+    private bool isAuthenticated = false;
+    private bool isSystemAdmin = false;
+    private bool showPassword = false;
+    private bool showConfirmPassword = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckUserPermissions();
+        if (isAuthenticated && isSystemAdmin)
+        {
+            await LoadAvailableRoles();
+        }
+    }
+
+    private async Task CheckUserPermissions()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        
+        if (isAuthenticated)
+        {
+            var userRole = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            isSystemAdmin = userRole == Roles.SystemAdmin;
+        }
+    }
+
+    private async Task LoadAvailableRoles()
+    {
+        try
+        {
+            availableRoles = await UserService.GetAvailableRolesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading roles: {ex.Message}");
+        }
+    }
+
+    private bool IsFormValid()
+    {
+        return !string.IsNullOrWhiteSpace(createUserRequest.Username) &&
+               !string.IsNullOrWhiteSpace(createUserRequest.Email) &&
+               !string.IsNullOrWhiteSpace(createUserRequest.FirstName) &&
+               !string.IsNullOrWhiteSpace(createUserRequest.LastName) &&
+               !string.IsNullOrWhiteSpace(createUserRequest.Role) &&
+               !string.IsNullOrWhiteSpace(createUserRequest.Password) &&
+               createUserRequest.Password == confirmPassword &&
+               createUserRequest.Password.Length >= 8;
+    }
+
+    private async Task HandleCreateUser()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+            StateHasChanged();
+
+            // Validate passwords match
+            if (createUserRequest.Password != confirmPassword)
+            {
+                errorMessage = "Passwords do not match.";
+                return;
+            }
+
+            // Validate password strength (basic validation)
+            if (!IsPasswordValid(createUserRequest.Password))
+            {
+                errorMessage = "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character.";
+                return;
+            }
+
+            var result = await UserService.CreateUserAsync(createUserRequest);
+            if (result != null)
+            {
+                successMessage = $"User '{result.Username}' has been created successfully!";
+                
+                // Reset form
+                createUserRequest = new CreateUserRequest 
+                { 
+                    Username = string.Empty,
+                    Email = string.Empty,
+                    FirstName = string.Empty,
+                    LastName = string.Empty,
+                    Password = string.Empty,
+                    Role = Roles.User, // Default to regular user
+                    IsActive = true 
+                };
+                confirmPassword = string.Empty;
+                StateHasChanged();
+
+                // Navigate back to users list after a short delay
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/users", forceLoad: true);
+            }
+            else
+            {
+                var error = UserService.GetLastError();
+                errorMessage = error ?? "Failed to create user. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An unexpected error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool IsPasswordValid(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 8)
+            return false;
+
+        var hasUppercase = password.Any(char.IsUpper);
+        var hasLowercase = password.Any(char.IsLower);
+        var hasDigit = password.Any(char.IsDigit);
+        var hasSpecialChar = password.Any(ch => !char.IsLetterOrDigit(ch));
+
+        return hasUppercase && hasLowercase && hasDigit && hasSpecialChar;
+    }
+
+    private void TogglePasswordVisibility()
+    {
+        showPassword = !showPassword;
+    }
+
+    private void ToggleConfirmPasswordVisibility()
+    {
+        showConfirmPassword = !showConfirmPassword;
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/users", forceLoad: true);
+    }
+}

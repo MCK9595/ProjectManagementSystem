@@ -12,6 +12,17 @@
           }
         ]
       },
+      "usermanagement-route": {
+        "ClusterId": "identity-cluster",
+        "Match": {
+          "Path": "/api/usermanagement/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathPattern": "/api/usermanagement/{**catch-all}"
+          }
+        ]
+      },
       "organization-route": {
         "ClusterId": "organization-cluster",
         "Match": {

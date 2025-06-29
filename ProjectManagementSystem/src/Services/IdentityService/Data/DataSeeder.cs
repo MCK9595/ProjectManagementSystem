@@ -24,11 +24,7 @@ public static class DataSeeder
         var roles = new[]
         {
             Roles.SystemAdmin,
-            Roles.OrganizationOwner,
-            Roles.OrganizationAdmin,
-            Roles.OrganizationMember,
-            Roles.ProjectManager,
-            Roles.ProjectMember
+            Roles.User
         };
 
         foreach (var roleName in roles)
