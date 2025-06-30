@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-ProjectManagementSystem.MigrationService-6f97ab6e-a9f7-449a-abfe-16d23c95e858</UserSecretsId>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,10 +20,22 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\ProjectManagementSystem.ServiceDefaults\ProjectManagementSystem.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\IdentityService\ProjectManagementSystem.IdentityService.csproj" />
-    <ProjectReference Include="..\OrganizationService\ProjectManagementSystem.OrganizationService.csproj" />
-    <ProjectReference Include="..\ProjectService\ProjectManagementSystem.ProjectService.csproj" />
-    <ProjectReference Include="..\TaskService\ProjectManagementSystem.TaskService.csproj" />
+    <ProjectReference Include="..\IdentityService\ProjectManagementSystem.IdentityService.csproj">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>contentFiles</ExcludeAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\OrganizationService\ProjectManagementSystem.OrganizationService.csproj">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>contentFiles</ExcludeAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\ProjectService\ProjectManagementSystem.ProjectService.csproj">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>contentFiles</ExcludeAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\TaskService\ProjectManagementSystem.TaskService.csproj">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>contentFiles</ExcludeAssets>
+    </ProjectReference>
     <ProjectReference Include="..\..\Shared\ProjectManagementSystem.Shared.Common\ProjectManagementSystem.Shared.Common.csproj" />
   </ItemGroup>
 </Project>
