@@ -11,23 +11,25 @@ var taskDb = azureSql.AddDatabase("taskdb");
 
 // MigrationService - データベースマイグレーションを最初に実行（Microsoft Docs準拠）
 var migrationService = builder.AddProject<Projects.ProjectManagementSystem_MigrationService>("migration-service")
-    .WithReference(azureSql)
     .WithReference(identityDb)
     .WithReference(organizationDb)
     .WithReference(projectDb)
     .WithReference(taskDb)
-    .WaitFor(azureSql);
+    .WaitFor(identityDb)
+    .WaitFor(organizationDb)
+    .WaitFor(projectDb)
+    .WaitFor(taskDb);
 
 // IdentityService - MigrationServiceの完了を待機してから起動
 var identityService = builder.AddProject<Projects.ProjectManagementSystem_IdentityService>("identity-service")
     .WithReference(identityDb)
-    .WaitFor(migrationService);
+    .WaitForCompletion(migrationService);
 
 // OrganizationService - MigrationServiceとIdentityServiceの起動を待機
 var organizationService = builder.AddProject<Projects.ProjectManagementSystem_OrganizationService>("organization-service")
     .WithReference(organizationDb)
     .WithReference(identityService)
-    .WaitFor(migrationService)
+    .WaitForCompletion(migrationService)
     .WaitFor(identityService);
 
 // ProjectService - MigrationService、IdentityService、OrganizationServiceの起動を待機
@@ -35,7 +37,7 @@ var projectService = builder.AddProject<Projects.ProjectManagementSystem_Project
     .WithReference(projectDb)
     .WithReference(identityService)
     .WithReference(organizationService)
-    .WaitFor(migrationService)
+    .WaitForCompletion(migrationService)
     .WaitFor(identityService)
     .WaitFor(organizationService);
 
@@ -44,7 +46,7 @@ var taskService = builder.AddProject<Projects.ProjectManagementSystem_TaskServic
     .WithReference(taskDb)
     .WithReference(identityService)
     .WithReference(projectService)
-    .WaitFor(migrationService)
+    .WaitForCompletion(migrationService)
     .WaitFor(identityService)
     .WaitFor(projectService);
 

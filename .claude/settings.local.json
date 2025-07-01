@@ -18,7 +18,9 @@
       "Bash(grep:*)",
       "Bash(cp:*)",
       "WebFetch(domain:timdeschryver.dev)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "WebFetch(domain:docs.microsoft.com)",
+      "WebFetch(domain:learn.microsoft.com)"
     ],
     "deny": []
   }

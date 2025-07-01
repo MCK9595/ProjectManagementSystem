@@ -87,6 +87,23 @@ public class Worker : BackgroundService
         {
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
             
+            // Log connection string (without sensitive data)
+            var connectionString = context.Database.GetConnectionString();
+            if (connectionString != null)
+            {
+                var maskedConnectionString = MaskConnectionString(connectionString);
+                _logger.LogInformation("Using connection string: {ConnectionString}", maskedConnectionString);
+            }
+            else
+            {
+                _logger.LogWarning("Connection string is null for Identity database");
+            }
+            
+            // Test connection first
+            _logger.LogInformation("Testing Identity database connection...");
+            await context.Database.CanConnectAsync();
+            _logger.LogInformation("Identity database connection test successful.");
+            
             // Microsoft Docs recommended: Execution Strategy Pattern
             var strategy = context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
@@ -112,6 +129,23 @@ public class Worker : BackgroundService
         try
         {
             var context = serviceProvider.GetRequiredService<OrganizationDbContext>();
+            
+            // Log connection string (without sensitive data)
+            var connectionString = context.Database.GetConnectionString();
+            if (connectionString != null)
+            {
+                var maskedConnectionString = MaskConnectionString(connectionString);
+                _logger.LogInformation("Using connection string: {ConnectionString}", maskedConnectionString);
+            }
+            else
+            {
+                _logger.LogWarning("Connection string is null for Organization database");
+            }
+            
+            // Test connection first
+            _logger.LogInformation("Testing Organization database connection...");
+            await context.Database.CanConnectAsync();
+            _logger.LogInformation("Organization database connection test successful.");
             
             // Microsoft Docs recommended: Execution Strategy Pattern
             var strategy = context.Database.CreateExecutionStrategy();
@@ -139,6 +173,23 @@ public class Worker : BackgroundService
         {
             var context = serviceProvider.GetRequiredService<ProjectDbContext>();
             
+            // Log connection string (without sensitive data)
+            var connectionString = context.Database.GetConnectionString();
+            if (connectionString != null)
+            {
+                var maskedConnectionString = MaskConnectionString(connectionString);
+                _logger.LogInformation("Using connection string: {ConnectionString}", maskedConnectionString);
+            }
+            else
+            {
+                _logger.LogWarning("Connection string is null for Project database");
+            }
+            
+            // Test connection first
+            _logger.LogInformation("Testing Project database connection...");
+            await context.Database.CanConnectAsync();
+            _logger.LogInformation("Project database connection test successful.");
+            
             // Microsoft Docs recommended: Execution Strategy Pattern
             var strategy = context.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
@@ -164,6 +215,23 @@ public class Worker : BackgroundService
         try
         {
             var context = serviceProvider.GetRequiredService<TaskDbContext>();
+            
+            // Log connection string (without sensitive data)
+            var connectionString = context.Database.GetConnectionString();
+            if (connectionString != null)
+            {
+                var maskedConnectionString = MaskConnectionString(connectionString);
+                _logger.LogInformation("Using connection string: {ConnectionString}", maskedConnectionString);
+            }
+            else
+            {
+                _logger.LogWarning("Connection string is null for Task database");
+            }
+            
+            // Test connection first
+            _logger.LogInformation("Testing Task database connection...");
+            await context.Database.CanConnectAsync();
+            _logger.LogInformation("Task database connection test successful.");
             
             // Microsoft Docs recommended: Execution Strategy Pattern
             var strategy = context.Database.CreateExecutionStrategy();
@@ -274,6 +342,36 @@ public class Worker : BackgroundService
                     string.Join(", ", result.Errors.Select(e => e.Description)));
                 throw new InvalidOperationException("Failed to create default admin user");
             }
+        }
+    }
+
+    private static string MaskConnectionString(string connectionString)
+    {
+        try
+        {
+            var builder = new System.Data.Common.DbConnectionStringBuilder
+            {
+                ConnectionString = connectionString
+            };
+
+            // Mask sensitive information
+            if (builder.ContainsKey("Password"))
+                builder["Password"] = "***";
+            if (builder.ContainsKey("Pwd"))
+                builder["Pwd"] = "***";
+            if (builder.ContainsKey("User Id"))
+                builder["User Id"] = "***";
+            if (builder.ContainsKey("UID"))
+                builder["UID"] = "***";
+
+            return builder.ConnectionString;
+        }
+        catch
+        {
+            // If parsing fails, return a generic masked version
+            return connectionString.Length > 10 ? 
+                connectionString.Substring(0, 10) + "..." : 
+                "***";
         }
     }
 }

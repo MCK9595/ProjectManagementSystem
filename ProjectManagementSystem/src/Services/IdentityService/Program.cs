@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add SQL Server database context using .NET Aspire
-builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "identitydb");
+// Add Azure SQL Server database context using .NET Aspire
+builder.AddSqlServerDbContext<ApplicationDbContext>("identitydb");
 
 // Configure ASP.NET Core Identity with custom authentication setup
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>

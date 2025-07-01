@@ -11,11 +11,13 @@ public class TaskService : ITaskService
 {
     private readonly TaskDbContext _context;
     private readonly ILogger<TaskService> _logger;
+    private readonly IUserService _userService;
 
-    public TaskService(TaskDbContext context, ILogger<TaskService> logger)
+    public TaskService(TaskDbContext context, ILogger<TaskService> logger, IUserService userService)
     {
         _context = context;
         _logger = logger;
+        _userService = userService;
     }
 
     public async Task<PagedResult<TaskDto>> GetTasksAsync(Guid projectId, int pageNumber = 1, int pageSize = 10)

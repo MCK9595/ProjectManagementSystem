@@ -11,11 +11,13 @@ public class OrganizationMemberService : IOrganizationMemberService
 {
     private readonly OrganizationDbContext _context;
     private readonly ILogger<OrganizationMemberService> _logger;
+    private readonly IUserService _userService;
 
-    public OrganizationMemberService(OrganizationDbContext context, ILogger<OrganizationMemberService> logger)
+    public OrganizationMemberService(OrganizationDbContext context, ILogger<OrganizationMemberService> logger, IUserService userService)
     {
         _context = context;
         _logger = logger;
+        _userService = userService;
     }
 
     public async Task<PagedResult<OrganizationMemberDto>> GetMembersAsync(Guid organizationId, int requestingUserId, int page, int pageSize)
@@ -54,6 +56,39 @@ public class OrganizationMemberService : IOrganizationMemberService
                 JoinedAt = ou.JoinedAt
             })
             .ToListAsync();
+
+        // Fetch user details from IdentityService
+        if (members.Any())
+        {
+            _logger.LogInformation("=== ORGANIZATION MEMBER SERVICE - Fetching user details for {Count} organization members ===", members.Count);
+            var userIds = members.Select(m => m.UserId).ToList();
+            _logger.LogInformation("Member user IDs: [{UserIds}]", string.Join(", ", userIds));
+            
+            var users = await _userService.GetUsersByIdsAsync(userIds);
+            _logger.LogInformation("UserService returned {UserCount} users", users.Count);
+
+            // Map users to members
+            foreach (var member in members)
+            {
+                member.User = users.FirstOrDefault(u => u.Id == member.UserId);
+                if (member.User == null)
+                {
+                    _logger.LogWarning("Could not find user details for user ID: {UserId} in organization {OrganizationId}", 
+                        member.UserId, organizationId);
+                }
+                else
+                {
+                    _logger.LogInformation("Successfully mapped user {UserId} ({Username}) to member {MemberId}", 
+                        member.UserId, member.User.Username, member.Id);
+                }
+            }
+            
+            _logger.LogInformation("=== ORGANIZATION MEMBER SERVICE - User mapping completed ===");
+        }
+        else
+        {
+            _logger.LogInformation("No members found, skipping user details fetch");
+        }
 
         return new PagedResult<OrganizationMemberDto>
         {
@@ -119,7 +154,7 @@ public class OrganizationMemberService : IOrganizationMemberService
         _logger.LogInformation("User {UserId} added to organization {OrganizationId} with role {Role}", 
             addMemberDto.UserId, organizationId, addMemberDto.Role);
 
-        return new OrganizationMemberDto
+        var memberDto = new OrganizationMemberDto
         {
             Id = existingMembership.Id,
             OrganizationId = existingMembership.OrganizationId,
@@ -127,6 +162,15 @@ public class OrganizationMemberService : IOrganizationMemberService
             Role = existingMembership.Role,
             JoinedAt = existingMembership.JoinedAt
         };
+
+        // Fetch user details for the newly added member
+        memberDto.User = await _userService.GetUserByIdAsync(addMemberDto.UserId);
+        if (memberDto.User == null)
+        {
+            _logger.LogWarning("Could not fetch user details for newly added member {UserId}", addMemberDto.UserId);
+        }
+
+        return memberDto;
     }
 
     public async Task<bool> RemoveMemberAsync(Guid organizationId, int userId, int requestingUserId)

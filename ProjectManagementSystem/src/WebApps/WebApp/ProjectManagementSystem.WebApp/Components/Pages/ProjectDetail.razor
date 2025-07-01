@@ -255,8 +255,8 @@
                                     <tr>
                                         <td class="text-truncate">
                                             <div>
-                                                <strong class="d-block text-truncate" title="@member.UserName">@(member.UserName ?? "Unknown User")</strong>
-                                                <small class="text-muted text-truncate d-block" title="@member.UserEmail">@(member.UserEmail ?? "No email")</small>
+                                                <strong class="d-block text-truncate" title="@member.User?.Username">@(member.User?.Username ?? "Unknown User")</strong>
+                                                <small class="text-muted text-truncate d-block" title="@member.User?.Email">@(member.User?.Email ?? "No email")</small>
                                             </div>
                                         </td>
                                         <td>

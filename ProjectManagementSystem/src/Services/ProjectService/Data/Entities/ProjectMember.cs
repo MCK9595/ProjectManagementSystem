@@ -27,14 +27,6 @@ public class ProjectMember
     [Column("joined_at")]
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
 
-    [Column("user_name")]
-    [StringLength(100)]
-    public string? UserName { get; set; }
-
-    [Column("user_email")]
-    [StringLength(256)]
-    public string? UserEmail { get; set; }
-
     [Column("is_active")]
     public bool IsActive { get; set; } = true;
 

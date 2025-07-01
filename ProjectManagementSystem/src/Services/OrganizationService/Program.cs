@@ -9,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add SQL Server database context using .NET Aspire
-builder.AddSqlServerDbContext<OrganizationDbContext>(connectionName: "organizationdb");
+// Add Azure SQL Server database context using .NET Aspire
+builder.AddSqlServerDbContext<OrganizationDbContext>("organizationdb");
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -42,6 +42,19 @@ builder.Services.AddAuthorization();
 // Register application services
 builder.Services.AddScoped<IOrganizationService, ProjectManagementSystem.OrganizationService.Services.OrganizationService>();
 builder.Services.AddScoped<IOrganizationMemberService, OrganizationMemberService>();
+
+// Register authentication delegating handler
+builder.Services.AddScoped<AuthenticationDelegatingHandler>();
+builder.Services.AddHttpContextAccessor();
+
+// Register HttpClient for UserService to call IdentityService
+builder.Services.AddHttpClient<IUserService, UserService>(client =>
+{
+    // The service discovery will resolve https://identity-service automatically
+    client.BaseAddress = new Uri("https://identity-service/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+})
+.AddHttpMessageHandler<AuthenticationDelegatingHandler>();
 
 // Add OpenAPI
 builder.Services.AddEndpointsApiExplorer();

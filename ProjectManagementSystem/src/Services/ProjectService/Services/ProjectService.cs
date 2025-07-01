@@ -113,7 +113,7 @@ public class ProjectService : IProjectService
         };
     }
 
-    public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto, int createdByUserId, string? userName = null, string? userEmail = null)
+    public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto, int createdByUserId)
     {
         var project = new Project
         {
@@ -134,9 +134,7 @@ public class ProjectService : IProjectService
         {
             ProjectId = project.Id,
             UserId = createdByUserId,
-            Role = Roles.ProjectManager,
-            UserName = userName,
-            UserEmail = userEmail
+            Role = Roles.ProjectManager
         };
 
         _context.ProjectMembers.Add(projectMember);

@@ -106,10 +106,7 @@ public class ProjectsController : ControllerBase
             if (userId == null)
                 return Unauthorized(ApiResponse<ProjectDto>.ErrorResult("Invalid token"));
 
-            var userName = GetCurrentUserName();
-            var userEmail = GetCurrentUserEmail();
-                
-            var project = await _projectService.CreateProjectAsync(createProjectDto, userId.Value, userName, userEmail);
+            var project = await _projectService.CreateProjectAsync(createProjectDto, userId.Value);
             return CreatedAtAction(nameof(GetProject), new { id = project.Id }, ApiResponse<ProjectDto>.SuccessResult(project));
         }
         catch (Exception ex)
@@ -250,15 +247,6 @@ public class ProjectsController : ControllerBase
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 
-    private string? GetCurrentUserName()
-    {
-        return User.FindFirst(ClaimTypes.Name)?.Value;
-    }
-
-    private string? GetCurrentUserEmail()
-    {
-        return User.FindFirst(ClaimTypes.Email)?.Value;
-    }
 
     private bool IsSystemAdmin()
     {

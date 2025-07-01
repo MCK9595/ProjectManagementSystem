@@ -9,8 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add SQL Server DbContext
-builder.AddSqlServerDbContext<ProjectDbContext>(connectionName: "projectdb");
+// Add Azure SQL Server DbContext
+builder.AddSqlServerDbContext<ProjectDbContext>("projectdb");
 
 // Add JWT authentication
 var jwtKey = builder.Configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("JWT Key not configured");
@@ -38,6 +38,14 @@ builder.Services.AddAuthorization();
 // Register services
 builder.Services.AddScoped<IProjectService, ProjectManagementSystem.ProjectService.Services.ProjectService>();
 builder.Services.AddScoped<IProjectMemberService, ProjectMemberService>();
+
+// Register HttpClient for UserService to call IdentityService
+builder.Services.AddHttpClient<IUserService, UserService>(client =>
+{
+    // The service discovery will resolve https://identity-service automatically
+    client.BaseAddress = new Uri("https://identity-service/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 
 // Add controllers
 builder.Services.AddControllers();

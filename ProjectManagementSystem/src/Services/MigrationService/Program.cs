@@ -15,11 +15,11 @@ builder.AddServiceDefaults();
 builder.Services.AddOpenTelemetry()
     .WithTracing(tracing => tracing.AddSource(Worker.ActivitySourceName));
 
-// Add SQL Server database contexts using .NET Aspire
-builder.AddSqlServerDbContext<ApplicationDbContext>(connectionName: "identitydb");
-builder.AddSqlServerDbContext<OrganizationDbContext>(connectionName: "organizationdb");
-builder.AddSqlServerDbContext<ProjectDbContext>(connectionName: "projectdb");
-builder.AddSqlServerDbContext<TaskDbContext>(connectionName: "taskdb");
+// Add Azure SQL Server database contexts using .NET Aspire
+builder.AddSqlServerDbContext<ApplicationDbContext>("identitydb");
+builder.AddSqlServerDbContext<OrganizationDbContext>("organizationdb");
+builder.AddSqlServerDbContext<ProjectDbContext>("projectdb");
+builder.AddSqlServerDbContext<TaskDbContext>("taskdb");
 
 // Configure ASP.NET Core Identity for seeding
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>

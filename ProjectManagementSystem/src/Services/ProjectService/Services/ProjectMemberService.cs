@@ -10,11 +10,13 @@ public class ProjectMemberService : IProjectMemberService
 {
     private readonly ProjectDbContext _context;
     private readonly ILogger<ProjectMemberService> _logger;
+    private readonly IUserService _userService;
 
-    public ProjectMemberService(ProjectDbContext context, ILogger<ProjectMemberService> logger)
+    public ProjectMemberService(ProjectDbContext context, ILogger<ProjectMemberService> logger, IUserService userService)
     {
         _context = context;
         _logger = logger;
+        _userService = userService;
     }
 
     public async Task<PagedResult<ProjectMemberDto>> GetProjectMembersAsync(Guid projectId, int pageNumber = 1, int pageSize = 10)
@@ -33,11 +35,28 @@ public class ProjectMemberService : IProjectMemberService
                 ProjectId = pm.ProjectId,
                 UserId = pm.UserId,
                 Role = pm.Role,
-                JoinedAt = pm.JoinedAt,
-                UserName = pm.UserName,
-                UserEmail = pm.UserEmail
+                JoinedAt = pm.JoinedAt
             })
             .ToListAsync();
+
+        // Fetch user details from IdentityService to populate User property
+        if (members.Any())
+        {
+            _logger.LogInformation("Fetching user details for {Count} project members", members.Count);
+            var userIds = members.Select(m => m.UserId).ToList();
+            var users = await _userService.GetUsersByIdsAsync(userIds);
+
+            // Map users to members
+            foreach (var member in members)
+            {
+                member.User = users.FirstOrDefault(u => u.Id == member.UserId);
+                if (member.User == null)
+                {
+                    _logger.LogWarning("Could not find user details for user ID: {UserId} in project {ProjectId}", 
+                        member.UserId, projectId);
+                }
+            }
+        }
 
         return new PagedResult<ProjectMemberDto>
         {
