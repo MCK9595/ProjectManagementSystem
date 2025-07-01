@@ -34,9 +34,11 @@ builder.Services.AddAuthorization();
 // Add request timeouts services (required for UseRequestTimeouts middleware)
 builder.Services.AddRequestTimeouts();
 
-// Add YARP with enhanced logging
+// Add YARP with service discovery support
+// AddServiceDefaults already configured HttpClient with service discovery
 builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
+    .AddServiceDiscoveryDestinationResolver();
 
 // Add detailed logging for YARP and HTTP requests
 builder.Logging.AddConsole();
@@ -124,7 +126,7 @@ app.Use(async (context, next) =>
     logger.LogInformation("Method: {Method}, Path: {Path}, QueryString: {QueryString}", 
         context.Request.Method, context.Request.Path, context.Request.QueryString);
     logger.LogInformation("Headers: {Headers}", 
-        string.Join(", ", context.Request.Headers.Select(h => $"{h.Key}: {string.Join(", ", h.Value)}")));
+        string.Join(", ", context.Request.Headers.Select(h => $"{h.Key}: {string.Join(", ", h.Value.ToArray())}").ToArray()));
     logger.LogInformation("RemoteIpAddress: {RemoteIp}", context.Connection.RemoteIpAddress);
     
     var stopwatch = System.Diagnostics.Stopwatch.StartNew();

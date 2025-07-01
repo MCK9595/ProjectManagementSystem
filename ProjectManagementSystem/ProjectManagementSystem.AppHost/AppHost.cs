@@ -49,9 +49,8 @@ var taskService = builder.AddProject<Projects.ProjectManagementSystem_TaskServic
     .WaitFor(projectService);
 
 
-// API Gateway - .NET Aspire 9.x YARP統合を使用
-var apiGateway = builder.AddYarp("api-gateway")
-    .WithConfigFile("yarp.json")
+// API Gateway - カスタム実装を使用
+var apiGateway = builder.AddProject<Projects.ProjectManagementSystem_ApiServiceGateway>("api-gateway")
     .WithReference(identityService)
     .WithReference(organizationService)
     .WithReference(projectService)
