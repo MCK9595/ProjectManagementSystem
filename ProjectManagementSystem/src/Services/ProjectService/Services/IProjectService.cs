@@ -6,8 +6,9 @@ namespace ProjectManagementSystem.ProjectService.Services;
 public interface IProjectService
 {
     Task<PagedResult<ProjectDto>> GetProjectsAsync(Guid organizationId, int pageNumber = 1, int pageSize = 10);
+    Task<PagedResult<ProjectDto>> GetProjectsByUserAsync(int userId, int pageNumber = 1, int pageSize = 10);
     Task<ProjectDto?> GetProjectByIdAsync(Guid projectId);
-    Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto, int createdByUserId);
+    Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto, int createdByUserId, string? userName = null, string? userEmail = null);
     Task<ProjectDto?> UpdateProjectAsync(Guid projectId, UpdateProjectDto updateProjectDto);
     Task<bool> DeleteProjectAsync(Guid projectId);
     Task<bool> ArchiveProjectAsync(Guid projectId);

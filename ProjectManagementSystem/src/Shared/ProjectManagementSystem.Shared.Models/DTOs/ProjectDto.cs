@@ -61,6 +61,8 @@ public class ProjectMemberDto
     public int UserId { get; set; }
     public required string Role { get; set; }
     public DateTime JoinedAt { get; set; }
+    public string? UserName { get; set; }
+    public string? UserEmail { get; set; }
     public UserDto? User { get; set; }
 }
 

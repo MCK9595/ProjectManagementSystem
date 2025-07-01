@@ -53,6 +53,41 @@ public class ProjectService : IProjectService
         };
     }
 
+    public async Task<PagedResult<ProjectDto>> GetProjectsByUserAsync(int userId, int pageNumber = 1, int pageSize = 10)
+    {
+        var query = _context.Projects
+            .Where(p => p.IsActive && p.Members.Any(m => m.UserId == userId && m.IsActive))
+            .OrderByDescending(p => p.CreatedAt);
+
+        var totalCount = await query.CountAsync();
+        var projects = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(p => new ProjectDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Status = p.Status,
+                Priority = p.Priority,
+                StartDate = p.StartDate,
+                EndDate = p.EndDate,
+                CreatedAt = p.CreatedAt,
+                UpdatedAt = p.UpdatedAt,
+                OrganizationId = p.OrganizationId,
+                CreatedByUserId = p.CreatedByUserId
+            })
+            .ToListAsync();
+
+        return new PagedResult<ProjectDto>
+        {
+            Items = projects,
+            TotalCount = totalCount,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
+    }
+
     public async Task<ProjectDto?> GetProjectByIdAsync(Guid projectId)
     {
         var project = await _context.Projects
@@ -78,7 +113,7 @@ public class ProjectService : IProjectService
         };
     }
 
-    public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto, int createdByUserId)
+    public async Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto, int createdByUserId, string? userName = null, string? userEmail = null)
     {
         var project = new Project
         {
@@ -99,7 +134,9 @@ public class ProjectService : IProjectService
         {
             ProjectId = project.Id,
             UserId = createdByUserId,
-            Role = Roles.ProjectManager
+            Role = Roles.ProjectManager,
+            UserName = userName,
+            UserEmail = userEmail
         };
 
         _context.ProjectMembers.Add(projectMember);

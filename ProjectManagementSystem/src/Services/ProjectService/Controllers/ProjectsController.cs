@@ -40,6 +40,27 @@ public class ProjectsController : ControllerBase
         }
     }
 
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<PagedResult<ProjectDto>>>> GetUserProjects(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<PagedResult<ProjectDto>>.ErrorResult("Invalid token"));
+
+            var projects = await _projectService.GetProjectsByUserAsync(userId.Value, pageNumber, pageSize);
+            return Ok(ApiResponse<PagedResult<ProjectDto>>.SuccessResult(projects));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting projects for user");
+            return StatusCode(500, ApiResponse<PagedResult<ProjectDto>>.ErrorResult("Internal server error"));
+        }
+    }
+
     [HttpGet("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
     public async Task<ActionResult<ApiResponse<ProjectDto>>> GetProject(Guid id)
@@ -47,8 +68,10 @@ public class ProjectsController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<ProjectDto>.ErrorResult("Invalid token"));
             
-            if (!await _projectService.HasProjectAccessAsync(id, userId))
+            if (!await _projectService.HasProjectAccessAsync(id, userId.Value))
             {
                 return Forbid();
             }
@@ -80,7 +103,13 @@ public class ProjectsController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
-            var project = await _projectService.CreateProjectAsync(createProjectDto, userId);
+            if (userId == null)
+                return Unauthorized(ApiResponse<ProjectDto>.ErrorResult("Invalid token"));
+
+            var userName = GetCurrentUserName();
+            var userEmail = GetCurrentUserEmail();
+                
+            var project = await _projectService.CreateProjectAsync(createProjectDto, userId.Value, userName, userEmail);
             return CreatedAtAction(nameof(GetProject), new { id = project.Id }, ApiResponse<ProjectDto>.SuccessResult(project));
         }
         catch (Exception ex)
@@ -102,8 +131,10 @@ public class ProjectsController : ControllerBase
         try
         {
             var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<ProjectDto>.ErrorResult("Invalid token"));
             
-            if (!await _projectService.IsProjectManagerAsync(id, userId) && !IsSystemAdmin())
+            if (!await _projectService.IsProjectManagerAsync(id, userId.Value) && !IsSystemAdmin())
             {
                 return Forbid();
             }
@@ -125,13 +156,15 @@ public class ProjectsController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> DeleteProject(Guid id)
+    public async Task<ActionResult<ApiResponse>> DeleteProject(Guid id)
     {
         try
         {
             var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse.ErrorResult("Invalid token"));
             
-            if (!await _projectService.IsProjectManagerAsync(id, userId) && !IsSystemAdmin())
+            if (!await _projectService.IsProjectManagerAsync(id, userId.Value) && !IsSystemAdmin())
             {
                 return Forbid();
             }
@@ -139,27 +172,29 @@ public class ProjectsController : ControllerBase
             var success = await _projectService.DeleteProjectAsync(id);
             if (!success)
             {
-                return NotFound(ApiResponse<object>.ErrorResult("Project not found"));
+                return NotFound(ApiResponse.ErrorResult("Project not found"));
             }
 
-            return Ok(ApiResponse<object>.SuccessResult(null, "Project deleted successfully"));
+            return Ok(ApiResponse.SuccessResult("Project deleted successfully"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting project {ProjectId}", id);
-            return StatusCode(500, ApiResponse<object>.ErrorResult("Internal server error"));
+            return StatusCode(500, ApiResponse.ErrorResult("Internal server error"));
         }
     }
 
     [HttpPost("{id}/archive")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> ArchiveProject(Guid id)
+    public async Task<ActionResult<ApiResponse>> ArchiveProject(Guid id)
     {
         try
         {
             var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse.ErrorResult("Invalid token"));
             
-            if (!await _projectService.IsProjectManagerAsync(id, userId) && !IsSystemAdmin())
+            if (!await _projectService.IsProjectManagerAsync(id, userId.Value) && !IsSystemAdmin())
             {
                 return Forbid();
             }
@@ -167,27 +202,29 @@ public class ProjectsController : ControllerBase
             var success = await _projectService.ArchiveProjectAsync(id);
             if (!success)
             {
-                return NotFound(ApiResponse<object>.ErrorResult("Project not found"));
+                return NotFound(ApiResponse.ErrorResult("Project not found"));
             }
 
-            return Ok(ApiResponse<object>.SuccessResult(null, "Project archived successfully"));
+            return Ok(ApiResponse.SuccessResult("Project archived successfully"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error archiving project {ProjectId}", id);
-            return StatusCode(500, ApiResponse<object>.ErrorResult("Internal server error"));
+            return StatusCode(500, ApiResponse.ErrorResult("Internal server error"));
         }
     }
 
     [HttpPost("{id}/restore")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> RestoreProject(Guid id)
+    public async Task<ActionResult<ApiResponse>> RestoreProject(Guid id)
     {
         try
         {
             var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse.ErrorResult("Invalid token"));
             
-            if (!await _projectService.IsProjectManagerAsync(id, userId) && !IsSystemAdmin())
+            if (!await _projectService.IsProjectManagerAsync(id, userId.Value) && !IsSystemAdmin())
             {
                 return Forbid();
             }
@@ -195,22 +232,32 @@ public class ProjectsController : ControllerBase
             var success = await _projectService.RestoreProjectAsync(id);
             if (!success)
             {
-                return NotFound(ApiResponse<object>.ErrorResult("Project not found"));
+                return NotFound(ApiResponse.ErrorResult("Project not found"));
             }
 
-            return Ok(ApiResponse<object>.SuccessResult(null, "Project restored successfully"));
+            return Ok(ApiResponse.SuccessResult("Project restored successfully"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error restoring project {ProjectId}", id);
-            return StatusCode(500, ApiResponse<object>.ErrorResult("Internal server error"));
+            return StatusCode(500, ApiResponse.ErrorResult("Internal server error"));
         }
     }
 
-    private int GetCurrentUserId()
+    private int? GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return int.Parse(userIdClaim ?? "0");
+        return int.TryParse(userIdClaim, out var userId) ? userId : null;
+    }
+
+    private string? GetCurrentUserName()
+    {
+        return User.FindFirst(ClaimTypes.Name)?.Value;
+    }
+
+    private string? GetCurrentUserEmail()
+    {
+        return User.FindFirst(ClaimTypes.Email)?.Value;
     }
 
     private bool IsSystemAdmin()

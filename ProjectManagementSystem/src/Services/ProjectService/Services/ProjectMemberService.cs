@@ -33,7 +33,9 @@ public class ProjectMemberService : IProjectMemberService
                 ProjectId = pm.ProjectId,
                 UserId = pm.UserId,
                 Role = pm.Role,
-                JoinedAt = pm.JoinedAt
+                JoinedAt = pm.JoinedAt,
+                UserName = pm.UserName,
+                UserEmail = pm.UserEmail
             })
             .ToListAsync();
 

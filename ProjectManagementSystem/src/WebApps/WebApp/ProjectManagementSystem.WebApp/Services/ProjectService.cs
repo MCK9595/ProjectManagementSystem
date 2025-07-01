@@ -26,10 +26,15 @@ public class ProjectService : IProjectService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<PagedResult<ProjectDto>>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<PagedResult<ProjectDto>>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+                
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)
@@ -50,10 +55,15 @@ public class ProjectService : IProjectService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<PagedResult<ProjectDto>>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<PagedResult<ProjectDto>>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+                
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)
@@ -74,10 +84,15 @@ public class ProjectService : IProjectService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<ProjectDto>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<ProjectDto>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+                
+                if (apiResponse?.Success == true)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)
@@ -98,18 +113,52 @@ public class ProjectService : IProjectService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<ProjectDto>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<ProjectDto>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+                
+                if (apiResponse?.Success == true)
+                {
+                    return apiResponse.Data;
+                }
+                else
+                {
+                    throw new InvalidOperationException(apiResponse?.Message ?? "Unknown error occurred");
+                }
             }
+            else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    var errorResponse = JsonSerializer.Deserialize<ApiResponse<ProjectDto>>(errorContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    var validationErrors = errorResponse?.Errors?.Any() == true 
+                        ? string.Join(", ", errorResponse.Errors)
+                        : errorResponse?.Message ?? "Validation failed";
+                    throw new ArgumentException(validationErrors);
+                }
+                catch (JsonException)
+                {
+                    throw new ArgumentException("Validation failed");
+                }
+            }
+            else
+            {
+                throw new HttpRequestException($"Request failed with status code {response.StatusCode}");
+            }
+        }
+        catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException || ex is HttpRequestException)
+        {
+            throw;
         }
         catch (Exception)
         {
-            // Log exception
+            throw new Exception("An unexpected error occurred while creating the project");
         }
-
-        return null;
     }
 
     public async Task<ProjectDto?> UpdateProjectAsync(Guid id, UpdateProjectDto projectDto)
@@ -122,10 +171,15 @@ public class ProjectService : IProjectService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<ProjectDto>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<ProjectDto>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+                
+                if (apiResponse?.Success == true)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)
@@ -162,10 +216,15 @@ public class ProjectService : IProjectService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<PagedResult<ProjectMemberDto>>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<PagedResult<ProjectMemberDto>>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+                
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)

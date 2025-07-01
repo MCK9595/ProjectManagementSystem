@@ -297,6 +297,18 @@
                 errorMessage = "Failed to create project. Please try again.";
             }
         }
+        catch (InvalidOperationException ex)
+        {
+            // ビジネスルールエラーの場合
+            errorMessage = ex.Message;
+            Logger.LogWarning("Project creation failed due to business rule: {ErrorMessage}", ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            // バリデーションエラーの場合
+            errorMessage = $"Validation error: {ex.Message}";
+            Logger.LogWarning("Project creation failed due to validation error: {ValidationError}", ex.Message);
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Exception in HandleCreate for project creation - Type: {ExceptionType}, Message: {Message}", 
