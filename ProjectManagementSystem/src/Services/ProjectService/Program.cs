@@ -84,7 +84,7 @@ if (app.Environment.IsDevelopment())
 // Map service default endpoints.
 app.MapDefaultEndpoints();
 
-app.UseHttpsRedirection();
+// Removed UseHttpsRedirection() as this is an internal service behind API Gateway
 app.UseAuthentication();
 app.UseAuthorization();
 

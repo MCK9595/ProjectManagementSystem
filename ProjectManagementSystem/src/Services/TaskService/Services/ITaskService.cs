@@ -5,14 +5,14 @@ namespace ProjectManagementSystem.TaskService.Services;
 
 public interface ITaskService
 {
-    Task<PagedResult<TaskDto>> GetTasksAsync(int projectId, int pageNumber = 1, int pageSize = 10);
+    Task<PagedResult<TaskDto>> GetTasksAsync(Guid projectId, int pageNumber = 1, int pageSize = 10);
     Task<PagedResult<TaskDto>> GetTasksByUserAsync(int userId, int pageNumber = 1, int pageSize = 10);
-    Task<TaskDto?> GetTaskByIdAsync(int taskId);
+    Task<TaskDto?> GetTaskByIdAsync(Guid taskId);
     Task<TaskDto> CreateTaskAsync(CreateTaskDto createTaskDto, int createdByUserId);
-    Task<TaskDto?> UpdateTaskAsync(int taskId, UpdateTaskDto updateTaskDto);
-    Task<bool> UpdateTaskStatusAsync(int taskId, string status);
-    Task<bool> AssignTaskAsync(int taskId, int assignedToUserId);
-    Task<bool> DeleteTaskAsync(int taskId);
-    Task<bool> HasTaskAccessAsync(int taskId, int userId);
-    Task<bool> CanEditTaskAsync(int taskId, int userId);
+    Task<TaskDto?> UpdateTaskAsync(Guid taskId, UpdateTaskDto updateTaskDto);
+    Task<bool> UpdateTaskStatusAsync(Guid taskId, string status);
+    Task<bool> AssignTaskAsync(Guid taskId, int assignedToUserId);
+    Task<bool> DeleteTaskAsync(Guid taskId);
+    Task<bool> HasTaskAccessAsync(Guid taskId, int userId);
+    Task<bool> CanEditTaskAsync(Guid taskId, int userId);
 }

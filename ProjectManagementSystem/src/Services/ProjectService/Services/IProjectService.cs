@@ -5,13 +5,13 @@ namespace ProjectManagementSystem.ProjectService.Services;
 
 public interface IProjectService
 {
-    Task<PagedResult<ProjectDto>> GetProjectsAsync(int organizationId, int pageNumber = 1, int pageSize = 10);
-    Task<ProjectDto?> GetProjectByIdAsync(int projectId);
+    Task<PagedResult<ProjectDto>> GetProjectsAsync(Guid organizationId, int pageNumber = 1, int pageSize = 10);
+    Task<ProjectDto?> GetProjectByIdAsync(Guid projectId);
     Task<ProjectDto> CreateProjectAsync(CreateProjectDto createProjectDto, int createdByUserId);
-    Task<ProjectDto?> UpdateProjectAsync(int projectId, UpdateProjectDto updateProjectDto);
-    Task<bool> DeleteProjectAsync(int projectId);
-    Task<bool> ArchiveProjectAsync(int projectId);
-    Task<bool> RestoreProjectAsync(int projectId);
-    Task<bool> HasProjectAccessAsync(int projectId, int userId);
-    Task<bool> IsProjectManagerAsync(int projectId, int userId);
+    Task<ProjectDto?> UpdateProjectAsync(Guid projectId, UpdateProjectDto updateProjectDto);
+    Task<bool> DeleteProjectAsync(Guid projectId);
+    Task<bool> ArchiveProjectAsync(Guid projectId);
+    Task<bool> RestoreProjectAsync(Guid projectId);
+    Task<bool> HasProjectAccessAsync(Guid projectId, int userId);
+    Task<bool> IsProjectManagerAsync(Guid projectId, int userId);
 }

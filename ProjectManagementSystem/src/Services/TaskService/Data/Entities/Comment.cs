@@ -17,7 +17,7 @@ public class Comment
 
     [Required]
     [Column("task_id")]
-    public int TaskId { get; set; }
+    public Guid TaskId { get; set; }
 
     [Required]
     [Column("user_id")]

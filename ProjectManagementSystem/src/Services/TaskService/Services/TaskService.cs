@@ -18,7 +18,7 @@ public class TaskService : ITaskService
         _logger = logger;
     }
 
-    public async Task<PagedResult<TaskDto>> GetTasksAsync(int projectId, int pageNumber = 1, int pageSize = 10)
+    public async Task<PagedResult<TaskDto>> GetTasksAsync(Guid projectId, int pageNumber = 1, int pageSize = 10)
     {
         var query = _context.Tasks
             .Where(t => t.ProjectId == projectId && t.IsActive)
@@ -66,7 +66,7 @@ public class TaskService : ITaskService
         };
     }
 
-    public async Task<TaskDto?> GetTaskByIdAsync(int taskId)
+    public async Task<TaskDto?> GetTaskByIdAsync(Guid taskId)
     {
         var task = await _context.Tasks
             .Where(t => t.Id == taskId && t.IsActive)
@@ -77,29 +77,55 @@ public class TaskService : ITaskService
 
     public async Task<TaskDto> CreateTaskAsync(CreateTaskDto createTaskDto, int createdByUserId)
     {
-        var task = new Data.Entities.Task
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
         {
-            Title = createTaskDto.Title,
-            Description = createTaskDto.Description,
-            Status = createTaskDto.Status,
-            Priority = createTaskDto.Priority,
-            StartDate = createTaskDto.StartDate,
-            DueDate = createTaskDto.DueDate,
-            EstimatedHours = createTaskDto.EstimatedHours,
-            ProjectId = createTaskDto.ProjectId,
-            AssignedToUserId = createTaskDto.AssignedToUserId,
-            CreatedByUserId = createdByUserId
-        };
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            
+            try
+            {
+                // プロジェクト内の最大タスク番号を取得
+                var maxTaskNumber = await _context.Tasks
+                    .Where(t => t.ProjectId == createTaskDto.ProjectId && t.IsActive)
+                    .MaxAsync(t => (int?)t.TaskNumber) ?? 0;
 
-        _context.Tasks.Add(task);
-        await _context.SaveChangesAsync();
+                var task = new Data.Entities.Task
+                {
+                    TaskNumber = maxTaskNumber + 1,
+                    Title = createTaskDto.Title,
+                    Description = createTaskDto.Description,
+                    Status = createTaskDto.Status,
+                    Priority = createTaskDto.Priority,
+                    StartDate = createTaskDto.StartDate,
+                    DueDate = createTaskDto.DueDate,
+                    EstimatedHours = createTaskDto.EstimatedHours,
+                    ProjectId = createTaskDto.ProjectId,
+                    AssignedToUserId = createTaskDto.AssignedToUserId,
+                    CreatedByUserId = createdByUserId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
-        _logger.LogInformation("Task {TaskTitle} created by user {UserId}", task.Title, createdByUserId);
+                _context.Tasks.Add(task);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-        return MapTaskToDto(task);
+                _logger.LogInformation("Task {TaskTitle} (#{TaskNumber}) created by user {UserId}", 
+                    task.Title, task.TaskNumber, createdByUserId);
+
+                return MapTaskToDto(task);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to create task {TaskTitle}", createTaskDto.Title);
+                throw;
+            }
+        });
     }
 
-    public async Task<TaskDto?> UpdateTaskAsync(int taskId, UpdateTaskDto updateTaskDto)
+    public async Task<TaskDto?> UpdateTaskAsync(Guid taskId, UpdateTaskDto updateTaskDto)
     {
         var task = await _context.Tasks
             .Where(t => t.Id == taskId && t.IsActive)
@@ -148,7 +174,7 @@ public class TaskService : ITaskService
         return MapTaskToDto(task);
     }
 
-    public async Task<bool> UpdateTaskStatusAsync(int taskId, string status)
+    public async Task<bool> UpdateTaskStatusAsync(Guid taskId, string status)
     {
         var task = await _context.Tasks
             .Where(t => t.Id == taskId && t.IsActive)
@@ -169,7 +195,7 @@ public class TaskService : ITaskService
         return true;
     }
 
-    public async Task<bool> AssignTaskAsync(int taskId, int assignedToUserId)
+    public async Task<bool> AssignTaskAsync(Guid taskId, int assignedToUserId)
     {
         var task = await _context.Tasks
             .Where(t => t.Id == taskId && t.IsActive)
@@ -185,7 +211,7 @@ public class TaskService : ITaskService
         return true;
     }
 
-    public async Task<bool> DeleteTaskAsync(int taskId)
+    public async Task<bool> DeleteTaskAsync(Guid taskId)
     {
         var task = await _context.Tasks
             .Where(t => t.Id == taskId && t.IsActive)
@@ -201,7 +227,7 @@ public class TaskService : ITaskService
         return true;
     }
 
-    public async Task<bool> HasTaskAccessAsync(int taskId, int userId)
+    public async Task<bool> HasTaskAccessAsync(Guid taskId, int userId)
     {
         return await _context.Tasks
             .AnyAsync(t => t.Id == taskId && 
@@ -209,7 +235,7 @@ public class TaskService : ITaskService
                           t.IsActive);
     }
 
-    public async Task<bool> CanEditTaskAsync(int taskId, int userId)
+    public async Task<bool> CanEditTaskAsync(Guid taskId, int userId)
     {
         return await _context.Tasks
             .AnyAsync(t => t.Id == taskId && 
@@ -222,6 +248,7 @@ public class TaskService : ITaskService
         return new TaskDto
         {
             Id = task.Id,
+            TaskNumber = task.TaskNumber,
             Title = task.Title,
             Description = task.Description,
             Status = task.Status,

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace ProjectManagementSystem.ProjectService.Data.Migrations
+namespace ProjectManagementSystem.OrganizationService.Data.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -12,18 +12,12 @@ namespace ProjectManagementSystem.ProjectService.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "projects",
+                name: "organizations",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
                     name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    priority = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    start_date = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    end_date = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    organization_id = table.Column<int>(type: "int", nullable: false),
+                    description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     created_by_user_id = table.Column<int>(type: "int", nullable: false),
                     is_active = table.Column<bool>(type: "bit", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
@@ -31,16 +25,16 @@ namespace ProjectManagementSystem.ProjectService.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_projects", x => x.id);
+                    table.PrimaryKey("PK_organizations", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "project_members",
+                name: "organization_users",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    project_id = table.Column<int>(type: "int", nullable: false),
+                    organization_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     user_id = table.Column<int>(type: "int", nullable: false),
                     role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     joined_at = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
@@ -48,25 +42,25 @@ namespace ProjectManagementSystem.ProjectService.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_project_members", x => x.id);
+                    table.PrimaryKey("PK_organization_users", x => x.id);
                     table.ForeignKey(
-                        name: "FK_project_members_projects_project_id",
-                        column: x => x.project_id,
-                        principalTable: "projects",
+                        name: "FK_organization_users_organizations_organization_id",
+                        column: x => x.organization_id,
+                        principalTable: "organizations",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProjectMembers_ProjectId_UserId",
-                table: "project_members",
-                columns: new[] { "project_id", "user_id" },
+                name: "IX_OrganizationUsers_OrganizationId_UserId",
+                table: "organization_users",
+                columns: new[] { "organization_id", "user_id" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Projects_Name_OrganizationId",
-                table: "projects",
-                columns: new[] { "name", "organization_id" },
+                name: "IX_organizations_name",
+                table: "organizations",
+                column: "name",
                 unique: true);
         }
 
@@ -74,10 +68,10 @@ namespace ProjectManagementSystem.ProjectService.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "project_members");
+                name: "organization_users");
 
             migrationBuilder.DropTable(
-                name: "projects");
+                name: "organizations");
         }
     }
 }

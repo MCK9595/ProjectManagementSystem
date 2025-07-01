@@ -19,6 +19,13 @@ public class TaskDbContext : DbContext
         // Configure Task entity
         modelBuilder.Entity<Entities.Task>(entity =>
         {
+            entity.Property(e => e.Id).HasDefaultValueSql("NEWID()");
+            
+            // プロジェクト内でのタスク番号ユニーク制約
+            entity.HasIndex(e => new { e.ProjectId, e.TaskNumber })
+                .IsUnique()
+                .HasDatabaseName("IX_Tasks_ProjectId_TaskNumber");
+
             entity.HasIndex(e => e.ProjectId)
                 .HasDatabaseName("IX_Tasks_ProjectId");
 

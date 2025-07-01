@@ -11,7 +11,11 @@ public class Task
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+
+    [Required]
+    [Column("task_number")]
+    public int TaskNumber { get; set; }
 
     [Required]
     [Column("title")]
@@ -43,7 +47,7 @@ public class Task
 
     [Required]
     [Column("project_id")]
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
 
     [Required]
     [Column("assigned_to_user_id")]

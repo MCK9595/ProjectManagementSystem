@@ -47,8 +47,8 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("is_active");
 
-                    b.Property<int>("TaskId")
-                        .HasColumnType("int")
+                    b.Property<Guid>("TaskId")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("task_id");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -74,12 +74,11 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
 
             modelBuilder.Entity("ProjectManagementSystem.TaskService.Data.Entities.Task", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("NEWID()");
 
                     b.Property<decimal?>("ActualHours")
                         .HasColumnType("decimal(18,2)")
@@ -126,8 +125,8 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("priority");
 
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int")
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("project_id");
 
                     b.Property<DateTime?>("StartDate")
@@ -139,6 +138,10 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("status");
+
+                    b.Property<int>("TaskNumber")
+                        .HasColumnType("int")
+                        .HasColumnName("task_number");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -165,6 +168,10 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
 
                     b.HasIndex("Status")
                         .HasDatabaseName("IX_Tasks_Status");
+
+                    b.HasIndex("ProjectId", "TaskNumber")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Tasks_ProjectId_TaskNumber");
 
                     b.ToTable("tasks");
                 });

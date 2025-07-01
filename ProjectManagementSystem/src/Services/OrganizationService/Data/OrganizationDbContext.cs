@@ -19,6 +19,7 @@ public class OrganizationDbContext : DbContext
         // Configure Organization entity
         modelBuilder.Entity<Organization>(entity =>
         {
+            entity.Property(e => e.Id).HasDefaultValueSql("NEWID()");
             entity.HasIndex(e => e.Name).IsUnique();
             
             entity.Property(e => e.CreatedAt)

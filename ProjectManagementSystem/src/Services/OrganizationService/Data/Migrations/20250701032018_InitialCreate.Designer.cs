@@ -12,7 +12,7 @@ using ProjectManagementSystem.OrganizationService.Data;
 namespace ProjectManagementSystem.OrganizationService.Data.Migrations
 {
     [DbContext(typeof(OrganizationDbContext))]
-    [Migration("20250629172247_InitialCreate")]
+    [Migration("20250701032018_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,12 +27,11 @@ namespace ProjectManagementSystem.OrganizationService.Data.Migrations
 
             modelBuilder.Entity("ProjectManagementSystem.OrganizationService.Data.Entities.Organization", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("NEWID()");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -92,8 +91,8 @@ namespace ProjectManagementSystem.OrganizationService.Data.Migrations
                         .HasColumnName("joined_at")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int>("OrganizationId")
-                        .HasColumnType("int")
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("organization_id");
 
                     b.Property<string>("Role")

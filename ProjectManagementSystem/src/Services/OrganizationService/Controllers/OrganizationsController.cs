@@ -53,8 +53,8 @@ public class OrganizationsController : ControllerBase
     /// <summary>
     /// Get organization by ID
     /// </summary>
-    [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<OrganizationDto>>> GetOrganization(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<OrganizationDto>>> GetOrganization(Guid id)
     {
         try
         {
@@ -105,6 +105,11 @@ public class OrganizationsController : ControllerBase
                 new { id = organization.Id }, 
                 ApiResponse<OrganizationDto>.SuccessResult(organization, "Organization created successfully"));
         }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+        {
+            // 重複エラーの場合は409 Conflictを返す
+            return Conflict(ApiResponse<OrganizationDto>.ErrorResult(ex.Message));
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating organization");
@@ -115,8 +120,8 @@ public class OrganizationsController : ControllerBase
     /// <summary>
     /// Update an organization
     /// </summary>
-    [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<OrganizationDto>>> UpdateOrganization(int id, [FromBody] UpdateOrganizationDto updateDto)
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<OrganizationDto>>> UpdateOrganization(Guid id, [FromBody] UpdateOrganizationDto updateDto)
     {
         try
         {
@@ -151,8 +156,8 @@ public class OrganizationsController : ControllerBase
     /// <summary>
     /// Delete an organization
     /// </summary>
-    [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> DeleteOrganization(int id)
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<object>>> DeleteOrganization(Guid id)
     {
         try
         {

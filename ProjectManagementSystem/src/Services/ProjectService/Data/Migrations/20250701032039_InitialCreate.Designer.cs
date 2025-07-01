@@ -12,7 +12,7 @@ using ProjectManagementSystem.ProjectService.Data;
 namespace ProjectManagementSystem.ProjectService.Data.Migrations
 {
     [DbContext(typeof(ProjectDbContext))]
-    [Migration("20250629172300_InitialCreate")]
+    [Migration("20250701032039_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,12 +27,11 @@ namespace ProjectManagementSystem.ProjectService.Data.Migrations
 
             modelBuilder.Entity("ProjectManagementSystem.ProjectService.Data.Entities.Project", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("NEWID()");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -63,8 +62,8 @@ namespace ProjectManagementSystem.ProjectService.Data.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("name");
 
-                    b.Property<int>("OrganizationId")
-                        .HasColumnType("int")
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("organization_id");
 
                     b.Property<string>("Priority")
@@ -117,8 +116,8 @@ namespace ProjectManagementSystem.ProjectService.Data.Migrations
                         .HasColumnName("joined_at")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int")
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier")
                         .HasColumnName("project_id");
 
                     b.Property<string>("Role")

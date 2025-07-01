@@ -24,7 +24,7 @@ public class ProjectsController : ControllerBase
     [HttpGet("organization/{organizationId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember}")]
     public async Task<ActionResult<ApiResponse<PagedResult<ProjectDto>>>> GetProjects(
-        int organizationId,
+        Guid organizationId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -42,7 +42,7 @@ public class ProjectsController : ControllerBase
 
     [HttpGet("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
-    public async Task<ActionResult<ApiResponse<ProjectDto>>> GetProject(int id)
+    public async Task<ActionResult<ApiResponse<ProjectDto>>> GetProject(Guid id)
     {
         try
         {
@@ -92,7 +92,7 @@ public class ProjectsController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<ProjectDto>>> UpdateProject(int id, [FromBody] UpdateProjectDto updateProjectDto)
+    public async Task<ActionResult<ApiResponse<ProjectDto>>> UpdateProject(Guid id, [FromBody] UpdateProjectDto updateProjectDto)
     {
         if (!ModelState.IsValid)
         {
@@ -125,7 +125,7 @@ public class ProjectsController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> DeleteProject(int id)
+    public async Task<ActionResult<ApiResponse<object>>> DeleteProject(Guid id)
     {
         try
         {
@@ -153,7 +153,7 @@ public class ProjectsController : ControllerBase
 
     [HttpPost("{id}/archive")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> ArchiveProject(int id)
+    public async Task<ActionResult<ApiResponse<object>>> ArchiveProject(Guid id)
     {
         try
         {
@@ -181,7 +181,7 @@ public class ProjectsController : ControllerBase
 
     [HttpPost("{id}/restore")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> RestoreProject(int id)
+    public async Task<ActionResult<ApiResponse<object>>> RestoreProject(Guid id)
     {
         try
         {

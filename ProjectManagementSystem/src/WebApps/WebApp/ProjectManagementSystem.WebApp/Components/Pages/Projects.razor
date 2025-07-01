@@ -4,7 +4,7 @@
 @using ProjectManagementSystem.Shared.Models.DTOs
 @using ProjectManagementSystem.Shared.Common.Models
 @using ProjectManagementSystem.Shared.Common.Constants
-@rendermode InteractiveServer
+
 @attribute [Authorize]
 @inject IProjectService ProjectService
 @inject NavigationManager Navigation
@@ -173,20 +173,20 @@
 
     private void NavigateToCreate()
     {
-        Navigation.NavigateTo("/projects/create");
+        Navigation.NavigateTo("/projects/create", forceLoad: true);
     }
 
-    private void ViewProject(int id)
+    private void ViewProject(Guid id)
     {
         Navigation.NavigateTo($"/projects/{id}");
     }
 
-    private void EditProject(int id)
+    private void EditProject(Guid id)
     {
         Navigation.NavigateTo($"/projects/{id}/edit");
     }
 
-    private async Task DeleteProject(int id)
+    private async Task DeleteProject(Guid id)
     {
         if (await JSInterop.InvokeAsync<bool>("confirm", "Are you sure you want to delete this project?"))
         {

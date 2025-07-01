@@ -19,6 +19,7 @@ public class ProjectDbContext : DbContext
         // Configure Project entity
         modelBuilder.Entity<Project>(entity =>
         {
+            entity.Property(e => e.Id).HasDefaultValueSql("NEWID()");
             entity.HasIndex(e => new { e.Name, e.OrganizationId })
                 .IsUnique()
                 .HasDatabaseName("IX_Projects_Name_OrganizationId");

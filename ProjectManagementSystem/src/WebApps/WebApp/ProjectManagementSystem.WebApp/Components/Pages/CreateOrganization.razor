@@ -2,17 +2,34 @@
 @using Microsoft.AspNetCore.Authorization
 @using ProjectManagementSystem.WebApp.Services
 @using ProjectManagementSystem.Shared.Models.DTOs
-@rendermode InteractiveServer
 @attribute [Authorize]
 @inject IOrganizationService OrganizationService
 @inject NavigationManager Navigation
+@inject ILogger<CreateOrganization> Logger
 
 <PageTitle>Create Organization - Project Management System</PageTitle>
 
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
+    @if (!pageLoaded)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading page...</span>
+            </div>
+            <p class="mt-3">Initializing create organization page...</p>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    @errorMessage
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h4>Create New Organization</h4>
@@ -59,42 +76,79 @@
                         </div>
                     </EditForm>
                 </div>
+                </div>
             </div>
         </div>
-    </div>
+    }
 </div>
 
 @code {
     private CreateOrganizationDto createModel = new() { Name = "", Description = "" };
     private string errorMessage = string.Empty;
     private bool isLoading = false;
+    private bool pageLoaded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Logger.LogDebug("CreateOrganization page initializing");
+            pageLoaded = true;
+            Logger.LogDebug("CreateOrganization page initialized successfully");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error initializing CreateOrganization page");
+            errorMessage = "Failed to initialize page. Please refresh and try again.";
+        }
+    }
 
     private async Task HandleSubmit()
     {
         try
         {
+            Logger.LogDebug("HandleSubmit called for organization creation");
             isLoading = true;
             errorMessage = string.Empty;
 
+            Logger.LogDebug("Calling OrganizationService.CreateOrganizationAsync with model: Name={Name}, Description={Description}", 
+                createModel.Name, createModel.Description);
+            
             var result = await OrganizationService.CreateOrganizationAsync(createModel);
             
             if (result != null)
             {
+                Logger.LogDebug("Organization created successfully with ID: {OrganizationId}", result.Id);
                 Navigation.NavigateTo("/organizations");
             }
             else
             {
+                Logger.LogWarning("CreateOrganizationAsync returned null result");
                 errorMessage = "Failed to create organization. Please try again.";
             }
         }
+        catch (InvalidOperationException ex)
+        {
+            // 重複エラーの場合
+            errorMessage = ex.Message;
+            Logger.LogWarning("Organization creation failed due to duplicate name: {OrganizationName}", createModel.Name);
+        }
+        catch (ArgumentException ex)
+        {
+            // バリデーションエラーの場合
+            errorMessage = $"Validation error: {ex.Message}";
+            Logger.LogWarning("Organization creation failed due to validation error: {ValidationError}", ex.Message);
+        }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Exception in HandleSubmit for organization creation - Type: {ExceptionType}, Message: {Message}", 
+                ex.GetType().Name, ex.Message);
             errorMessage = "An error occurred while creating the organization. Please try again.";
-            Console.WriteLine($"Create organization error: {ex.Message}");
         }
         finally
         {
             isLoading = false;
+            Logger.LogDebug("HandleSubmit completed, isLoading set to false");
         }
     }
 

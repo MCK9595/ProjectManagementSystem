@@ -10,7 +10,7 @@ public class Project
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
     [Column("name")]
@@ -39,7 +39,7 @@ public class Project
 
     [Required]
     [Column("organization_id")]
-    public int OrganizationId { get; set; }
+    public Guid OrganizationId { get; set; }
 
     [Required]
     [Column("created_by_user_id")]

@@ -24,7 +24,7 @@ public class TasksController : ControllerBase
     [HttpGet("project/{projectId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
     public async Task<ActionResult<ApiResponse<PagedResult<TaskDto>>>> GetProjectTasks(
-        int projectId,
+        Guid projectId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -69,7 +69,7 @@ public class TasksController : ControllerBase
 
     [HttpGet("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
-    public async Task<ActionResult<ApiResponse<TaskDto>>> GetTask(int id)
+    public async Task<ActionResult<ApiResponse<TaskDto>>> GetTask(Guid id)
     {
         try
         {
@@ -119,7 +119,7 @@ public class TasksController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager},{Roles.ProjectMember}")]
-    public async Task<ActionResult<ApiResponse<TaskDto>>> UpdateTask(int id, [FromBody] UpdateTaskDto updateTaskDto)
+    public async Task<ActionResult<ApiResponse<TaskDto>>> UpdateTask(Guid id, [FromBody] UpdateTaskDto updateTaskDto)
     {
         if (!ModelState.IsValid)
         {
@@ -152,7 +152,7 @@ public class TasksController : ControllerBase
 
     [HttpPatch("{id}/status")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager},{Roles.ProjectMember}")]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateTaskStatus(int id, [FromBody] UpdateTaskStatusDto statusDto)
+    public async Task<ActionResult<ApiResponse<object>>> UpdateTaskStatus(Guid id, [FromBody] UpdateTaskStatusDto statusDto)
     {
         if (!ModelState.IsValid)
         {
@@ -185,7 +185,7 @@ public class TasksController : ControllerBase
 
     [HttpPatch("{id}/assign")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> AssignTask(int id, [FromBody] AssignTaskDto assignDto)
+    public async Task<ActionResult<ApiResponse<object>>> AssignTask(Guid id, [FromBody] AssignTaskDto assignDto)
     {
         if (!ModelState.IsValid)
         {
@@ -211,7 +211,7 @@ public class TasksController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> DeleteTask(int id)
+    public async Task<ActionResult<ApiResponse<object>>> DeleteTask(Guid id)
     {
         try
         {

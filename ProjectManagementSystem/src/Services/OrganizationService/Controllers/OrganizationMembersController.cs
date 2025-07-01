@@ -26,7 +26,7 @@ public class MembersController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<ApiResponse<PagedResult<OrganizationMemberDto>>>> GetMembers(
-        int organizationId,
+        Guid organizationId,
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 10)
     {
@@ -55,7 +55,7 @@ public class MembersController : ControllerBase
     /// </summary>
     [HttpPost]
     public async Task<ActionResult<ApiResponse<OrganizationMemberDto>>> AddMember(
-        int organizationId, 
+        Guid organizationId, 
         [FromBody] AddMemberDto addMemberDto)
     {
         try
@@ -92,7 +92,7 @@ public class MembersController : ControllerBase
     /// Remove a member from the organization
     /// </summary>
     [HttpDelete("{userId}")]
-    public async Task<ActionResult<ApiResponse<object>>> RemoveMember(int organizationId, int userId)
+    public async Task<ActionResult<ApiResponse<object>>> RemoveMember(Guid organizationId, int userId)
     {
         try
         {
@@ -119,7 +119,7 @@ public class MembersController : ControllerBase
     /// </summary>
     [HttpPut("{userId}/role")]
     public async Task<ActionResult<ApiResponse<object>>> UpdateMemberRole(
-        int organizationId, 
+        Guid organizationId, 
         int userId, 
         [FromBody] UpdateMemberRoleRequest request)
     {

@@ -42,6 +42,42 @@ cd src/Services/IdentityService
 dotnet ef migrations add [MigrationName] -o Data/Migrations
 ```
 
+### Database Migration Requirements
+**IMPORTANT**: When modifying any Entity Framework Core entity classes or DbContext configurations, you MUST create a new migration:
+
+1. **Navigate to the service directory** containing the modified entity:
+   ```bash
+   cd src/Services/[ServiceName]
+   ```
+
+2. **Create a new migration** with a descriptive name:
+   ```bash
+   dotnet ef migrations add [DescriptiveMigrationName] -o Data/Migrations
+   ```
+
+3. **Examples for each service**:
+   ```bash
+   # IdentityService
+   cd src/Services/IdentityService
+   dotnet ef migrations add AddUserProfileFields -o Data/Migrations
+
+   # OrganizationService
+   cd src/Services/OrganizationService
+   dotnet ef migrations add AddOrganizationSettings -o Data/Migrations
+
+   # ProjectService
+   cd src/Services/ProjectService
+   dotnet ef migrations add AddProjectBudgetField -o Data/Migrations
+
+   # TaskService
+   cd src/Services/TaskService
+   dotnet ef migrations add AddTaskPriorityIndex -o Data/Migrations
+   ```
+
+4. **Migration will be automatically applied** by the MigrationService when running `aspire run`
+
+**Note**: Never modify or delete existing migration files. Always create new migrations for schema changes.
+
 ## Architecture Overview
 
 ### Microservices Structure

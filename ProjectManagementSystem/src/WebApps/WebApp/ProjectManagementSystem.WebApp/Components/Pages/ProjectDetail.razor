@@ -1,0 +1,867 @@
+@page "/projects/{id:guid}"
+@page "/projects/{id:guid}/edit"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using ProjectManagementSystem.WebApp.Services
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Common.Models
+@using ProjectManagementSystem.Shared.Common.Constants
+@using TaskStatusConst = ProjectManagementSystem.Shared.Common.Constants.TaskStatus
+
+@attribute [Authorize]
+@inject IProjectService ProjectService
+@inject IOrganizationService OrganizationService
+@inject IUserService UserService
+@inject ITaskService TaskService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>@(IsEditMode ? "Edit" : "View") Project - Project Management System</PageTitle>
+
+@if (project != null)
+{
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 100%; overflow: hidden;">
+        <div>
+            <h2 class="mb-2" style="font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">@(IsEditMode ? "Edit" : "View") Project</h2>
+            <p class="text-muted mb-0" style="font-size: var(--font-size-sm);">@project.Name</p>
+        </div>
+        <div>
+            @if (!IsEditMode && CanEditProject())
+            {
+                <button class="btn btn-outline-primary me-2" @onclick="ToggleEditMode">
+                    <i class="bi bi-pencil"></i> Edit
+                </button>
+            }
+            <button class="btn btn-outline-secondary" @onclick="GoBack">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="card mb-4" style="width: 100%; max-width: 100%; overflow: hidden;">
+        <div class="card-body">
+            @if (IsEditMode)
+            {
+                <EditForm Model="@updateModel" OnValidSubmit="@HandleUpdate">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" />
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">
+                            @errorMessage
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Project Name <span class="text-danger">*</span></label>
+                                <InputText id="name" @bind-Value="updateModel.Name" class="form-control" />
+                                <ValidationMessage For="@(() => updateModel.Name)" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <InputTextArea id="description" @bind-Value="updateModel.Description" class="form-control" rows="4" />
+                                <ValidationMessage For="@(() => updateModel.Description)" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="status" class="form-label">Status</label>
+                                        <InputSelect id="status" @bind-Value="updateModel.Status" class="form-select">
+                                            @foreach (var status in ProjectStatus.AllStatuses)
+                                            {
+                                                <option value="@status">@status</option>
+                                            }
+                                        </InputSelect>
+                                        <ValidationMessage For="@(() => updateModel.Status)" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="priority" class="form-label">Priority</label>
+                                        <InputSelect id="priority" @bind-Value="updateModel.Priority" class="form-select">
+                                            @foreach (var priority in Priority.AllPriorities)
+                                            {
+                                                <option value="@priority">@priority</option>
+                                            }
+                                        </InputSelect>
+                                        <ValidationMessage For="@(() => updateModel.Priority)" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="startDate" class="form-label">Start Date</label>
+                                        <InputDate id="startDate" @bind-Value="updateModel.StartDate" class="form-control" />
+                                        <ValidationMessage For="@(() => updateModel.StartDate)" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="endDate" class="form-label">End Date</label>
+                                        <InputDate id="endDate" @bind-Value="updateModel.EndDate" class="form-control" />
+                                        <ValidationMessage For="@(() => updateModel.EndDate)" />
+                                        @if (updateModel.StartDate.HasValue && updateModel.EndDate.HasValue && updateModel.EndDate < updateModel.StartDate)
+                                        {
+                                            <div class="text-danger small">End date must be after start date</div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-outline-secondary me-md-2" @onclick="CancelEdit">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            }
+                            Save Changes
+                        </button>
+                    </div>
+                </EditForm>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5>Project Details</h5>
+                        <dl class="row">
+                            <dt class="col-sm-3">Name:</dt>
+                            <dd class="col-sm-9">@project.Name</dd>
+                            
+                            <dt class="col-sm-3">Description:</dt>
+                            <dd class="col-sm-9">@(project.Description ?? "No description provided")</dd>
+                            
+                            <dt class="col-sm-3">Organization:</dt>
+                            <dd class="col-sm-9">
+                                @if (project.Organization != null)
+                                {
+                                    <a href="/organizations/@project.Organization.Id" class="text-decoration-none">@project.Organization.Name</a>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Loading...</span>
+                                }
+                            </dd>
+                            
+                            <dt class="col-sm-3">Status:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-@GetStatusBadgeColor(project.Status)">@project.Status</span>
+                            </dd>
+                            
+                            <dt class="col-sm-3">Priority:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-@GetPriorityBadgeColor(project.Priority)">@project.Priority</span>
+                            </dd>
+                            
+                            <dt class="col-sm-3">Start Date:</dt>
+                            <dd class="col-sm-9">@(project.StartDate?.ToString("MMMM dd, yyyy") ?? "Not set")</dd>
+                            
+                            <dt class="col-sm-3">End Date:</dt>
+                            <dd class="col-sm-9">@(project.EndDate?.ToString("MMMM dd, yyyy") ?? "Not set")</dd>
+                            
+                            <dt class="col-sm-3">Created:</dt>
+                            <dd class="col-sm-9">@project.CreatedAt.ToString("MMMM dd, yyyy 'at' h:mm tt")</dd>
+                            
+                            <dt class="col-sm-3">Last Updated:</dt>
+                            <dd class="col-sm-9">@project.UpdatedAt.ToString("MMMM dd, yyyy 'at' h:mm tt")</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0">Project Statistics</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <div class="h4 mb-1">@(members?.TotalCount ?? 0)</div>
+                                        <div class="small text-muted">Members</div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="h4 mb-1">@(projectTasks?.TotalCount ?? 0)</div>
+                                        <div class="small text-muted">Tasks</div>
+                                    </div>
+                                </div>
+                                @if (project.StartDate.HasValue && project.EndDate.HasValue)
+                                {
+                                    <hr class="my-3">
+                                    <div class="text-center">
+                                        <small class="text-muted">Project Duration</small>
+                                        <div class="fw-bold">@GetProjectDuration() days</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (!IsEditMode)
+    {
+        <!-- Project Members Section -->
+        <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5>Project Members</h5>
+                    @if (CanManageMembers())
+                    {
+                        <button class="btn btn-sm btn-outline-primary" @onclick="OpenAddMemberModal">
+                            <i class="bi bi-person-plus"></i> Add Member
+                        </button>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                @if (isLoadingMembers)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading members...</span>
+                        </div>
+                    </div>
+                }
+                else if (members?.Items?.Any() == true)
+                {
+                    <div class="table-responsive" style="width: 100%; overflow-x: auto;">
+                        <table class="table table-hover table-striped table-sm" style="min-width: 600px; table-layout: fixed; width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%;">User</th>
+                                    <th style="width: 20%;">Role</th>
+                                    <th style="width: 20%;">Joined Date</th>
+                                    <th style="width: 25%;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var member in members.Items)
+                                {
+                                    <tr>
+                                        <td class="text-truncate">
+                                            <div>
+                                                <strong class="d-block text-truncate" title="@member.User?.Username">@member.User?.Username</strong>
+                                                <small class="text-muted text-truncate d-block" title="@member.User?.Email">@member.User?.Email</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (CanManageMembers() && member.Role != Roles.ProjectManager)
+                                            {
+                                                <select class="form-select form-select-sm" @onchange="(e) => UpdateMemberRole(member.UserId, e.Value?.ToString() ?? member.Role)">
+                                                    <option value="@Roles.ProjectMember" selected="@(member.Role == Roles.ProjectMember)">Member</option>
+                                                    <option value="@Roles.ProjectManager" selected="@(member.Role == Roles.ProjectManager)">Manager</option>
+                                                </select>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-@GetProjectRoleBadgeColor(member.Role)">@GetProjectRoleDisplayName(member.Role)</span>
+                                            }
+                                        </td>
+                                        <td class="text-truncate">@member.JoinedAt.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            @if (CanManageMembers() && member.Role != Roles.ProjectManager)
+                                            {
+                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveMember(member.UserId)" disabled="@isProcessing">
+                                                    <i class="bi bi-person-dash"></i> Remove
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Manager</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No members found in this project.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Project Tasks Section -->
+        <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5>Tasks</h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary me-2" @onclick="ToggleTaskView">
+                            <i class="bi @(isTaskKanbanView ? "bi-list" : "bi-kanban")"></i> 
+                            @(isTaskKanbanView ? "List" : "Kanban")
+                        </button>
+                        @if (CanCreateTask())
+                        {
+                            <button class="btn btn-sm btn-outline-primary" @onclick="CreateTask">
+                                <i class="bi bi-plus-circle"></i> Add Task
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                @if (isLoadingTasks)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading tasks...</span>
+                        </div>
+                    </div>
+                }
+                else if (projectTasks?.Items?.Any() == true)
+                {
+                    @if (isTaskKanbanView)
+                    {
+                        <!-- Mini Kanban View -->
+                        <div class="row">
+                            @foreach (var status in taskStatuses)
+                            {
+                                <div class="col-md-3 mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-header p-2">
+                                            <small class="text-muted fw-bold">@status</small>
+                                            <span class="badge bg-secondary float-end">@GetTaskCountByStatus(status)</span>
+                                        </div>
+                                        <div class="card-body p-2" style="min-height: 200px; max-height: 300px; overflow-y: auto;">
+                                            @foreach (var task in GetTasksByStatus(status))
+                                            {
+                                                <div class="card mb-2 shadow-sm" style="cursor: pointer;" @onclick="() => ViewTask(task.Id)">
+                                                    <div class="card-body p-2">
+                                                        <h6 class="card-title mb-1 small">@task.Title</h6>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="badge bg-@GetTaskPriorityBadgeColor(task.Priority) small">@task.Priority</span>
+                                                            @if (task.DueDate.HasValue)
+                                                            {
+                                                                <small class="text-muted">@task.DueDate.Value.ToString("MMM dd")</small>
+                                                            }
+                                                        </div>
+                                                        @if (task.AssignedTo != null)
+                                                        {
+                                                            <div class="mt-1">
+                                                                <small class="text-muted">@task.AssignedTo.Username</small>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- List View -->
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Priority</th>
+                                        <th>Assigned To</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var task in projectTasks.Items)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong class="small">@task.Title</strong>
+                                                    @if (!string.IsNullOrEmpty(task.Description))
+                                                    {
+                                                        <br />
+                                                        <small class="text-muted">@(task.Description.Length > 40 ? task.Description.Substring(0, 40) + "..." : task.Description)</small>
+                                                    }
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@GetTaskStatusBadgeColor(task.Status) small">@task.Status</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@GetTaskPriorityBadgeColor(task.Priority) small">@task.Priority</span>
+                                            </td>
+                                            <td>
+                                                @if (task.AssignedTo != null)
+                                                {
+                                                    <small>@task.AssignedTo.Username</small>
+                                                }
+                                                else
+                                                {
+                                                    <small class="text-muted">Unassigned</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (task.DueDate.HasValue)
+                                                {
+                                                    <small class="@(task.DueDate < DateTime.UtcNow && task.Status != TaskStatusConst.Done ? "text-danger" : "")">
+                                                        @task.DueDate.Value.ToString("MMM dd")
+                                                    </small>
+                                                }
+                                                else
+                                                {
+                                                    <small class="text-muted">No due</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewTask(task.Id)">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    
+                    @if (projectTasks.TotalCount > 10)
+                    {
+                        <div class="mt-3 text-center">
+                            <a href="/tasks?projectId=@Id" class="btn btn-sm btn-outline-primary">
+                                View All Tasks (@projectTasks.TotalCount)
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-list-check" style="font-size: 2rem; color: #6c757d;"></i>
+                        <h6 class="mt-2">No tasks yet</h6>
+                        <p class="text-muted small">Create your first task to get started.</p>
+                        @if (CanCreateTask())
+                        {
+                            <button class="btn btn-sm btn-primary" @onclick="CreateTask">
+                                <i class="bi bi-plus-circle"></i> Create First Task
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+else if (isLoading)
+{
+    <div class="container text-center">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Loading project...</p>
+    </div>
+}
+else
+{
+    <div class="container">
+        <div class="alert alert-danger">
+            Project not found or you don't have permission to view it.
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private ProjectDto? project;
+    private PagedResult<ProjectMemberDto>? members;
+    private PagedResult<TaskDto>? projectTasks;
+    private UpdateProjectDto updateModel = new();
+    private bool isLoading = true;
+    private bool isLoadingMembers = false;
+    private bool isLoadingTasks = false;
+    private bool isProcessing = false;
+    private bool isTaskKanbanView = true;
+    private bool IsEditMode => Navigation.Uri.Contains("/edit");
+    private string errorMessage = string.Empty;
+    private UserDto? currentUser;
+    private readonly string[] taskStatuses = { TaskStatusConst.ToDo, TaskStatusConst.InProgress, TaskStatusConst.InReview, TaskStatusConst.Done };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCurrentUser();
+        await LoadProject();
+        if (!IsEditMode)
+        {
+            await LoadMembers();
+            await LoadProjectTasks();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadCurrentUser();
+        await LoadProject();
+        if (!IsEditMode)
+        {
+            await LoadMembers();
+            await LoadProjectTasks();
+        }
+    }
+
+    private async Task LoadCurrentUser()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    currentUser = await UserService.GetUserByIdAsync(userId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading current user: {ex.Message}");
+        }
+    }
+
+    private async Task LoadProject()
+    {
+        isLoading = true;
+        try
+        {
+            project = await ProjectService.GetProjectAsync(Id);
+            if (project != null)
+            {
+                updateModel.Name = project.Name;
+                updateModel.Description = project.Description;
+                updateModel.Status = project.Status;
+                updateModel.Priority = project.Priority;
+                updateModel.StartDate = project.StartDate;
+                updateModel.EndDate = project.EndDate;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading project: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadMembers()
+    {
+        isLoadingMembers = true;
+        try
+        {
+            members = await ProjectService.GetProjectMembersAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading members: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingMembers = false;
+        }
+    }
+
+    private async Task HandleUpdate()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = string.Empty;
+
+            // Validate dates
+            if (updateModel.StartDate.HasValue && updateModel.EndDate.HasValue && updateModel.EndDate < updateModel.StartDate)
+            {
+                errorMessage = "End date must be after start date.";
+                return;
+            }
+
+            var result = await ProjectService.UpdateProjectAsync(Id, updateModel);
+            
+            if (result != null)
+            {
+                project = result;
+                Navigation.NavigateTo($"/projects/{Id}");
+            }
+            else
+            {
+                errorMessage = "Failed to update project. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred while updating the project. Please try again.";
+            Console.WriteLine($"Update project error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private bool CanEditProject()
+    {
+        if (currentUser == null || project == null) return false;
+        
+        // System admin can edit any project
+        if (currentUser.Role == Roles.SystemAdmin) return true;
+        
+        // Check if user is project manager
+        var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
+        return userMembership?.Role == Roles.ProjectManager;
+    }
+
+    private bool CanManageMembers()
+    {
+        if (currentUser == null || project == null) return false;
+        
+        // System admin can manage members in any project
+        if (currentUser.Role == Roles.SystemAdmin) return true;
+        
+        // Check if user is project manager
+        var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
+        return userMembership?.Role == Roles.ProjectManager;
+    }
+
+    private async Task UpdateMemberRole(int userId, string newRole)
+    {
+        if (isProcessing) return;
+        
+        isProcessing = true;
+        try
+        {
+            var success = await ProjectService.UpdateMemberRoleAsync(Id, userId, newRole);
+            if (success)
+            {
+                await LoadMembers(); // Refresh the member list
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to update member role. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating member role: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while updating the member role.");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RemoveMember(int userId)
+    {
+        if (isProcessing) return;
+        
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this member from the project?");
+        if (!confirmed) return;
+        
+        isProcessing = true;
+        try
+        {
+            var success = await ProjectService.RemoveMemberAsync(Id, userId);
+            if (success)
+            {
+                await LoadMembers(); // Refresh the member list
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to remove member. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error removing member: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while removing the member.");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void OpenAddMemberModal()
+    {
+        // TODO: Implement add member modal - this would require a modal component
+        // For now, provide feedback that the feature needs a modal implementation
+        JSRuntime.InvokeVoidAsync("alert", "Add member functionality requires a modal component. This would be implemented with a user selection modal.");
+    }
+
+    private string GetStatusBadgeColor(string status)
+    {
+        return status switch
+        {
+            ProjectStatus.Planning => "secondary",
+            ProjectStatus.Active => "success",
+            ProjectStatus.OnHold => "warning",
+            ProjectStatus.Completed => "info",
+            ProjectStatus.Cancelled => "danger",
+            _ => "secondary"
+        };
+    }
+
+    private string GetPriorityBadgeColor(string priority)
+    {
+        return priority switch
+        {
+            Priority.Critical => "danger",
+            Priority.High => "warning",
+            Priority.Medium => "primary",
+            Priority.Low => "info",
+            _ => "secondary"
+        };
+    }
+
+    private string GetProjectRoleBadgeColor(string role)
+    {
+        return role switch
+        {
+            Roles.ProjectManager => "primary",
+            Roles.ProjectMember => "secondary",
+            _ => "light"
+        };
+    }
+
+    private string GetProjectRoleDisplayName(string role)
+    {
+        return role switch
+        {
+            Roles.ProjectManager => "Manager",
+            Roles.ProjectMember => "Member",
+            _ => role
+        };
+    }
+
+    private int GetProjectDuration()
+    {
+        if (project?.StartDate.HasValue == true && project?.EndDate.HasValue == true)
+        {
+            return (int)(project.EndDate.Value - project.StartDate.Value).TotalDays;
+        }
+        return 0;
+    }
+
+    private void ToggleEditMode()
+    {
+        Navigation.NavigateTo($"/projects/{Id}/edit");
+    }
+
+    private void CancelEdit()
+    {
+        Navigation.NavigateTo($"/projects/{Id}");
+    }
+
+    private async Task LoadProjectTasks()
+    {
+        isLoadingTasks = true;
+        try
+        {
+            projectTasks = await TaskService.GetTasksAsync(Id, 1, 20); // Load first 20 tasks
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading project tasks: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingTasks = false;
+        }
+    }
+
+    private bool CanCreateTask()
+    {
+        if (currentUser == null || project == null) return false;
+        
+        // System admin can create tasks in any project
+        if (currentUser.Role == Roles.SystemAdmin) return true;
+        
+        // Project members and above can create tasks
+        var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
+        return userMembership != null;
+    }
+
+    private void ToggleTaskView()
+    {
+        isTaskKanbanView = !isTaskKanbanView;
+    }
+
+    private IEnumerable<TaskDto> GetTasksByStatus(string status)
+    {
+        return projectTasks?.Items?.Where(t => t.Status == status) ?? Enumerable.Empty<TaskDto>();
+    }
+
+    private int GetTaskCountByStatus(string status)
+    {
+        return GetTasksByStatus(status).Count();
+    }
+
+    private void CreateTask()
+    {
+        Navigation.NavigateTo($"/tasks/create?projectId={Id}");
+    }
+
+    private void ViewTask(Guid taskId)
+    {
+        Navigation.NavigateTo($"/tasks/{taskId}");
+    }
+
+    private string GetTaskStatusBadgeColor(string status)
+    {
+        return status switch
+        {
+            TaskStatusConst.ToDo => "secondary",
+            TaskStatusConst.InProgress => "warning text-dark",
+            TaskStatusConst.InReview => "info",
+            TaskStatusConst.Done => "success",
+            _ => "secondary"
+        };
+    }
+
+    private string GetTaskPriorityBadgeColor(string priority)
+    {
+        return priority switch
+        {
+            Priority.Critical => "danger",
+            Priority.High => "warning text-dark",
+            Priority.Medium => "primary",
+            Priority.Low => "info",
+            _ => "secondary"
+        };
+    }
+
+    private void GoBack()
+    {
+        if (project?.Organization != null)
+        {
+            Navigation.NavigateTo($"/organizations/{project.Organization.Id}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/projects");
+        }
+    }
+}

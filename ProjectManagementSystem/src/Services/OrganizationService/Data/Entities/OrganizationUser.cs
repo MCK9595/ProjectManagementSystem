@@ -13,7 +13,7 @@ public class OrganizationUser
 
     [Required]
     [Column("organization_id")]
-    public int OrganizationId { get; set; }
+    public Guid OrganizationId { get; set; }
 
     [Required]
     [Column("user_id")]

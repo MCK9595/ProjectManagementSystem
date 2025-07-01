@@ -17,7 +17,7 @@ public class ProjectMemberService : IProjectMemberService
         _logger = logger;
     }
 
-    public async Task<PagedResult<ProjectMemberDto>> GetProjectMembersAsync(int projectId, int pageNumber = 1, int pageSize = 10)
+    public async Task<PagedResult<ProjectMemberDto>> GetProjectMembersAsync(Guid projectId, int pageNumber = 1, int pageSize = 10)
     {
         var query = _context.ProjectMembers
             .Where(pm => pm.ProjectId == projectId && pm.IsActive)
@@ -46,7 +46,7 @@ public class ProjectMemberService : IProjectMemberService
         };
     }
 
-    public async Task<ProjectMemberDto?> GetProjectMemberAsync(int projectId, int userId)
+    public async Task<ProjectMemberDto?> GetProjectMemberAsync(Guid projectId, int userId)
     {
         var member = await _context.ProjectMembers
             .Where(pm => pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive)
@@ -65,7 +65,7 @@ public class ProjectMemberService : IProjectMemberService
         };
     }
 
-    public async Task<ProjectMemberDto> AddProjectMemberAsync(int projectId, int userId, string role)
+    public async Task<ProjectMemberDto> AddProjectMemberAsync(Guid projectId, int userId, string role)
     {
         var existingMember = await _context.ProjectMembers
             .Where(pm => pm.ProjectId == projectId && pm.UserId == userId)
@@ -119,7 +119,7 @@ public class ProjectMemberService : IProjectMemberService
         };
     }
 
-    public async Task<ProjectMemberDto?> UpdateProjectMemberRoleAsync(int projectId, int userId, string role)
+    public async Task<ProjectMemberDto?> UpdateProjectMemberRoleAsync(Guid projectId, int userId, string role)
     {
         var member = await _context.ProjectMembers
             .Where(pm => pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive)
@@ -143,7 +143,7 @@ public class ProjectMemberService : IProjectMemberService
         };
     }
 
-    public async Task<bool> RemoveProjectMemberAsync(int projectId, int userId)
+    public async Task<bool> RemoveProjectMemberAsync(Guid projectId, int userId)
     {
         var member = await _context.ProjectMembers
             .Where(pm => pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive)
@@ -159,13 +159,13 @@ public class ProjectMemberService : IProjectMemberService
         return true;
     }
 
-    public async Task<bool> IsProjectMemberAsync(int projectId, int userId)
+    public async Task<bool> IsProjectMemberAsync(Guid projectId, int userId)
     {
         return await _context.ProjectMembers
             .AnyAsync(pm => pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive);
     }
 
-    public async Task<string?> GetProjectMemberRoleAsync(int projectId, int userId)
+    public async Task<string?> GetProjectMemberRoleAsync(Guid projectId, int userId)
     {
         var member = await _context.ProjectMembers
             .Where(pm => pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive)

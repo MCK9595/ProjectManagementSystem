@@ -4,7 +4,7 @@ namespace ProjectManagementSystem.Shared.Models.DTOs;
 
 public class OrganizationDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public required string Name { get; set; }
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -34,7 +34,7 @@ public class UpdateOrganizationDto
 public class OrganizationMemberDto
 {
     public int Id { get; set; }
-    public int OrganizationId { get; set; }
+    public Guid OrganizationId { get; set; }
     public int UserId { get; set; }
     public required string Role { get; set; }
     public DateTime JoinedAt { get; set; }

@@ -4,7 +4,8 @@ namespace ProjectManagementSystem.Shared.Models.DTOs;
 
 public class TaskDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
+    public int TaskNumber { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
     public required string Status { get; set; }
@@ -16,7 +17,7 @@ public class TaskDto
     public decimal? ActualHours { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     public int CreatedByUserId { get; set; }
     public int AssignedToUserId { get; set; }
     public ProjectDto? Project { get; set; }
@@ -43,7 +44,7 @@ public class CreateTaskDto
     public decimal? EstimatedHours { get; set; }
     
     [Required]
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
     
     [Required]
     public int AssignedToUserId { get; set; }
@@ -71,7 +72,7 @@ public class TaskCommentDto
     public int Id { get; set; }
     public required string Content { get; set; }
     public DateTime CreatedAt { get; set; }
-    public int TaskId { get; set; }
+    public Guid TaskId { get; set; }
     public int UserId { get; set; }
     public UserDto? User { get; set; }
 }

@@ -17,7 +17,7 @@ public class TaskCommentService : ITaskCommentService
         _logger = logger;
     }
 
-    public async Task<PagedResult<TaskCommentDto>> GetTaskCommentsAsync(int taskId, int pageNumber = 1, int pageSize = 10)
+    public async Task<PagedResult<TaskCommentDto>> GetTaskCommentsAsync(Guid taskId, int pageNumber = 1, int pageSize = 10)
     {
         var query = _context.Comments
             .Where(c => c.TaskId == taskId && c.IsActive)
@@ -48,7 +48,7 @@ public class TaskCommentService : ITaskCommentService
         return comment != null ? MapCommentToDto(comment) : null;
     }
 
-    public async Task<TaskCommentDto> CreateCommentAsync(int taskId, CreateTaskCommentDto createCommentDto, int userId)
+    public async Task<TaskCommentDto> CreateCommentAsync(Guid taskId, CreateTaskCommentDto createCommentDto, int userId)
     {
         var comment = new Comment
         {

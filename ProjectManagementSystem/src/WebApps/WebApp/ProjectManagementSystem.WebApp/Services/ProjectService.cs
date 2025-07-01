@@ -40,7 +40,7 @@ public class ProjectService : IProjectService
         return null;
     }
 
-    public async Task<PagedResult<ProjectDto>?> GetProjectsByOrganizationAsync(int organizationId, int pageNumber = 1, int pageSize = 10)
+    public async Task<PagedResult<ProjectDto>?> GetProjectsByOrganizationAsync(Guid organizationId, int pageNumber = 1, int pageSize = 10)
     {
         try
         {
@@ -64,7 +64,7 @@ public class ProjectService : IProjectService
         return null;
     }
 
-    public async Task<ProjectDto?> GetProjectAsync(int id)
+    public async Task<ProjectDto?> GetProjectAsync(Guid id)
     {
         try
         {
@@ -112,7 +112,7 @@ public class ProjectService : IProjectService
         return null;
     }
 
-    public async Task<ProjectDto?> UpdateProjectAsync(int id, UpdateProjectDto projectDto)
+    public async Task<ProjectDto?> UpdateProjectAsync(Guid id, UpdateProjectDto projectDto)
     {
         try
         {
@@ -136,7 +136,7 @@ public class ProjectService : IProjectService
         return null;
     }
 
-    public async Task<bool> DeleteProjectAsync(int id)
+    public async Task<bool> DeleteProjectAsync(Guid id)
     {
         try
         {
@@ -152,7 +152,7 @@ public class ProjectService : IProjectService
         return false;
     }
 
-    public async Task<PagedResult<ProjectMemberDto>?> GetProjectMembersAsync(int projectId, int pageNumber = 1, int pageSize = 10)
+    public async Task<PagedResult<ProjectMemberDto>?> GetProjectMembersAsync(Guid projectId, int pageNumber = 1, int pageSize = 10)
     {
         try
         {
@@ -174,6 +174,64 @@ public class ProjectService : IProjectService
         }
 
         return null;
+    }
+
+    public async Task<ProjectMemberDto?> AddMemberAsync(Guid projectId, AddProjectMemberDto addMemberDto)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.PostAsJsonAsync($"/api/projects/{projectId}/members", addMemberDto);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<ProjectMemberDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                return apiResponse?.Data;
+            }
+        }
+        catch (Exception)
+        {
+            // Log exception
+        }
+
+        return null;
+    }
+
+    public async Task<bool> RemoveMemberAsync(Guid projectId, int userId)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.DeleteAsync($"/api/projects/{projectId}/members/{userId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception)
+        {
+            // Log exception
+        }
+
+        return false;
+    }
+
+    public async Task<bool> UpdateMemberRoleAsync(Guid projectId, int userId, string role)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var request = new { Role = role };
+            var response = await _httpClient.PutAsJsonAsync($"/api/projects/{projectId}/members/{userId}/role", request);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception)
+        {
+            // Log exception
+        }
+
+        return false;
     }
 
     private async Task SetAuthHeaderAsync()

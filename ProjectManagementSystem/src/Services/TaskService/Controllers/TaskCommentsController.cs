@@ -30,7 +30,7 @@ public class TaskCommentsController : ControllerBase
     [HttpGet]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
     public async Task<ActionResult<ApiResponse<PagedResult<TaskCommentDto>>>> GetTaskComments(
-        int taskId,
+        Guid taskId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -55,7 +55,7 @@ public class TaskCommentsController : ControllerBase
 
     [HttpGet("{commentId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
-    public async Task<ActionResult<ApiResponse<TaskCommentDto>>> GetComment(int taskId, int commentId)
+    public async Task<ActionResult<ApiResponse<TaskCommentDto>>> GetComment(Guid taskId, int commentId)
     {
         try
         {
@@ -84,7 +84,7 @@ public class TaskCommentsController : ControllerBase
     [HttpPost]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
     public async Task<ActionResult<ApiResponse<TaskCommentDto>>> CreateComment(
-        int taskId,
+        Guid taskId,
         [FromBody] CreateTaskCommentDto createCommentDto)
     {
         if (!ModelState.IsValid)
@@ -116,7 +116,7 @@ public class TaskCommentsController : ControllerBase
     [HttpPut("{commentId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
     public async Task<ActionResult<ApiResponse<TaskCommentDto>>> UpdateComment(
-        int taskId,
+        Guid taskId,
         int commentId,
         [FromBody] UpdateTaskCommentDto updateCommentDto)
     {
@@ -151,7 +151,7 @@ public class TaskCommentsController : ControllerBase
 
     [HttpDelete("{commentId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> DeleteComment(int taskId, int commentId)
+    public async Task<ActionResult<ApiResponse<object>>> DeleteComment(Guid taskId, int commentId)
     {
         try
         {

@@ -50,7 +50,10 @@ builder.Services.AddScoped<ProjectManagementSystem.Shared.Common.Services.ISessi
 // Add TokenHandler for automatic JWT token attachment
 builder.Services.AddScoped<ProjectManagementSystem.WebApp.Services.TokenHandler>();
 
-// Add authentication services  
+// Add authentication services
+builder.Services.AddAuthentication("Custom")
+    .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler>("Custom", options => { });
+
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -99,6 +102,10 @@ app.UseHttpsRedirection();
 
 // Use session middleware (must be before UseRouting)
 app.UseSession();
+
+// Add authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 

@@ -30,7 +30,7 @@ public class ProjectMembersController : ControllerBase
     [HttpGet]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager},{Roles.ProjectMember}")]
     public async Task<ActionResult<ApiResponse<PagedResult<ProjectMemberDto>>>> GetProjectMembers(
-        int projectId,
+        Guid projectId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -55,7 +55,7 @@ public class ProjectMembersController : ControllerBase
 
     [HttpGet("{userId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager},{Roles.ProjectMember}")]
-    public async Task<ActionResult<ApiResponse<ProjectMemberDto>>> GetProjectMember(int projectId, int userId)
+    public async Task<ActionResult<ApiResponse<ProjectMemberDto>>> GetProjectMember(Guid projectId, int userId)
     {
         try
         {
@@ -84,7 +84,7 @@ public class ProjectMembersController : ControllerBase
     [HttpPost]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
     public async Task<ActionResult<ApiResponse<ProjectMemberDto>>> AddProjectMember(
-        int projectId,
+        Guid projectId,
         [FromBody] AddProjectMemberDto addMemberDto)
     {
         if (!ModelState.IsValid)
@@ -120,7 +120,7 @@ public class ProjectMembersController : ControllerBase
     [HttpPut("{userId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
     public async Task<ActionResult<ApiResponse<ProjectMemberDto>>> UpdateProjectMemberRole(
-        int projectId,
+        Guid projectId,
         int userId,
         [FromBody] UpdateProjectMemberDto updateMemberDto)
     {
@@ -155,7 +155,7 @@ public class ProjectMembersController : ControllerBase
 
     [HttpDelete("{userId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
-    public async Task<ActionResult<ApiResponse<object>>> RemoveProjectMember(int projectId, int userId)
+    public async Task<ActionResult<ApiResponse<object>>> RemoveProjectMember(Guid projectId, int userId)
     {
         try
         {

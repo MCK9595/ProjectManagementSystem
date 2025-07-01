@@ -4,7 +4,7 @@
 @using ProjectManagementSystem.Shared.Models.DTOs
 @using ProjectManagementSystem.Shared.Common.Models
 @using ProjectManagementSystem.Shared.Common.Constants
-@rendermode InteractiveServer
+
 @attribute [Authorize]
 @inject ITaskService TaskService
 @inject NavigationManager Navigation
@@ -247,17 +247,17 @@
         Navigation.NavigateTo("/tasks/create");
     }
 
-    private void ViewTask(int id)
+    private void ViewTask(Guid id)
     {
         Navigation.NavigateTo($"/tasks/{id}");
     }
 
-    private void EditTask(int id)
+    private void EditTask(Guid id)
     {
         Navigation.NavigateTo($"/tasks/{id}/edit");
     }
 
-    private async Task DeleteTask(int id)
+    private async Task DeleteTask(Guid id)
     {
         if (await JSInterop.InvokeAsync<bool>("confirm", "Are you sure you want to delete this task?"))
         {

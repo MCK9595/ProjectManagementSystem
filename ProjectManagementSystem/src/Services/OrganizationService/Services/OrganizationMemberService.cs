@@ -18,7 +18,7 @@ public class OrganizationMemberService : IOrganizationMemberService
         _logger = logger;
     }
 
-    public async Task<PagedResult<OrganizationMemberDto>> GetMembersAsync(int organizationId, int requestingUserId, int page, int pageSize)
+    public async Task<PagedResult<OrganizationMemberDto>> GetMembersAsync(Guid organizationId, int requestingUserId, int page, int pageSize)
     {
         // Check if requesting user can access organization
         var canAccess = await _context.OrganizationUsers
@@ -64,7 +64,7 @@ public class OrganizationMemberService : IOrganizationMemberService
         };
     }
 
-    public async Task<OrganizationMemberDto?> AddMemberAsync(int organizationId, AddMemberDto addMemberDto, int requestingUserId)
+    public async Task<OrganizationMemberDto?> AddMemberAsync(Guid organizationId, AddMemberDto addMemberDto, int requestingUserId)
     {
         // Check if requesting user is admin or owner
         var requestingUserRole = await _context.OrganizationUsers
@@ -129,7 +129,7 @@ public class OrganizationMemberService : IOrganizationMemberService
         };
     }
 
-    public async Task<bool> RemoveMemberAsync(int organizationId, int userId, int requestingUserId)
+    public async Task<bool> RemoveMemberAsync(Guid organizationId, int userId, int requestingUserId)
     {
         // Check if requesting user is admin or owner
         var requestingUserRole = await _context.OrganizationUsers
@@ -169,7 +169,7 @@ public class OrganizationMemberService : IOrganizationMemberService
         return true;
     }
 
-    public async Task<bool> UpdateMemberRoleAsync(int organizationId, int userId, string newRole, int requestingUserId)
+    public async Task<bool> UpdateMemberRoleAsync(Guid organizationId, int userId, string newRole, int requestingUserId)
     {
         // Check if requesting user is admin or owner
         var requestingUserRole = await _context.OrganizationUsers

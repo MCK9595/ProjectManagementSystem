@@ -1,39 +1,46 @@
-@page "/organizations/{id:int}"
-@page "/organizations/{id:int}/edit"
+@page "/organizations/{id:guid}"
+@page "/organizations/{id:guid}/edit"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using ProjectManagementSystem.WebApp.Services
 @using ProjectManagementSystem.Shared.Models.DTOs
 @using ProjectManagementSystem.Shared.Common.Models
-@rendermode InteractiveServer
+@using ProjectManagementSystem.Shared.Common.Constants
+
 @attribute [Authorize]
 @inject IOrganizationService OrganizationService
+@inject IProjectService ProjectService
+@inject IUserService UserService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>@(IsEditMode ? "Edit" : "View") Organization - Project Management System</PageTitle>
 
 @if (organization != null)
 {
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h4>@(IsEditMode ? "Edit" : "View") Organization</h4>
-                            <div>
-                                @if (!IsEditMode)
-                                {
-                                    <button class="btn btn-outline-primary me-2" @onclick="ToggleEditMode">
-                                        <i class="bi bi-pencil"></i> Edit
-                                    </button>
-                                }
-                                <button class="btn btn-outline-secondary" @onclick="GoBack">
-                                    <i class="bi bi-arrow-left"></i> Back
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 100%; overflow: hidden;">
+        <div>
+            <h2 class="mb-2" style="font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">@(IsEditMode ? "Edit" : "View") Organization</h2>
+            <p class="text-muted mb-0" style="font-size: var(--font-size-sm);">@organization.Name</p>
+        </div>
+        <div>
+            @if (!IsEditMode && CanEditOrganization())
+            {
+                <button class="btn btn-outline-primary me-2" @onclick="ToggleEditMode">
+                    <i class="bi bi-pencil"></i> Edit
+                </button>
+            }
+            <button class="btn btn-outline-secondary" @onclick="GoBack">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="card mb-4" style="width: 100%; max-width: 100%; overflow: hidden;">
+        <div class="card-body">
                         @if (IsEditMode)
                         {
                             <EditForm Model="@updateModel" OnValidSubmit="@HandleUpdate">
@@ -100,13 +107,16 @@
                 @if (!IsEditMode)
                 {
                     <!-- Organization Members Section -->
-                    <div class="card mt-4">
+                    <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5>Organization Members</h5>
-                                <button class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-person-plus"></i> Add Member
-                                </button>
+                                @if (CanManageMembers())
+                                {
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="OpenAddMemberModal">
+                                        <i class="bi bi-person-plus"></i> Add Member
+                                    </button>
+                                }
                             </div>
                         </div>
                         <div class="card-body">
@@ -120,35 +130,51 @@
                             }
                             else if (members?.Items?.Any() == true)
                             {
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
+                                <div class="table-responsive" style="width: 100%; overflow-x: auto;">
+                                    <table class="table table-hover table-striped table-sm" style="min-width: 600px; table-layout: fixed; width: 100%;">
                                         <thead>
                                             <tr>
-                                                <th>User</th>
-                                                <th>Role</th>
-                                                <th>Joined Date</th>
-                                                <th>Actions</th>
+                                                <th style="width: 35%;">User</th>
+                                                <th style="width: 20%;">Role</th>
+                                                <th style="width: 20%;">Joined Date</th>
+                                                <th style="width: 25%;">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach (var member in members.Items)
                                             {
                                                 <tr>
-                                                    <td>
+                                                    <td class="text-truncate">
                                                         <div>
-                                                            <strong>@member.User?.Username</strong>
-                                                            <br />
-                                                            <small class="text-muted">@member.User?.Email</small>
+                                                            <strong class="d-block text-truncate" title="@member.User?.Username">@member.User?.Username</strong>
+                                                            <small class="text-muted text-truncate d-block" title="@member.User?.Email">@member.User?.Email</small>
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        <span class="badge bg-primary">@member.Role</span>
+                                                        @if (CanManageMembers() && member.Role != Roles.OrganizationOwner)
+                                                        {
+                                                            <select class="form-select form-select-sm" @onchange="(e) => UpdateMemberRole(member.UserId, e.Value?.ToString() ?? member.Role)">
+                                                                <option value="@Roles.OrganizationMember" selected="@(member.Role == Roles.OrganizationMember)">Member</option>
+                                                                <option value="@Roles.OrganizationAdmin" selected="@(member.Role == Roles.OrganizationAdmin)">Admin</option>
+                                                            </select>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-@GetRoleBadgeColor(member.Role)">@GetRoleDisplayName(member.Role)</span>
+                                                        }
                                                     </td>
-                                                    <td>@member.JoinedAt.ToString("MMM dd, yyyy")</td>
+                                                    <td class="text-truncate">@member.JoinedAt.ToString("MMM dd, yyyy")</td>
                                                     <td>
-                                                        <button class="btn btn-sm btn-outline-danger">
-                                                            <i class="bi bi-person-dash"></i> Remove
-                                                        </button>
+                                                        @if (CanManageMembers() && member.Role != Roles.OrganizationOwner)
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveMember(member.UserId)" disabled="@isProcessing">
+                                                                <i class="bi bi-person-dash"></i> Remove
+                                                            </button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">Owner</span>
+                                                        }
                                                     </td>
                                                 </tr>
                                             }
@@ -162,10 +188,63 @@
                             }
                         </div>
                     </div>
+
+                    <!-- Organization Projects Section -->
+                    <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5>Projects</h5>
+                                @if (CanCreateProject())
+                                {
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="CreateProject">
+                                        <i class="bi bi-plus-circle"></i> Create Project
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (isLoadingProjects)
+                            {
+                                <div class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading projects...</span>
+                                    </div>
+                                </div>
+                            }
+                            else if (projects?.Items?.Any() == true)
+                            {
+                                <div class="row">
+                                    @foreach (var project in projects.Items)
+                                    {
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card h-100 shadow-sm">
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-truncate" title="@project.Name">@project.Name</h6>
+                                                    <p class="card-text text-muted small text-truncate" title="@project.Description">@(project.Description ?? "No description")</p>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <small class="text-muted">@project.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                                        <span class="badge bg-@GetProjectStatusBadgeColor(project.Status)">
+                                                            @project.Status
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer bg-transparent border-0 pt-0">
+                                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewProject(project.Id)">
+                                                        <i class="bi bi-eye"></i> View Project
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No projects found in this organization.</p>
+                            }
+                        </div>
+                    </div>
                 }
-            </div>
-        </div>
-    </div>
 }
 else if (isLoading)
 {
@@ -186,31 +265,59 @@ else
 }
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public Guid Id { get; set; }
 
     private OrganizationDto? organization;
     private PagedResult<OrganizationMemberDto>? members;
+    private PagedResult<ProjectDto>? projects;
     private UpdateOrganizationDto updateModel = new();
     private bool isLoading = true;
     private bool isLoadingMembers = false;
+    private bool isLoadingProjects = false;
+    private bool isProcessing = false;
     private bool IsEditMode => Navigation.Uri.Contains("/edit");
     private string errorMessage = string.Empty;
+    private UserDto? currentUser;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadCurrentUser();
         await LoadOrganization();
         if (!IsEditMode)
         {
             await LoadMembers();
+            await LoadProjects();
         }
     }
 
     protected override async Task OnParametersSetAsync()
     {
+        await LoadCurrentUser();
         await LoadOrganization();
         if (!IsEditMode)
         {
             await LoadMembers();
+            await LoadProjects();
+        }
+    }
+
+    private async Task LoadCurrentUser()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    currentUser = await UserService.GetUserByIdAsync(userId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading current user: {ex.Message}");
         }
     }
 
@@ -253,6 +360,23 @@ else
         }
     }
 
+    private async Task LoadProjects()
+    {
+        isLoadingProjects = true;
+        try
+        {
+            projects = await ProjectService.GetProjectsByOrganizationAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading projects: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingProjects = false;
+        }
+    }
+
     private async Task HandleUpdate()
     {
         try
@@ -281,6 +405,155 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private bool CanEditOrganization()
+    {
+        if (currentUser == null || organization == null) return false;
+        
+        // System admin can edit any organization
+        if (currentUser.Role == Roles.SystemAdmin) return true;
+        
+        // Check if user is organization owner or admin
+        var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
+        return userMembership?.Role == Roles.OrganizationOwner || 
+               userMembership?.Role == Roles.OrganizationAdmin;
+    }
+
+    private bool CanManageMembers()
+    {
+        if (currentUser == null || organization == null) return false;
+        
+        // System admin can manage members in any organization
+        if (currentUser.Role == Roles.SystemAdmin) return true;
+        
+        // Check if user is organization owner or admin
+        var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
+        return userMembership?.Role == Roles.OrganizationOwner || 
+               userMembership?.Role == Roles.OrganizationAdmin;
+    }
+
+    private bool CanCreateProject()
+    {
+        if (currentUser == null || organization == null) return false;
+        
+        // System admin can create projects in any organization
+        if (currentUser.Role == Roles.SystemAdmin) return true;
+        
+        // Organization members and above can create projects
+        var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
+        return userMembership != null;
+    }
+
+    private async Task UpdateMemberRole(int userId, string newRole)
+    {
+        if (isProcessing) return;
+        
+        isProcessing = true;
+        try
+        {
+            var success = await OrganizationService.UpdateMemberRoleAsync(Id, userId, newRole);
+            if (success)
+            {
+                await LoadMembers(); // Refresh the member list
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to update member role. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating member role: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while updating the member role.");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RemoveMember(int userId)
+    {
+        if (isProcessing) return;
+        
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this member from the organization?");
+        if (!confirmed) return;
+        
+        isProcessing = true;
+        try
+        {
+            var success = await OrganizationService.RemoveMemberAsync(Id, userId);
+            if (success)
+            {
+                await LoadMembers(); // Refresh the member list
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to remove member. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error removing member: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while removing the member.");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void OpenAddMemberModal()
+    {
+        // TODO: Implement add member modal
+        // For now, navigate to a separate page or show a simple prompt
+        JSRuntime.InvokeVoidAsync("alert", "Add member functionality will be implemented soon.");
+    }
+
+    private void CreateProject()
+    {
+        Navigation.NavigateTo($"/projects/create?organizationId={Id}");
+    }
+
+    private void ViewProject(Guid projectId)
+    {
+        Navigation.NavigateTo($"/projects/{projectId}");
+    }
+
+    private string GetRoleBadgeColor(string role)
+    {
+        return role switch
+        {
+            Roles.OrganizationOwner => "primary",
+            Roles.OrganizationAdmin => "success",
+            Roles.OrganizationMember => "secondary",
+            _ => "light"
+        };
+    }
+
+    private string GetRoleDisplayName(string role)
+    {
+        return role switch
+        {
+            Roles.OrganizationOwner => "Owner",
+            Roles.OrganizationAdmin => "Admin",
+            Roles.OrganizationMember => "Member",
+            _ => role
+        };
+    }
+
+    private string GetProjectStatusBadgeColor(string status)
+    {
+        return status switch
+        {
+            "Active" => "success",
+            "InProgress" => "primary",
+            "Completed" => "info",
+            "OnHold" => "warning",
+            "Cancelled" => "danger",
+            _ => "secondary"
+        };
     }
 
     private void ToggleEditMode()

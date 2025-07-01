@@ -18,7 +18,7 @@ public class ProjectService : IProjectService
         _logger = logger;
     }
 
-    public async Task<PagedResult<ProjectDto>> GetProjectsAsync(int organizationId, int pageNumber = 1, int pageSize = 10)
+    public async Task<PagedResult<ProjectDto>> GetProjectsAsync(Guid organizationId, int pageNumber = 1, int pageSize = 10)
     {
         var query = _context.Projects
             .Where(p => p.OrganizationId == organizationId && p.IsActive)
@@ -53,7 +53,7 @@ public class ProjectService : IProjectService
         };
     }
 
-    public async Task<ProjectDto?> GetProjectByIdAsync(int projectId)
+    public async Task<ProjectDto?> GetProjectByIdAsync(Guid projectId)
     {
         var project = await _context.Projects
             .Where(p => p.Id == projectId && p.IsActive)
@@ -123,7 +123,7 @@ public class ProjectService : IProjectService
         };
     }
 
-    public async Task<ProjectDto?> UpdateProjectAsync(int projectId, UpdateProjectDto updateProjectDto)
+    public async Task<ProjectDto?> UpdateProjectAsync(Guid projectId, UpdateProjectDto updateProjectDto)
     {
         var project = await _context.Projects
             .Where(p => p.Id == projectId && p.IsActive)
@@ -170,7 +170,7 @@ public class ProjectService : IProjectService
         };
     }
 
-    public async Task<bool> DeleteProjectAsync(int projectId)
+    public async Task<bool> DeleteProjectAsync(Guid projectId)
     {
         var project = await _context.Projects
             .Where(p => p.Id == projectId && p.IsActive)
@@ -186,7 +186,7 @@ public class ProjectService : IProjectService
         return true;
     }
 
-    public async Task<bool> ArchiveProjectAsync(int projectId)
+    public async Task<bool> ArchiveProjectAsync(Guid projectId)
     {
         var project = await _context.Projects
             .Where(p => p.Id == projectId && p.IsActive)
@@ -202,7 +202,7 @@ public class ProjectService : IProjectService
         return true;
     }
 
-    public async Task<bool> RestoreProjectAsync(int projectId)
+    public async Task<bool> RestoreProjectAsync(Guid projectId)
     {
         var project = await _context.Projects
             .Where(p => p.Id == projectId)
@@ -218,13 +218,13 @@ public class ProjectService : IProjectService
         return true;
     }
 
-    public async Task<bool> HasProjectAccessAsync(int projectId, int userId)
+    public async Task<bool> HasProjectAccessAsync(Guid projectId, int userId)
     {
         return await _context.ProjectMembers
             .AnyAsync(pm => pm.ProjectId == projectId && pm.UserId == userId && pm.IsActive);
     }
 
-    public async Task<bool> IsProjectManagerAsync(int projectId, int userId)
+    public async Task<bool> IsProjectManagerAsync(Guid projectId, int userId)
     {
         return await _context.ProjectMembers
             .AnyAsync(pm => pm.ProjectId == projectId && pm.UserId == userId && 

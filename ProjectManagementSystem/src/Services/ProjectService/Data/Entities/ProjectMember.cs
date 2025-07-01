@@ -13,7 +13,7 @@ public class ProjectMember
 
     [Required]
     [Column("project_id")]
-    public int ProjectId { get; set; }
+    public Guid ProjectId { get; set; }
 
     [Required]
     [Column("user_id")]

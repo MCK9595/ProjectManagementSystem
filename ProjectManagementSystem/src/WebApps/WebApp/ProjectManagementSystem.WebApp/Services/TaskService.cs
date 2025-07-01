@@ -16,7 +16,7 @@ public class TaskService : ITaskService
         _authService = authService;
     }
 
-    public async Task<PagedResult<TaskDto>?> GetTasksAsync(int projectId, int pageNumber = 1, int pageSize = 10)
+    public async Task<PagedResult<TaskDto>?> GetTasksAsync(Guid projectId, int pageNumber = 1, int pageSize = 10)
     {
         try
         {
@@ -64,7 +64,7 @@ public class TaskService : ITaskService
         return null;
     }
 
-    public async Task<TaskDto?> GetTaskAsync(int id)
+    public async Task<TaskDto?> GetTaskAsync(Guid id)
     {
         try
         {
@@ -112,7 +112,7 @@ public class TaskService : ITaskService
         return null;
     }
 
-    public async Task<TaskDto?> UpdateTaskAsync(int id, UpdateTaskDto taskDto)
+    public async Task<TaskDto?> UpdateTaskAsync(Guid id, UpdateTaskDto taskDto)
     {
         try
         {
@@ -136,7 +136,7 @@ public class TaskService : ITaskService
         return null;
     }
 
-    public async Task<bool> UpdateTaskStatusAsync(int id, string status)
+    public async Task<bool> UpdateTaskStatusAsync(Guid id, string status)
     {
         try
         {
@@ -152,7 +152,7 @@ public class TaskService : ITaskService
         return false;
     }
 
-    public async Task<bool> AssignTaskAsync(int id, int assignedToUserId)
+    public async Task<bool> AssignTaskAsync(Guid id, int assignedToUserId)
     {
         try
         {
@@ -168,7 +168,7 @@ public class TaskService : ITaskService
         return false;
     }
 
-    public async Task<bool> DeleteTaskAsync(int id)
+    public async Task<bool> DeleteTaskAsync(Guid id)
     {
         try
         {

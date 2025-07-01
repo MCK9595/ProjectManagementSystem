@@ -15,8 +15,8 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
                 name: "tasks",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    id = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
+                    task_number = table.Column<int>(type: "int", nullable: false),
                     title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
@@ -24,7 +24,7 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
                     start_date = table.Column<DateTime>(type: "datetime2", nullable: true),
                     due_date = table.Column<DateTime>(type: "datetime2", nullable: true),
                     completed_date = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    project_id = table.Column<int>(type: "int", nullable: false),
+                    project_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     assigned_to_user_id = table.Column<int>(type: "int", nullable: false),
                     created_by_user_id = table.Column<int>(type: "int", nullable: false),
                     estimated_hours = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
@@ -45,7 +45,7 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
                     id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     content = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    task_id = table.Column<int>(type: "int", nullable: false),
+                    task_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     user_id = table.Column<int>(type: "int", nullable: false),
                     is_active = table.Column<bool>(type: "bit", nullable: false),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
@@ -86,6 +86,12 @@ namespace ProjectManagementSystem.TaskService.Data.Migrations
                 name: "IX_Tasks_ProjectId",
                 table: "tasks",
                 column: "project_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_ProjectId_TaskNumber",
+                table: "tasks",
+                columns: new[] { "project_id", "task_number" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tasks_Status",

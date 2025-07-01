@@ -5,12 +5,12 @@ namespace ProjectManagementSystem.WebApp.Services;
 
 public interface ITaskService
 {
-    Task<PagedResult<TaskDto>?> GetTasksAsync(int projectId, int pageNumber = 1, int pageSize = 10);
+    Task<PagedResult<TaskDto>?> GetTasksAsync(Guid projectId, int pageNumber = 1, int pageSize = 10);
     Task<PagedResult<TaskDto>?> GetTasksByUserAsync(int pageNumber = 1, int pageSize = 10);
-    Task<TaskDto?> GetTaskAsync(int id);
+    Task<TaskDto?> GetTaskAsync(Guid id);
     Task<TaskDto?> CreateTaskAsync(CreateTaskDto taskDto);
-    Task<TaskDto?> UpdateTaskAsync(int id, UpdateTaskDto taskDto);
-    Task<bool> UpdateTaskStatusAsync(int id, string status);
-    Task<bool> AssignTaskAsync(int id, int assignedToUserId);
-    Task<bool> DeleteTaskAsync(int id);
+    Task<TaskDto?> UpdateTaskAsync(Guid id, UpdateTaskDto taskDto);
+    Task<bool> UpdateTaskStatusAsync(Guid id, string status);
+    Task<bool> AssignTaskAsync(Guid id, int assignedToUserId);
+    Task<bool> DeleteTaskAsync(Guid id);
 }

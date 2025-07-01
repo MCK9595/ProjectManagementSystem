@@ -17,7 +17,8 @@
       "Bash(dotnet build:*)",
       "Bash(grep:*)",
       "Bash(cp:*)",
-      "WebFetch(domain:timdeschryver.dev)"
+      "WebFetch(domain:timdeschryver.dev)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }
