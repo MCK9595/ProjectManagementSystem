@@ -21,19 +21,15 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\ProjectManagementSystem.ServiceDefaults\ProjectManagementSystem.ServiceDefaults.csproj" />
     <ProjectReference Include="..\IdentityService\ProjectManagementSystem.IdentityService.csproj">
-      <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>contentFiles</ExcludeAssets>
     </ProjectReference>
     <ProjectReference Include="..\OrganizationService\ProjectManagementSystem.OrganizationService.csproj">
-      <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>contentFiles</ExcludeAssets>
     </ProjectReference>
     <ProjectReference Include="..\ProjectService\ProjectManagementSystem.ProjectService.csproj">
-      <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>contentFiles</ExcludeAssets>
     </ProjectReference>
     <ProjectReference Include="..\TaskService\ProjectManagementSystem.TaskService.csproj">
-      <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>contentFiles</ExcludeAssets>
     </ProjectReference>
     <ProjectReference Include="..\..\Shared\ProjectManagementSystem.Shared.Common\ProjectManagementSystem.Shared.Common.csproj" />

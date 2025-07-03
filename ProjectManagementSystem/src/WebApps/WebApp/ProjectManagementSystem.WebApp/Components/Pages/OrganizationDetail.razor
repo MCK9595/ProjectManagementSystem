@@ -110,13 +110,30 @@
                     <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h5>Organization Members</h5>
-                                @if (CanManageMembers())
-                                {
-                                    <button class="btn btn-sm btn-outline-primary" @onclick="OpenAddMemberModal">
-                                        <i class="bi bi-person-plus"></i> Add Member
-                                    </button>
-                                }
+                                <div>
+                                    <h5 class="mb-1">Organization Members</h5>
+                                    @if (GetOrphanedMembersCount() > 0)
+                                    {
+                                        <small class="text-warning">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            @GetOrphanedMembersCount() 個の孤立したメンバーシップが見つかりました
+                                        </small>
+                                    }
+                                </div>
+                                <div>
+                                    @if (CanManageMembers() && GetOrphanedMembersCount() > 0)
+                                    {
+                                        <button class="btn btn-sm btn-outline-warning me-2" @onclick="CleanupAllOrphanedMembers" disabled="@isProcessing" title="すべての孤立したメンバーシップを削除">
+                                            <i class="bi bi-trash3"></i> Cleanup All (@GetOrphanedMembersCount())
+                                        </button>
+                                    }
+                                    @if (CanManageMembers())
+                                    {
+                                        <button class="btn btn-sm btn-outline-primary" @onclick="OpenFindUserModal">
+                                            <i class="bi bi-person-plus"></i> Add Member
+                                        </button>
+                                    }
+                                </div>
                             </div>
                         </div>
                         <div class="card-body">
@@ -146,17 +163,31 @@
                                                 <tr>
                                                     <td class="text-truncate">
                                                         <div>
-                                                            <strong class="d-block text-truncate" title="@member.User?.Username">@member.User?.Username</strong>
-                                                            <small class="text-muted text-truncate d-block" title="@member.User?.Email">@member.User?.Email</small>
+                                                            @if (member.User != null)
+                                                            {
+                                                                <strong class="d-block text-truncate" title="@member.User.Username">@member.User.Username</strong>
+                                                                <small class="text-muted text-truncate d-block" title="@member.User.Email">@member.User.Email</small>
+                                                            }
+                                                            else
+                                                            {
+                                                                <strong class="d-block text-truncate text-danger" title="Deleted User">
+                                                                    <i class="bi bi-exclamation-triangle me-1"></i>削除されたユーザー
+                                                                </strong>
+                                                                <small class="text-muted text-truncate d-block">User ID: @member.UserId</small>
+                                                            }
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        @if (CanManageMembers() && member.Role != Roles.OrganizationOwner)
+                                                        @if (member.User != null && CanManageMembers() && member.Role != Roles.OrganizationOwner)
                                                         {
                                                             <select class="form-select form-select-sm" @onchange="(e) => UpdateMemberRole(member.UserId, e.Value?.ToString() ?? member.Role)">
                                                                 <option value="@Roles.OrganizationMember" selected="@(member.Role == Roles.OrganizationMember)">Member</option>
                                                                 <option value="@Roles.OrganizationAdmin" selected="@(member.Role == Roles.OrganizationAdmin)">Admin</option>
                                                             </select>
+                                                        }
+                                                        else if (member.User == null)
+                                                        {
+                                                            <span class="badge bg-secondary text-decoration-line-through">@GetRoleDisplayName(member.Role)</span>
                                                         }
                                                         else
                                                         {
@@ -165,11 +196,21 @@
                                                     </td>
                                                     <td class="text-truncate">@member.JoinedAt.ToString("MMM dd, yyyy")</td>
                                                     <td>
-                                                        @if (CanManageMembers() && member.Role != Roles.OrganizationOwner)
+                                                        @if (member.User == null && CanManageMembers())
+                                                        {
+                                                            <button class="btn btn-sm btn-outline-warning" @onclick="() => CleanupOrphanedMember(member.Id)" disabled="@isProcessing" title="孤立したメンバーシップデータを削除">
+                                                                <i class="bi bi-trash3"></i> Cleanup
+                                                            </button>
+                                                        }
+                                                        else if (CanManageMembers() && member.Role != Roles.OrganizationOwner && member.User != null)
                                                         {
                                                             <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveMember(member.UserId)" disabled="@isProcessing">
                                                                 <i class="bi bi-person-dash"></i> Remove
                                                             </button>
+                                                        }
+                                                        else if (member.User == null)
+                                                        {
+                                                            <span class="text-muted">削除済み</span>
                                                         }
                                                         else
                                                         {
@@ -264,6 +305,125 @@ else
     </div>
 }
 
+<!-- Stage 1: Find User Modal -->
+@if (showFindUserModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" aria-labelledby="findUserModalLabel" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="findUserModalLabel">Add Member - Step 1</h5>
+                    <button type="button" class="btn-close" @onclick="CloseFindUserModal" aria-label="Close"></button>
+                </div>
+                <EditForm Model="@findUserModel" OnValidSubmit="@HandleFindUser">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        @if (!string.IsNullOrEmpty(findUserErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @findUserErrorMessage
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label for="findUserEmail" class="form-label">Email <span class="text-danger">*</span></label>
+                            <InputText id="findUserEmail" @bind-Value="findUserModel.Email" class="form-control" />
+                            <ValidationMessage For="@(() => findUserModel.Email)" />
+                            <div class="form-text">Enter the email address of the user you want to add to this organization.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="findUserRole" class="form-label">Organization Role <span class="text-danger">*</span></label>
+                            <InputSelect id="findUserRole" @bind-Value="findUserModel.OrganizationRole" class="form-select">
+                                <option value="">-- Select Role --</option>
+                                <option value="@Roles.OrganizationAdmin">Admin</option>
+                                <option value="@Roles.OrganizationMember">Member</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => findUserModel.OrganizationRole)" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseFindUserModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isAddingMember">
+                            @if (isAddingMember)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            }
+                            Next
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Stage 2: Create User Modal -->
+@if (showCreateUserModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" aria-labelledby="createUserModalLabel" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createUserModalLabel">Add Member - Step 2: Create User</h5>
+                    <button type="button" class="btn-close" @onclick="CloseCreateUserModal" aria-label="Close"></button>
+                </div>
+                <EditForm Model="@createUserModel" OnValidSubmit="@HandleCreateUser">
+                    <DataAnnotationsValidator />
+                    <div class="modal-body">
+                        @if (!string.IsNullOrEmpty(createUserErrorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @createUserErrorMessage
+                            </div>
+                        }
+
+                        <div class="alert alert-info">
+                            <strong>Creating new user for:</strong> @createUserModel.Email with role <strong>@GetRoleDisplayName(createUserModel.OrganizationRole)</strong>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="createUserFirstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                            <InputText id="createUserFirstName" @bind-Value="createUserModel.FirstName" class="form-control" />
+                            <ValidationMessage For="@(() => createUserModel.FirstName)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="createUserLastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <InputText id="createUserLastName" @bind-Value="createUserModel.LastName" class="form-control" />
+                            <ValidationMessage For="@(() => createUserModel.LastName)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="createUserPassword" class="form-label">Password <span class="text-danger">*</span></label>
+                            <InputText id="createUserPassword" @bind-Value="createUserModel.Password" class="form-control" type="password" />
+                            <ValidationMessage For="@(() => createUserModel.Password)" />
+                            <div class="form-text">Password must be at least 8 characters long.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="createUserConfirmPassword" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <InputText id="createUserConfirmPassword" @bind-Value="createUserModel.ConfirmPassword" class="form-control" type="password" />
+                            <ValidationMessage For="@(() => createUserModel.ConfirmPassword)" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="GoBackToFindUser">Back</button>
+                        <button type="button" class="btn btn-outline-secondary" @onclick="CloseCreateUserModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isAddingMember">
+                            @if (isAddingMember)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            }
+                            Create User & Add to Organization
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     [Parameter] public Guid Id { get; set; }
 
@@ -271,12 +431,31 @@ else
     private PagedResult<OrganizationMemberDto>? members;
     private PagedResult<ProjectDto>? projects;
     private UpdateOrganizationDto updateModel = new();
+    private FindUserByEmailDto findUserModel = new()
+    {
+        Email = string.Empty,
+        OrganizationRole = string.Empty
+    };
+    private CreateUserAndAddMemberDto createUserModel = new()
+    {
+        Email = string.Empty,
+        FirstName = string.Empty,
+        LastName = string.Empty,
+        Password = string.Empty,
+        ConfirmPassword = string.Empty,
+        OrganizationRole = string.Empty
+    };
     private bool isLoading = true;
     private bool isLoadingMembers = false;
     private bool isLoadingProjects = false;
     private bool isProcessing = false;
+    private bool isAddingMember = false;
+    private bool showFindUserModal = false;
+    private bool showCreateUserModal = false;
     private bool IsEditMode => Navigation.Uri.Contains("/edit");
     private string errorMessage = string.Empty;
+    private string findUserErrorMessage = string.Empty;
+    private string createUserErrorMessage = string.Empty;
     private UserDto? currentUser;
 
     protected override async Task OnInitializedAsync()
@@ -504,11 +683,139 @@ else
         }
     }
 
-    private void OpenAddMemberModal()
+    private void OpenFindUserModal()
     {
-        // TODO: Implement add member modal
-        // For now, navigate to a separate page or show a simple prompt
-        JSRuntime.InvokeVoidAsync("alert", "Add member functionality will be implemented soon.");
+        // Reset the forms
+        findUserModel = new FindUserByEmailDto
+        {
+            Email = string.Empty,
+            OrganizationRole = string.Empty
+        };
+        createUserModel = new CreateUserAndAddMemberDto
+        {
+            Email = string.Empty,
+            FirstName = string.Empty,
+            LastName = string.Empty,
+            Password = string.Empty,
+            ConfirmPassword = string.Empty,
+            OrganizationRole = string.Empty
+        };
+        findUserErrorMessage = string.Empty;
+        createUserErrorMessage = string.Empty;
+        
+        // Show the first modal
+        showFindUserModal = true;
+        showCreateUserModal = false;
+    }
+    
+    private void CloseFindUserModal()
+    {
+        showFindUserModal = false;
+        findUserErrorMessage = string.Empty;
+    }
+
+    private void CloseCreateUserModal()
+    {
+        showCreateUserModal = false;
+        createUserErrorMessage = string.Empty;
+    }
+
+    private void GoBackToFindUser()
+    {
+        showCreateUserModal = false;
+        showFindUserModal = true;
+        createUserErrorMessage = string.Empty;
+    }
+
+    private async Task HandleFindUser()
+    {
+        if (isAddingMember) return;
+        
+        isAddingMember = true;
+        findUserErrorMessage = string.Empty;
+        
+        try
+        {
+            // Step 1: Check if user exists
+            var existingUser = await OrganizationService.CheckUserExistsByEmailAsync(findUserModel.Email);
+            
+            if (existingUser != null)
+            {
+                // User exists, add them directly
+                var result = await OrganizationService.FindAndAddMemberAsync(Id, findUserModel);
+                if (result != null)
+                {
+                    await LoadMembers(); // Refresh the member list
+                    
+                    // Close modal and show success
+                    showFindUserModal = false;
+                    await JSRuntime.InvokeVoidAsync("alert", $"User {existingUser.Username} has been successfully added to the organization.");
+                }
+                else
+                {
+                    findUserErrorMessage = "Failed to add existing user. They may already be a member of this organization.";
+                }
+            }
+            else
+            {
+                // User doesn't exist, show create user modal
+                createUserModel.Email = findUserModel.Email;
+                createUserModel.OrganizationRole = findUserModel.OrganizationRole;
+                
+                showFindUserModal = false;
+                showCreateUserModal = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error finding user: {ex.Message}");
+            findUserErrorMessage = "An error occurred while checking the user. Please try again.";
+        }
+        finally
+        {
+            isAddingMember = false;
+        }
+    }
+
+    private async Task HandleCreateUser()
+    {
+        if (isAddingMember) return;
+        
+        isAddingMember = true;
+        createUserErrorMessage = string.Empty;
+        
+        try
+        {
+            // Validate password confirmation
+            if (createUserModel.Password != createUserModel.ConfirmPassword)
+            {
+                createUserErrorMessage = "Password and confirm password do not match.";
+                return;
+            }
+
+            var result = await OrganizationService.CreateAndAddMemberAsync(Id, createUserModel);
+            if (result != null)
+            {
+                await LoadMembers(); // Refresh the member list
+                
+                // Close modal and show success
+                showCreateUserModal = false;
+                await JSRuntime.InvokeVoidAsync("alert", $"New user has been created and added to the organization successfully.");
+            }
+            else
+            {
+                createUserErrorMessage = "Failed to create user and add to organization. Please check the information and try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating user: {ex.Message}");
+            createUserErrorMessage = "An error occurred while creating the user. Please try again.";
+        }
+        finally
+        {
+            isAddingMember = false;
+        }
     }
 
     private void CreateProject()
@@ -569,5 +876,115 @@ else
     private void GoBack()
     {
         Navigation.NavigateTo("/organizations");
+    }
+
+    private async Task CleanupOrphanedMember(int membershipId)
+    {
+        if (isProcessing) return;
+        
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "このユーザーは削除されており、メンバーシップデータが孤立しています。このデータを削除しますか？\n\n" +
+            "この操作は元に戻せません。");
+        if (!confirmed) return;
+        
+        isProcessing = true;
+        try
+        {
+            // Direct membership cleanup - we'll use the existing RemoveMember but need to find the userId
+            var orphanedMember = members?.Items?.FirstOrDefault(m => m.Id == membershipId);
+            if (orphanedMember != null)
+            {
+                var success = await OrganizationService.RemoveMemberAsync(Id, orphanedMember.UserId);
+                if (success)
+                {
+                    await LoadMembers(); // Refresh the member list
+                    await JSRuntime.InvokeVoidAsync("alert", "孤立したメンバーシップデータが正常に削除されました。");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "クリーンアップに失敗しました。もう一度お試しください。");
+                }
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "メンバーシップデータが見つかりませんでした。");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cleaning up orphaned member: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "クリーンアップ中にエラーが発生しました。");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private int GetOrphanedMembersCount()
+    {
+        return members?.Items?.Count(m => m.User == null) ?? 0;
+    }
+
+    private async Task CleanupAllOrphanedMembers()
+    {
+        if (isProcessing) return;
+
+        var orphanedCount = GetOrphanedMembersCount();
+        if (orphanedCount == 0) return;
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"削除されたユーザーに関連する {orphanedCount} 個の孤立したメンバーシップデータを一括削除しますか？\n\n" +
+            "この操作は元に戻せません。");
+        if (!confirmed) return;
+        
+        isProcessing = true;
+        var successCount = 0;
+        var failureCount = 0;
+        
+        try
+        {
+            var orphanedMembers = members?.Items?.Where(m => m.User == null).ToList() ?? new List<OrganizationMemberDto>();
+            
+            foreach (var orphanedMember in orphanedMembers)
+            {
+                try
+                {
+                    var success = await OrganizationService.RemoveMemberAsync(Id, orphanedMember.UserId);
+                    if (success)
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        failureCount++;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error removing orphaned member {orphanedMember.UserId}: {ex.Message}");
+                    failureCount++;
+                }
+            }
+
+            await LoadMembers(); // Refresh the member list
+            
+            var message = $"一括クリーンアップが完了しました。\n成功: {successCount}件";
+            if (failureCount > 0)
+            {
+                message += $"\n失敗: {failureCount}件";
+            }
+            
+            await JSRuntime.InvokeVoidAsync("alert", message);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during bulk cleanup: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "一括クリーンアップ中にエラーが発生しました。");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
     }
 }

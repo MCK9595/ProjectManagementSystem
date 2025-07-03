@@ -14,6 +14,12 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageReference Include="xunit" Version="2.9.3"/>
     <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2" />
+    <PackageReference Include="FluentAssertions" Version="6.12.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.6" />
+    <PackageReference Include="Testcontainers.MsSql" Version="4.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +28,17 @@
     <Using Include="Aspire.Hosting.ApplicationModel" />
     <Using Include="Aspire.Hosting.Testing" />
     <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="System.Net.Http.Json" />
+    <Using Include="System.Text.Json" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Services/IdentityService/ProjectManagementSystem.IdentityService.csproj" />
+    <ProjectReference Include="../../src/Shared/ProjectManagementSystem.Shared.Models/ProjectManagementSystem.Shared.Models.csproj" />
+    <ProjectReference Include="../../src/Shared/ProjectManagementSystem.Shared.Common/ProjectManagementSystem.Shared.Common.csproj" />
+    <ProjectReference Include="../../ProjectManagementSystem.ServiceDefaults/ProjectManagementSystem.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

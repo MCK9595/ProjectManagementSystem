@@ -89,6 +89,120 @@ public class MembersController : ControllerBase
     }
 
     /// <summary>
+    /// Add a member to the organization by email (find or create user)
+    /// </summary>
+    [HttpPost("by-email")]
+    public async Task<ActionResult<ApiResponse<OrganizationMemberDto>>> AddMemberByEmail(
+        Guid organizationId, 
+        [FromBody] AddMemberByEmailDto addMemberDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(ApiResponse<OrganizationMemberDto>.ErrorResult("Invalid input", errors));
+            }
+
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<OrganizationMemberDto>.ErrorResult("Invalid token"));
+
+            var member = await _memberService.AddMemberByEmailAsync(organizationId, addMemberDto, userId.Value);
+            
+            if (member == null)
+                return BadRequest(ApiResponse<OrganizationMemberDto>.ErrorResult("Unable to add member. Check permissions, member status, or user creation failed."));
+
+            return Ok(ApiResponse<OrganizationMemberDto>.SuccessResult(member, "Member added successfully"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding member by email to organization {OrganizationId}", organizationId);
+            return StatusCode(500, ApiResponse<OrganizationMemberDto>.ErrorResult("An error occurred while adding the member"));
+        }
+    }
+
+    /// <summary>
+    /// Add an existing user to the organization by email
+    /// </summary>
+    [HttpPost("find-and-add")]
+    public async Task<ActionResult<ApiResponse<OrganizationMemberDto>>> FindAndAddMember(
+        Guid organizationId, 
+        [FromBody] FindUserByEmailDto findUserDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(ApiResponse<OrganizationMemberDto>.ErrorResult("Invalid input", errors));
+            }
+
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<OrganizationMemberDto>.ErrorResult("Invalid token"));
+
+            var member = await _memberService.AddExistingUserByEmailAsync(organizationId, findUserDto, userId.Value);
+            
+            if (member == null)
+                return BadRequest(ApiResponse<OrganizationMemberDto>.ErrorResult("Unable to add member. User may not exist, already be a member, or you may not have proper permissions."));
+
+            return Ok(ApiResponse<OrganizationMemberDto>.SuccessResult(member, "Existing member added successfully"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error finding and adding member to organization {OrganizationId}", organizationId);
+            return StatusCode(500, ApiResponse<OrganizationMemberDto>.ErrorResult("An error occurred while adding the member"));
+        }
+    }
+
+    /// <summary>
+    /// Create a new user and add them to the organization
+    /// </summary>
+    [HttpPost("create-and-add")]
+    public async Task<ActionResult<ApiResponse<OrganizationMemberDto>>> CreateAndAddMember(
+        Guid organizationId, 
+        [FromBody] CreateUserAndAddMemberDto createUserDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(ApiResponse<OrganizationMemberDto>.ErrorResult("Invalid input", errors));
+            }
+
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized(ApiResponse<OrganizationMemberDto>.ErrorResult("Invalid token"));
+
+            var member = await _memberService.CreateUserAndAddMemberAsync(organizationId, createUserDto, userId.Value);
+            
+            if (member == null)
+                return BadRequest(ApiResponse<OrganizationMemberDto>.ErrorResult("Unable to create and add member. Check permissions, password confirmation, or user data validity."));
+
+            return Ok(ApiResponse<OrganizationMemberDto>.SuccessResult(member, "User created and added as member successfully"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating and adding member to organization {OrganizationId}", organizationId);
+            return StatusCode(500, ApiResponse<OrganizationMemberDto>.ErrorResult("An error occurred while creating and adding the member"));
+        }
+    }
+
+    /// <summary>
     /// Remove a member from the organization
     /// </summary>
     [HttpDelete("{userId}")]

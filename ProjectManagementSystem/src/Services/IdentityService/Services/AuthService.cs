@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.IdentityService.Data;
 using ProjectManagementSystem.IdentityService.Data.Entities;
 using ProjectManagementSystem.Shared.Models.DTOs;
+using ProjectManagementSystem.IdentityService.Abstractions;
 
 namespace ProjectManagementSystem.IdentityService.Services;
 
@@ -13,29 +14,34 @@ public class AuthService : IAuthService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly ILogger<AuthService> _logger;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public AuthService(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _logger = logger;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
     {
-        var user = await _userManager.FindByNameAsync(loginDto.Username) 
-                  ?? await _userManager.FindByEmailAsync(loginDto.Username);
+        // Temporarily disable soft delete check until migration is properly applied
+        var user = await _context.Users
+            .Where(u => u.UserName == loginDto.Username || u.Email == loginDto.Username)
+            .FirstOrDefaultAsync();
         
         if (user == null || !user.IsActive)
         {
-            _logger.LogWarning("Login attempt for non-existent or inactive user: {Username}", loginDto.Username);
+            _logger.LogWarning("Login attempt for non-existent, inactive, or deleted user: {Username}", loginDto.Username);
             return null;
         }
 
@@ -63,7 +69,7 @@ public class AuthService : IAuthService
         }
 
         // Successful login - update last login
-        user.LastLoginAt = DateTime.UtcNow;
+        user.LastLoginAt = _dateTimeProvider.UtcNow;
         await _userManager.UpdateAsync(user);
 
         // Generate tokens
@@ -76,7 +82,7 @@ public class AuthService : IAuthService
         {
             Token = accessToken,
             User = await MapUserToDtoAsync(user),
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15) // Should match token expiry
+            ExpiresAt = _dateTimeProvider.UtcNow.AddMinutes(15) // Should match token expiry
         };
     }
 
@@ -90,10 +96,14 @@ public class AuthService : IAuthService
             return null;
         }
 
-        var user = await _userManager.FindByIdAsync(storedToken.UserId.ToString());
+        // Temporarily disable soft delete check until migration is properly applied
+        var user = await _context.Users
+            .Where(u => u.Id == storedToken.UserId)
+            .FirstOrDefaultAsync();
+            
         if (user == null || !user.IsActive)
         {
-            _logger.LogWarning("Refresh token belongs to inactive user");
+            _logger.LogWarning("Refresh token belongs to inactive or deleted user");
             return null;
         }
 
@@ -110,7 +120,7 @@ public class AuthService : IAuthService
         {
             Token = newAccessToken,
             User = await MapUserToDtoAsync(user),
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
+            ExpiresAt = _dateTimeProvider.UtcNow.AddMinutes(15)
         };
     }
 

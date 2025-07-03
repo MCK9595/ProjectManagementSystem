@@ -111,4 +111,158 @@ public class UserService : IUserService
 
         return users;
     }
+
+    public async Task<UserDto?> FindOrCreateUserAsync(string email, string firstName, string lastName)
+    {
+        try
+        {
+            _logger.LogInformation("=== ORGANIZATION SERVICE - FindOrCreateUserAsync called for email: {Email} ===", email);
+            
+            var requestData = new FindOrCreateUserRequest
+            {
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName
+            };
+
+            var requestUrl = "api/internaluser/find-or-create";
+            _logger.LogInformation("Making request to: {RequestUrl} (BaseAddress: {BaseAddress})", requestUrl, _httpClient.BaseAddress);
+            
+            var response = await _httpClient.PostAsJsonAsync(requestUrl, requestData, _jsonOptions);
+            
+            _logger.LogInformation("Response Status: {StatusCode} for email: {Email}", response.StatusCode, email);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Failed to find or create user {Email}. Status: {StatusCode}, Response: {ResponseContent}", 
+                    email, response.StatusCode, errorContent);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Response Content for email {Email}: {Content}", email, content);
+            
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse<UserDto>>(content, _jsonOptions);
+            _logger.LogInformation("Deserialized API Response - Success: {Success}, Data null: {DataIsNull}", 
+                apiResponse?.Success, apiResponse?.Data == null);
+            
+            if (apiResponse?.Success == true && apiResponse.Data != null)
+            {
+                _logger.LogInformation("Successfully found/created user for email: {Email}, User ID: {UserId}, Username: {Username}", 
+                    email, apiResponse.Data.Id, apiResponse.Data.Username);
+                return apiResponse.Data;
+            }
+
+            _logger.LogWarning("API response was not successful for email: {Email}. Success: {Success}, Message: {Message}", 
+                email, apiResponse?.Success, apiResponse?.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error finding or creating user for email: {Email}. Exception: {ExceptionMessage}", 
+                email, ex.Message);
+            return null;
+        }
+    }
+
+    public async Task<UserDto?> CheckUserExistsByEmailAsync(string email)
+    {
+        try
+        {
+            _logger.LogInformation("=== ORGANIZATION SERVICE - CheckUserExistsByEmailAsync called for email: {Email} ===", email);
+            
+            var requestUrl = $"api/internaluser/check-email/{Uri.EscapeDataString(email)}";
+            _logger.LogInformation("Making request to: {RequestUrl} (BaseAddress: {BaseAddress})", requestUrl, _httpClient.BaseAddress);
+            
+            var response = await _httpClient.GetAsync(requestUrl);
+            
+            _logger.LogInformation("Response Status: {StatusCode} for email: {Email}", response.StatusCode, email);
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogInformation("User not found for email: {Email}", email);
+                return null;
+            }
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Failed to check user email {Email}. Status: {StatusCode}, Response: {ResponseContent}", 
+                    email, response.StatusCode, errorContent);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Response Content for email {Email}: {Content}", email, content);
+            
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse<UserDto>>(content, _jsonOptions);
+            _logger.LogInformation("Deserialized API Response - Success: {Success}, Data null: {DataIsNull}", 
+                apiResponse?.Success, apiResponse?.Data == null);
+            
+            if (apiResponse?.Success == true && apiResponse.Data != null)
+            {
+                _logger.LogInformation("Successfully found user for email: {Email}, User ID: {UserId}, Username: {Username}", 
+                    email, apiResponse.Data.Id, apiResponse.Data.Username);
+                return apiResponse.Data;
+            }
+
+            _logger.LogWarning("API response was not successful for email: {Email}. Success: {Success}, Message: {Message}", 
+                email, apiResponse?.Success, apiResponse?.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking user email: {Email}. Exception: {ExceptionMessage}", 
+                email, ex.Message);
+            return null;
+        }
+    }
+
+    public async Task<UserDto?> CreateUserWithPasswordAsync(CreateUserWithPasswordRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("=== ORGANIZATION SERVICE - CreateUserWithPasswordAsync called for email: {Email} ===", request.Email);
+            
+            var requestUrl = "api/internaluser/create-with-password";
+            _logger.LogInformation("Making request to: {RequestUrl} (BaseAddress: {BaseAddress})", requestUrl, _httpClient.BaseAddress);
+            
+            var response = await _httpClient.PostAsJsonAsync(requestUrl, request, _jsonOptions);
+            
+            _logger.LogInformation("Response Status: {StatusCode} for email: {Email}", response.StatusCode, request.Email);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Failed to create user with password {Email}. Status: {StatusCode}, Response: {ResponseContent}", 
+                    request.Email, response.StatusCode, errorContent);
+                return null;
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Response Content for email {Email}: {Content}", request.Email, content);
+            
+            var apiResponse = JsonSerializer.Deserialize<ApiResponse<UserDto>>(content, _jsonOptions);
+            _logger.LogInformation("Deserialized API Response - Success: {Success}, Data null: {DataIsNull}", 
+                apiResponse?.Success, apiResponse?.Data == null);
+            
+            if (apiResponse?.Success == true && apiResponse.Data != null)
+            {
+                _logger.LogInformation("Successfully created user with password for email: {Email}, User ID: {UserId}, Username: {Username}", 
+                    request.Email, apiResponse.Data.Id, apiResponse.Data.Username);
+                return apiResponse.Data;
+            }
+
+            _logger.LogWarning("API response was not successful for email: {Email}. Success: {Success}, Message: {Message}", 
+                request.Email, apiResponse?.Success, apiResponse?.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating user with password for email: {Email}. Exception: {ExceptionMessage}", 
+                request.Email, ex.Message);
+            return null;
+        }
+    }
 }

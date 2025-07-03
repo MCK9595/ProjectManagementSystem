@@ -5,7 +5,6 @@ using ProjectManagementSystem.Shared.Common.Constants;
 
 namespace ProjectManagementSystem.IdentityService.Data.Entities;
 
-[Table("AspNetUsers")]
 public class ApplicationUser : IdentityUser<int>
 {
     [Required]
@@ -40,7 +39,15 @@ public class ApplicationUser : IdentityUser<int>
     [Column("locked_until")]
     public DateTime? LockedUntil { get; set; }
 
+    [Column("deleted_at")]
+    public DateTime? DeletedAt { get; set; }
+
+    [Column("deleted_by")]
+    public int? DeletedBy { get; set; }
+
     public string FullName => $"{FirstName} {LastName}";
 
     public bool IsLocked => LockedUntil.HasValue && LockedUntil > DateTime.UtcNow;
+
+    public bool IsDeleted => DeletedAt.HasValue;
 }

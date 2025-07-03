@@ -28,18 +28,17 @@ dotnet test tests/IntegrationTests/ProjectManagementSystem.IntegrationTests.cspr
 
 ### Development Commands
 ```bash
-# Add EF Core migrations (run from service directory)
-dotnet ef migrations add InitialCreate -o Data/Migrations
-
+# Add EF Core migrations
+dotnet ef migrations add InitialCreate --project [project-path]
 # Update database
 dotnet ef database update
 
 # Add package to a specific project
 dotnet add [project-path] package [package-name]
 
-# Create new migration for a service (example for IdentityService)
+# Create new migration for a service 
 cd src/Services/IdentityService
-dotnet ef migrations add [MigrationName] -o Data/Migrations
+dotnet ef migrations add [MigrationName] --project [project-path]
 ```
 
 ### Database Migration Requirements

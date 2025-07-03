@@ -149,3 +149,41 @@ public class ChangePasswordRequest
     [StringLength(100, MinimumLength = 8)]
     public required string NewPassword { get; set; }
 }
+
+public class FindOrCreateUserRequest
+{
+    [Required]
+    [EmailAddress]
+    public required string Email { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public required string FirstName { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public required string LastName { get; set; }
+}
+
+public class CreateUserWithPasswordRequest
+{
+    [Required]
+    [EmailAddress]
+    public required string Email { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public required string FirstName { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public required string LastName { get; set; }
+    
+    [Required]
+    [StringLength(100, MinimumLength = 8)]
+    public required string Password { get; set; }
+    
+    [Required]
+    [StringLength(100, MinimumLength = 8)]
+    public required string ConfirmPassword { get; set; }
+}

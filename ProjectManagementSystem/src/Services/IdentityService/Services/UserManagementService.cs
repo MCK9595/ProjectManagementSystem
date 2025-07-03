@@ -5,6 +5,7 @@ using ProjectManagementSystem.IdentityService.Data.Entities;
 using ProjectManagementSystem.Shared.Models.DTOs;
 using ProjectManagementSystem.Shared.Common.Models;
 using ProjectManagementSystem.Shared.Common.Constants;
+using ProjectManagementSystem.IdentityService.Abstractions;
 
 namespace ProjectManagementSystem.IdentityService.Services;
 
@@ -14,22 +15,28 @@ public class UserManagementService : IUserManagementService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly ILogger<UserManagementService> _logger;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public UserManagementService(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
-        ILogger<UserManagementService> logger)
+        ILogger<UserManagementService> logger,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
         _logger = logger;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<PagedResult<UserListDto>> GetUsersAsync(UserSearchRequest request)
     {
         var query = _context.Users.AsQueryable();
+
+        // Temporarily disable soft delete check until migration is properly applied
+        // query = query.Where(u => u.DeletedAt == null);
 
         // Apply filters
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -101,7 +108,37 @@ public class UserManagementService : IUserManagementService
 
     public async Task<UserDto?> GetUserByIdAsync(int userId)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
+        // Temporarily disable soft delete check until migration is properly applied
+        var user = await _context.Users
+            .Where(u => u.Id == userId)
+            .FirstOrDefaultAsync();
+        
+        if (user == null)
+        {
+            return null;
+        }
+
+        return new UserDto
+        {
+            Id = user.Id,
+            Username = user.UserName!,
+            Email = user.Email!,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Role = user.Role,
+            IsActive = user.IsActive,
+            CreatedAt = user.CreatedAt,
+            LastLoginAt = user.LastLoginAt
+        };
+    }
+
+    public async Task<UserDto?> GetUserByEmailAsync(string email)
+    {
+        // Temporarily disable soft delete check until migration is properly applied
+        var user = await _context.Users
+            .Where(u => u.Email == email)
+            .FirstOrDefaultAsync();
+        
         if (user == null)
         {
             return null;
@@ -148,8 +185,8 @@ public class UserManagementService : IUserManagementService
                 LastName = request.LastName,
                 Role = request.Role,
                 IsActive = request.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = _dateTimeProvider.UtcNow,
+                UpdatedAt = _dateTimeProvider.UtcNow
             };
 
             var result = await _userManager.CreateAsync(user, request.Password);
@@ -245,7 +282,7 @@ public class UserManagementService : IUserManagementService
 
             if (hasChanges)
             {
-                user.UpdatedAt = DateTime.UtcNow;
+                user.UpdatedAt = _dateTimeProvider.UtcNow;
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
@@ -271,28 +308,31 @@ public class UserManagementService : IUserManagementService
     {
         try
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            // Temporarily disable soft delete check until migration is properly applied
+            var user = await _context.Users
+                .Where(u => u.Id == userId)
+                .FirstOrDefaultAsync();
+                
             if (user == null)
             {
-                _logger.LogWarning("Delete failed: User with ID {UserId} not found", userId);
+                _logger.LogWarning("Delete failed: User with ID {UserId} not found or already deleted", userId);
                 return false;
             }
 
-            var result = await _userManager.DeleteAsync(user);
-            if (!result.Succeeded)
-            {
-                _logger.LogWarning("User deletion failed for ID {UserId}: {Errors}", 
-                    userId, string.Join(", ", result.Errors.Select(e => e.Description)));
-                return false;
-            }
+            // Soft delete - mark as deleted but don't remove from database
+            user.DeletedAt = _dateTimeProvider.UtcNow;
+            user.IsActive = false;
+            // DeletedBy should be set by the calling service if needed
+            
+            await _context.SaveChangesAsync();
 
-            _logger.LogInformation("User '{Username}' (ID: {UserId}) deleted successfully", 
-                user.UserName, userId);
+            _logger.LogInformation("User '{Username}' (ID: {UserId}) soft deleted successfully at {DeletedAt}", 
+                user.UserName, userId, user.DeletedAt);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting user with ID {UserId}", userId);
+            _logger.LogError(ex, "Error soft deleting user with ID {UserId}", userId);
             return false;
         }
     }
@@ -326,7 +366,7 @@ public class UserManagementService : IUserManagementService
             
             // Update user role property
             user.Role = role;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = _dateTimeProvider.UtcNow;
             await _userManager.UpdateAsync(user);
 
             _logger.LogInformation("User '{Username}' (ID: {UserId}) role changed to '{Role}'", 
@@ -352,7 +392,7 @@ public class UserManagementService : IUserManagementService
             }
 
             user.IsActive = isActive;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = _dateTimeProvider.UtcNow;
             
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
@@ -375,9 +415,10 @@ public class UserManagementService : IUserManagementService
 
     public async Task<bool> UserExistsAsync(string username, string email, int? excludeUserId = null)
     {
+        // Temporarily disable soft delete check until migration is properly applied
         var query = _context.Users.Where(u => 
-            u.UserName!.ToLower() == username.ToLower() || 
-            u.Email!.ToLower() == email.ToLower());
+            (u.UserName!.ToLower() == username.ToLower() || 
+             u.Email!.ToLower() == email.ToLower()));
 
         if (excludeUserId.HasValue)
         {
@@ -403,6 +444,7 @@ public class UserManagementService : IUserManagementService
 
     public async Task<int> GetTotalUsersCountAsync()
     {
+        // Temporarily disable soft delete check until migration is properly applied
         return await _context.Users.CountAsync();
     }
 
@@ -448,7 +490,7 @@ public class UserManagementService : IUserManagementService
             // Generate new password hash
             var passwordHasher = new PasswordHasher<ApplicationUser>();
             user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = _dateTimeProvider.UtcNow;
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)

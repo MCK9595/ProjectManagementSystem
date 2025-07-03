@@ -20,7 +20,11 @@
       "WebFetch(domain:timdeschryver.dev)",
       "Bash(rg:*)",
       "WebFetch(domain:docs.microsoft.com)",
-      "WebFetch(domain:learn.microsoft.com)"
+      "WebFetch(domain:learn.microsoft.com)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet ef migrations:*)",
+      "Bash(dotnet list package:*)",
+      "Bash(timeout 120 dotnet test tests/IntegrationTests/ProjectManagementSystem.IntegrationTests.csproj --verbosity quiet)"
     ],
     "deny": []
   }

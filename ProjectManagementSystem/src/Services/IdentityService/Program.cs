@@ -84,6 +84,11 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
+// Register abstraction implementations for testability
+builder.Services.AddSingleton<ProjectManagementSystem.IdentityService.Abstractions.IDateTimeProvider, ProjectManagementSystem.IdentityService.Implementations.SystemDateTimeProvider>();
+builder.Services.AddSingleton<ProjectManagementSystem.IdentityService.Abstractions.IRandomGenerator, ProjectManagementSystem.IdentityService.Implementations.SystemRandomGenerator>();
+builder.Services.AddSingleton<ProjectManagementSystem.IdentityService.Abstractions.IGuidGenerator, ProjectManagementSystem.IdentityService.Implementations.SystemGuidGenerator>();
+
 // Add OpenAPI with JWT authentication
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -154,3 +159,6 @@ app.MapGet("/debug/ping", () => Results.Ok(new {
 
 
 app.Run();
+
+// Make Program class accessible for integration tests
+public partial class Program { }

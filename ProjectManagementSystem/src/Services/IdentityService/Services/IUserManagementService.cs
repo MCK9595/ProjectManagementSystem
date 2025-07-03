@@ -8,6 +8,7 @@ public interface IUserManagementService
 {
     Task<PagedResult<UserListDto>> GetUsersAsync(UserSearchRequest request);
     Task<UserDto?> GetUserByIdAsync(int userId);
+    Task<UserDto?> GetUserByEmailAsync(string email);
     Task<UserDto?> CreateUserAsync(CreateUserRequest request);
     Task<UserDto?> UpdateUserAsync(int userId, UpdateUserRequest request);
     Task<bool> DeleteUserAsync(int userId);

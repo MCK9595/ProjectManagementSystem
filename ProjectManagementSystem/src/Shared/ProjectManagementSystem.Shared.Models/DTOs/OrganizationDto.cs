@@ -49,3 +49,57 @@ public class AddMemberDto
     [Required]
     public required string Role { get; set; }
 }
+
+public class AddMemberByEmailDto
+{
+    [Required]
+    [EmailAddress]
+    public required string Email { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public required string FirstName { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public required string LastName { get; set; }
+    
+    [Required]
+    public required string OrganizationRole { get; set; }
+}
+
+public class FindUserByEmailDto
+{
+    [Required]
+    [EmailAddress]
+    public required string Email { get; set; }
+    
+    [Required]
+    public required string OrganizationRole { get; set; }
+}
+
+public class CreateUserAndAddMemberDto
+{
+    [Required]
+    [EmailAddress]
+    public required string Email { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public required string FirstName { get; set; }
+    
+    [Required]
+    [StringLength(50, MinimumLength = 1)]
+    public required string LastName { get; set; }
+    
+    [Required]
+    [StringLength(100, MinimumLength = 8)]
+    public required string Password { get; set; }
+    
+    [Required]
+    [StringLength(100, MinimumLength = 8)]
+    public required string ConfirmPassword { get; set; }
+    
+    [Required]
+    public required string OrganizationRole { get; set; }
+}

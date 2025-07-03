@@ -2,10 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 using ProjectManagementSystem.IdentityService.Data;
 using ProjectManagementSystem.IdentityService.Data.Entities;
+using ProjectManagementSystem.IdentityService.Abstractions;
 
 namespace ProjectManagementSystem.IdentityService.Services;
 
@@ -14,15 +14,24 @@ public class TokenService : ITokenService
     private readonly IConfiguration _configuration;
     private readonly ApplicationDbContext _context;
     private readonly ILogger<TokenService> _logger;
+    private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IRandomGenerator _randomGenerator;
+    private readonly IGuidGenerator _guidGenerator;
 
     public TokenService(
         IConfiguration configuration,
         ApplicationDbContext context,
-        ILogger<TokenService> logger)
+        ILogger<TokenService> logger,
+        IDateTimeProvider dateTimeProvider,
+        IRandomGenerator randomGenerator,
+        IGuidGenerator guidGenerator)
     {
         _configuration = configuration;
         _context = context;
         _logger = logger;
+        _dateTimeProvider = dateTimeProvider;
+        _randomGenerator = randomGenerator;
+        _guidGenerator = guidGenerator;
     }
 
     public string GenerateAccessToken(ApplicationUser user)
@@ -44,10 +53,10 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.GivenName, user.FirstName),
             new Claim(ClaimTypes.Surname, user.LastName),
             new Claim(ClaimTypes.Role, user.Role),
-            new Claim("security_stamp", user.SecurityStamp ?? string.Empty),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("security_stamp", string.IsNullOrWhiteSpace(user.SecurityStamp) ? string.Empty : user.SecurityStamp),
+            new Claim(JwtRegisteredClaimNames.Jti, _guidGenerator.NewGuidString()),
             new Claim(JwtRegisteredClaimNames.Iat, 
-                new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString(), 
+                new DateTimeOffset(_dateTimeProvider.UtcNow).ToUnixTimeSeconds().ToString(), 
                 ClaimValueTypes.Integer64)
         };
 
@@ -55,7 +64,7 @@ public class TokenService : ITokenService
             issuer: issuer,
             audience: audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
+            expires: _dateTimeProvider.UtcNow.AddMinutes(expiryMinutes),
             signingCredentials: credentials
         );
 
@@ -69,10 +78,7 @@ public class TokenService : ITokenService
 
     public string GenerateRefreshToken()
     {
-        var randomBytes = new byte[64];
-        using var rng = RandomNumberGenerator.Create();
-        rng.GetBytes(randomBytes);
-        return Convert.ToBase64String(randomBytes);
+        return _randomGenerator.GenerateBase64String(64);
     }
 
     public async Task<RefreshToken> CreateRefreshTokenAsync(int userId)
@@ -87,8 +93,8 @@ public class TokenService : ITokenService
         {
             Token = GenerateRefreshToken(),
             UserId = userId,
-            ExpiresAt = DateTime.UtcNow.AddDays(expiryDays),
-            CreatedAt = DateTime.UtcNow
+            ExpiresAt = _dateTimeProvider.UtcNow.AddDays(expiryDays),
+            CreatedAt = _dateTimeProvider.UtcNow
         };
 
         _context.RefreshTokens.Add(refreshToken);
@@ -112,7 +118,7 @@ public class TokenService : ITokenService
 
         if (refreshToken != null)
         {
-            refreshToken.RevokedAt = DateTime.UtcNow;
+            refreshToken.RevokedAt = _dateTimeProvider.UtcNow;
             refreshToken.ReplacedByToken = replacedByToken;
             await _context.SaveChangesAsync();
 
@@ -128,7 +134,7 @@ public class TokenService : ITokenService
 
         foreach (var token in activeTokens)
         {
-            token.RevokedAt = DateTime.UtcNow;
+            token.RevokedAt = _dateTimeProvider.UtcNow;
         }
 
         if (activeTokens.Any())

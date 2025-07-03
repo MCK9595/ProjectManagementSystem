@@ -333,6 +333,169 @@ public class OrganizationService : IOrganizationService
         return null;
     }
 
+    public async Task<OrganizationMemberDto?> AddMemberByEmailAsync(Guid organizationId, AddMemberByEmailDto addMemberDto)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.PostAsJsonAsync($"/api/organizations/{organizationId}/members/by-email", addMemberDto);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<OrganizationMemberDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                if (apiResponse?.Success == true)
+                {
+                    return apiResponse.Data;
+                }
+                else
+                {
+                    _logger.LogWarning("API returned failure response for add member by email to organization {OrganizationId}: {Message}", organizationId, apiResponse?.Message);
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("HTTP request failed for add member by email to organization {OrganizationId} - StatusCode: {StatusCode}, Content: {ErrorContent}", 
+                    organizationId, response.StatusCode, errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in AddMemberByEmailAsync for organization {OrganizationId}", organizationId);
+        }
+
+        return null;
+    }
+
+    public async Task<UserDto?> CheckUserExistsByEmailAsync(string email)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var encodedEmail = Uri.EscapeDataString(email);
+            var response = await _httpClient.GetAsync($"/api/internaluser/check-email/{encodedEmail}");
+            
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                _logger.LogInformation("User not found for email: {Email}", email);
+                return null;
+            }
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<UserDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                if (apiResponse?.Success == true)
+                {
+                    return apiResponse.Data;
+                }
+                else
+                {
+                    _logger.LogWarning("API returned failure response for check user email {Email}: {Message}", email, apiResponse?.Message);
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("HTTP request failed for check user email {Email} - StatusCode: {StatusCode}, Content: {ErrorContent}", 
+                    email, response.StatusCode, errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in CheckUserExistsByEmailAsync for email {Email}", email);
+        }
+
+        return null;
+    }
+
+    public async Task<OrganizationMemberDto?> FindAndAddMemberAsync(Guid organizationId, FindUserByEmailDto findUserDto)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.PostAsJsonAsync($"/api/organizations/{organizationId}/members/find-and-add", findUserDto);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<OrganizationMemberDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                if (apiResponse?.Success == true)
+                {
+                    return apiResponse.Data;
+                }
+                else
+                {
+                    _logger.LogWarning("API returned failure response for find and add member to organization {OrganizationId}: {Message}", organizationId, apiResponse?.Message);
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("HTTP request failed for find and add member to organization {OrganizationId} - StatusCode: {StatusCode}, Content: {ErrorContent}", 
+                    organizationId, response.StatusCode, errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in FindAndAddMemberAsync for organization {OrganizationId}", organizationId);
+        }
+
+        return null;
+    }
+
+    public async Task<OrganizationMemberDto?> CreateAndAddMemberAsync(Guid organizationId, CreateUserAndAddMemberDto createUserDto)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.PostAsJsonAsync($"/api/organizations/{organizationId}/members/create-and-add", createUserDto);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<OrganizationMemberDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                if (apiResponse?.Success == true)
+                {
+                    return apiResponse.Data;
+                }
+                else
+                {
+                    _logger.LogWarning("API returned failure response for create and add member to organization {OrganizationId}: {Message}", organizationId, apiResponse?.Message);
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("HTTP request failed for create and add member to organization {OrganizationId} - StatusCode: {StatusCode}, Content: {ErrorContent}", 
+                    organizationId, response.StatusCode, errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in CreateAndAddMemberAsync for organization {OrganizationId}", organizationId);
+        }
+
+        return null;
+    }
+
     public async Task<bool> RemoveMemberAsync(Guid organizationId, int userId)
     {
         try
