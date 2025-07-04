@@ -237,6 +237,36 @@ public class TasksController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Clean up all task dependencies for a user (for deletion process)
+    /// Note: TaskService doesn't have admin roles that would block deletion like organization/project admins
+    /// </summary>
+    [HttpDelete("user/{userId:int}/dependencies")]
+    [AllowAnonymous] // Allow internal service calls
+    public async Task<ActionResult<ApiResponse<object>>> CleanupUserDependencies(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Cleaning up task dependencies for user deletion - UserId: {UserId}", userId);
+
+            var success = await _taskService.CleanupUserDependenciesAsync(userId);
+            
+            if (!success)
+            {
+                _logger.LogError("Failed to cleanup task dependencies for user {UserId}", userId);
+                return StatusCode(500, ApiResponse<object>.ErrorResult("Failed to cleanup task dependencies"));
+            }
+
+            _logger.LogInformation("Successfully cleaned up task dependencies for user {UserId}", userId);
+            return Ok(ApiResponse<object>.SuccessResult(new { message = "Task dependencies cleaned up successfully" }));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cleaning up task dependencies for user {UserId}", userId);
+            return StatusCode(500, ApiResponse<object>.ErrorResult("An error occurred while cleaning up task dependencies"));
+        }
+    }
+
     private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -212,4 +212,87 @@ public class OrganizationService : IOrganizationService
 
         return membership?.Role;
     }
+
+    public async Task<bool> HasUserBlockingAdminRolesAsync(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Checking if user {UserId} has blocking organization admin roles", userId);
+
+            // Find organizations where the user is the sole admin/owner
+            var organizationsWhereUserIsSoleAdmin = await _context.Organizations
+                .Where(o => o.IsActive)
+                .Where(o => o.Members.Any(m => m.UserId == userId && m.IsActive && 
+                                         (m.Role == Roles.OrganizationOwner || m.Role == Roles.OrganizationAdmin)))
+                .Where(o => o.Members.Count(m => m.IsActive && 
+                                           (m.Role == Roles.OrganizationOwner || m.Role == Roles.OrganizationAdmin)) == 1)
+                .CountAsync();
+
+            var hasBlockingRoles = organizationsWhereUserIsSoleAdmin > 0;
+            
+            _logger.LogInformation("User {UserId} has {Count} organizations where they are sole admin - blocking: {IsBlocking}", 
+                userId, organizationsWhereUserIsSoleAdmin, hasBlockingRoles);
+
+            return hasBlockingRoles;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking blocking admin roles for user {UserId}", userId);
+            throw;
+        }
+    }
+
+    public async Task<bool> CleanupUserDependenciesAsync(int userId)
+    {
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            
+            try
+            {
+                _logger.LogInformation("Starting organization dependency cleanup for user {UserId}", userId);
+
+                // First, check if user has any blocking roles
+                var hasBlockingRoles = await HasUserBlockingAdminRolesAsync(userId);
+                if (hasBlockingRoles)
+                {
+                    _logger.LogError("Cannot cleanup dependencies - user {UserId} is sole admin of organizations", userId);
+                    throw new InvalidOperationException("User is the sole administrator of one or more organizations. Transfer ownership before deletion.");
+                }
+
+                // Find all organization memberships for the user
+                var userMemberships = await _context.OrganizationUsers
+                    .Where(ou => ou.UserId == userId && ou.IsActive)
+                    .ToListAsync();
+
+                _logger.LogInformation("Found {Count} organization memberships to clean up for user {UserId}", 
+                    userMemberships.Count, userId);
+
+                // Soft delete all memberships
+                foreach (var membership in userMemberships)
+                {
+                    membership.IsActive = false;
+                    _logger.LogDebug("Removing user {UserId} from organization {OrganizationId}", 
+                        userId, membership.OrganizationId);
+                }
+
+                // Save changes
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Successfully cleaned up {Count} organization dependencies for user {UserId}", 
+                    userMemberships.Count, userId);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to cleanup organization dependencies for user {UserId}", userId);
+                throw;
+            }
+        });
+    }
 }

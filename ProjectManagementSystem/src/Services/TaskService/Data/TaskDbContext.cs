@@ -21,6 +21,13 @@ public class TaskDbContext : DbContext
         {
             entity.Property(e => e.Id).HasDefaultValueSql("NEWID()");
             
+            // Configure decimal properties with explicit precision to resolve EF Core 9.0 pending changes
+            entity.Property(e => e.EstimatedHours)
+                .HasPrecision(18, 2);
+                
+            entity.Property(e => e.ActualHours)
+                .HasPrecision(18, 2);
+            
             // プロジェクト内でのタスク番号ユニーク制約
             entity.HasIndex(e => new { e.ProjectId, e.TaskNumber })
                 .IsUnique()

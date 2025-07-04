@@ -15,4 +15,8 @@ public interface IProjectService
     Task<bool> RestoreProjectAsync(Guid projectId);
     Task<bool> HasProjectAccessAsync(Guid projectId, int userId);
     Task<bool> IsProjectManagerAsync(Guid projectId, int userId);
+    
+    // User deletion support methods
+    Task<bool> HasUserBlockingAdminRolesAsync(int userId);
+    Task<bool> CleanupUserDependenciesAsync(int userId);
 }

@@ -19,7 +19,7 @@ public class TaskDto
     public DateTime UpdatedAt { get; set; }
     public Guid ProjectId { get; set; }
     public int CreatedByUserId { get; set; }
-    public int AssignedToUserId { get; set; }
+    public int? AssignedToUserId { get; set; }
     public ProjectDto? Project { get; set; }
     public UserDto? AssignedTo { get; set; }
 }

@@ -15,4 +15,7 @@ public interface ITaskService
     Task<bool> DeleteTaskAsync(Guid taskId);
     Task<bool> HasTaskAccessAsync(Guid taskId, int userId);
     Task<bool> CanEditTaskAsync(Guid taskId, int userId);
+    
+    // User deletion support method
+    Task<bool> CleanupUserDependenciesAsync(int userId);
 }

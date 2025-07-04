@@ -265,4 +265,85 @@ public class ProjectService : IProjectService
             .AnyAsync(pm => pm.ProjectId == projectId && pm.UserId == userId && 
                            pm.Role == Roles.ProjectManager && pm.IsActive);
     }
+
+    public async Task<bool> HasUserBlockingAdminRolesAsync(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Checking if user {UserId} has blocking project admin roles", userId);
+
+            // Find projects where the user is the sole manager
+            var projectsWhereUserIsSoleManager = await _context.Projects
+                .Where(p => p.IsActive)
+                .Where(p => p.Members.Any(m => m.UserId == userId && m.IsActive && m.Role == Roles.ProjectManager))
+                .Where(p => p.Members.Count(m => m.IsActive && m.Role == Roles.ProjectManager) == 1)
+                .CountAsync();
+
+            var hasBlockingRoles = projectsWhereUserIsSoleManager > 0;
+            
+            _logger.LogInformation("User {UserId} has {Count} projects where they are sole manager - blocking: {IsBlocking}", 
+                userId, projectsWhereUserIsSoleManager, hasBlockingRoles);
+
+            return hasBlockingRoles;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking blocking project admin roles for user {UserId}", userId);
+            throw;
+        }
+    }
+
+    public async Task<bool> CleanupUserDependenciesAsync(int userId)
+    {
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            
+            try
+            {
+                _logger.LogInformation("Starting project dependency cleanup for user {UserId}", userId);
+
+                // First, check if user has any blocking roles
+                var hasBlockingRoles = await HasUserBlockingAdminRolesAsync(userId);
+                if (hasBlockingRoles)
+                {
+                    _logger.LogError("Cannot cleanup dependencies - user {UserId} is sole manager of projects", userId);
+                    throw new InvalidOperationException("User is the sole manager of one or more projects. Transfer ownership before deletion.");
+                }
+
+                // Find all project memberships for the user
+                var userMemberships = await _context.ProjectMembers
+                    .Where(pm => pm.UserId == userId && pm.IsActive)
+                    .ToListAsync();
+
+                _logger.LogInformation("Found {Count} project memberships to clean up for user {UserId}", 
+                    userMemberships.Count, userId);
+
+                // Soft delete all memberships
+                foreach (var membership in userMemberships)
+                {
+                    membership.IsActive = false;
+                    _logger.LogDebug("Removing user {UserId} from project {ProjectId}", 
+                        userId, membership.ProjectId);
+                }
+
+                // Save changes
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Successfully cleaned up {Count} project dependencies for user {UserId}", 
+                    userMemberships.Count, userId);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to cleanup project dependencies for user {UserId}", userId);
+                throw;
+            }
+        });
+    }
 }

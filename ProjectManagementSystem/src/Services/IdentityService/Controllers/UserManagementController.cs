@@ -13,13 +13,16 @@ namespace ProjectManagementSystem.IdentityService.Controllers;
 public class UserManagementController : ControllerBase
 {
     private readonly IUserManagementService _userManagementService;
+    private readonly IUserDeletionService _userDeletionService;
     private readonly ILogger<UserManagementController> _logger;
 
     public UserManagementController(
-        IUserManagementService userManagementService, 
+        IUserManagementService userManagementService,
+        IUserDeletionService userDeletionService,
         ILogger<UserManagementController> logger)
     {
         _userManagementService = userManagementService;
+        _userDeletionService = userDeletionService;
         _logger = logger;
     }
 
@@ -163,40 +166,35 @@ public class UserManagementController : ControllerBase
     }
 
     /// <summary>
-    /// Delete a user
+    /// Delete a user with comprehensive dependency cleanup across all services
     /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<ActionResult<ApiResponse<object>>> DeleteUser(int id)
     {
         var requestId = Guid.NewGuid().ToString("N")[..8];
-        _logger.LogInformation("=== DELETE USER REQUEST {RequestId} === ID: {UserId}", requestId, id);
+        _logger.LogInformation("=== DELETE USER WITH DEPENDENCIES REQUEST {RequestId} === ID: {UserId}", requestId, id);
 
         try
         {
             var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             
-            // Check if user can be deleted
-            if (!await _userManagementService.CanDeleteUserAsync(id, currentUserId))
-            {
-                _logger.LogWarning("User deletion denied for ID {UserId} - cannot delete self or last SystemAdmin", id);
-                return BadRequest(ApiResponse<object>.ErrorResult("Cannot delete this user. You cannot delete yourself or the last SystemAdmin."));
-            }
-
-            var success = await _userManagementService.DeleteUserAsync(id);
-            if (!success)
-            {
-                _logger.LogWarning("User deletion failed for ID {UserId} - user not found", id);
-                return NotFound(ApiResponse<object>.ErrorResult($"User with ID {id} not found"));
-            }
-
-            _logger.LogInformation("User deleted successfully - ID: {UserId}", id);
+            // Use the new comprehensive deletion service
+            var result = await _userDeletionService.DeleteUserWithDependenciesAsync(id, currentUserId);
             
-            return Ok(ApiResponse<object>.SuccessResult(new { message = $"User with ID {id} deleted successfully" }));
+            if (!result.Success)
+            {
+                _logger.LogWarning("User deletion with dependencies failed for ID {UserId} - {Error}", id, result.Message);
+                return BadRequest(result);
+            }
+
+            _logger.LogInformation("User deleted successfully with all dependencies cleaned up - ID: {UserId}", id);
+            
+            return Ok(result);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting user with ID {UserId}, request {RequestId}", id, requestId);
-            return StatusCode(500, ApiResponse<object>.ErrorResult("An error occurred while deleting the user"));
+            _logger.LogError(ex, "Error during comprehensive user deletion with ID {UserId}, request {RequestId}", id, requestId);
+            return StatusCode(500, ApiResponse<object>.ErrorResult("An error occurred during the comprehensive user deletion process"));
         }
     }
 

@@ -13,6 +13,10 @@ public interface IOrganizationService
     Task<bool> DeleteOrganizationAsync(Guid id, int userId);
     Task<bool> CanUserAccessOrganizationAsync(Guid organizationId, int userId);
     Task<string?> GetUserRoleInOrganizationAsync(Guid organizationId, int userId);
+    
+    // User deletion support methods
+    Task<bool> HasUserBlockingAdminRolesAsync(int userId);
+    Task<bool> CleanupUserDependenciesAsync(int userId);
 }
 
 public interface IOrganizationMemberService

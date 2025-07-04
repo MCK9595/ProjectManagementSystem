@@ -241,6 +241,63 @@ public class ProjectsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Check if user has admin roles that would block deletion
+    /// </summary>
+    [HttpGet("user/{userId:int}/admin-roles")]
+    [AllowAnonymous] // Allow internal service calls
+    public async Task<ActionResult<ApiResponse<object>>> CheckUserAdminRoles(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Checking project admin roles for user deletion - UserId: {UserId}", userId);
+
+            var hasBlockingRoles = await _projectService.HasUserBlockingAdminRolesAsync(userId);
+            
+            if (hasBlockingRoles)
+            {
+                _logger.LogWarning("User {UserId} has blocking project admin roles", userId);
+                return BadRequest(ApiResponse<object>.ErrorResult("User is the sole administrator of one or more projects"));
+            }
+
+            return Ok(ApiResponse<object>.SuccessResult(new { message = "No blocking admin roles found" }));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking project admin roles for user {UserId}", userId);
+            return StatusCode(500, ApiResponse<object>.ErrorResult("An error occurred while checking project admin roles"));
+        }
+    }
+
+    /// <summary>
+    /// Clean up all project dependencies for a user (for deletion process)
+    /// </summary>
+    [HttpDelete("user/{userId:int}/dependencies")]
+    [AllowAnonymous] // Allow internal service calls
+    public async Task<ActionResult<ApiResponse<object>>> CleanupUserDependencies(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Cleaning up project dependencies for user deletion - UserId: {UserId}", userId);
+
+            var success = await _projectService.CleanupUserDependenciesAsync(userId);
+            
+            if (!success)
+            {
+                _logger.LogError("Failed to cleanup project dependencies for user {UserId}", userId);
+                return StatusCode(500, ApiResponse<object>.ErrorResult("Failed to cleanup project dependencies"));
+            }
+
+            _logger.LogInformation("Successfully cleaned up project dependencies for user {UserId}", userId);
+            return Ok(ApiResponse<object>.SuccessResult(new { message = "Project dependencies cleaned up successfully" }));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cleaning up project dependencies for user {UserId}", userId);
+            return StatusCode(500, ApiResponse<object>.ErrorResult("An error occurred while cleaning up project dependencies"));
+        }
+    }
+
     private int? GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

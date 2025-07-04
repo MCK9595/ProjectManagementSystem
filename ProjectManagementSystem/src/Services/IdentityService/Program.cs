@@ -83,6 +83,26 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+builder.Services.AddScoped<IUserDeletionService, UserDeletionService>();
+
+// Add HttpClient for service-to-service communication
+builder.Services.AddHttpClient("OrganizationService", client =>
+{
+    client.BaseAddress = new Uri("https://organization-service/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+builder.Services.AddHttpClient("ProjectService", client =>
+{
+    client.BaseAddress = new Uri("https://project-service/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+builder.Services.AddHttpClient("TaskService", client =>
+{
+    client.BaseAddress = new Uri("https://task-service/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 
 // Register abstraction implementations for testability
 builder.Services.AddSingleton<ProjectManagementSystem.IdentityService.Abstractions.IDateTimeProvider, ProjectManagementSystem.IdentityService.Implementations.SystemDateTimeProvider>();

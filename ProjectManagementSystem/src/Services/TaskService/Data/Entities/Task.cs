@@ -49,9 +49,8 @@ public class Task
     [Column("project_id")]
     public Guid ProjectId { get; set; }
 
-    [Required]
     [Column("assigned_to_user_id")]
-    public int AssignedToUserId { get; set; }
+    public int? AssignedToUserId { get; set; }
 
     [Required]
     [Column("created_by_user_id")]

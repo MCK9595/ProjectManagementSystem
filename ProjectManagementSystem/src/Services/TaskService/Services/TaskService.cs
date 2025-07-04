@@ -245,6 +245,59 @@ public class TaskService : ITaskService
                           t.IsActive);
     }
 
+    public async Task<bool> CleanupUserDependenciesAsync(int userId)
+    {
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            
+            try
+            {
+                _logger.LogInformation("Starting task dependency cleanup for user {UserId}", userId);
+
+                const int batchSize = 100;
+                var totalTasksUpdated = 0;
+
+                while (true)
+                {
+                    var assignedTasks = await _context.Tasks
+                        .Where(t => t.AssignedToUserId == userId && t.IsActive)
+                        .Take(batchSize)
+                        .ToListAsync();
+
+                    if (!assignedTasks.Any())
+                    {
+                        break;
+                    }
+
+                    foreach (var task in assignedTasks)
+                    {
+                        task.AssignedToUserId = null;
+                        task.UpdatedAt = DateTime.UtcNow;
+                    }
+
+                    await _context.SaveChangesAsync();
+                    totalTasksUpdated += assignedTasks.Count;
+                }
+
+                _logger.LogInformation("Successfully cleaned up task dependencies for user {UserId} - unassigned from {TaskCount} tasks", 
+                    userId, totalTasksUpdated);
+
+                await transaction.CommitAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to cleanup task dependencies for user {UserId}", userId);
+                throw;
+            }
+        });
+    }
+
     private static TaskDto MapTaskToDto(Data.Entities.Task task)
     {
         return new TaskDto
