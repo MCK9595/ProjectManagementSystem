@@ -529,6 +529,39 @@ public class OrganizationService : IOrganizationService
         return false;
     }
 
+    public async Task<bool> TransferOwnershipAsync(Guid organizationId, int newOwnerId)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var request = new { NewOwnerId = newOwnerId };
+            var response = await _httpClient.PostAsJsonAsync($"/api/organizations/{organizationId}/transfer-ownership", request);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<object>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                return apiResponse?.Success == true;
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("HTTP request failed for transfer ownership - StatusCode: {StatusCode}, Content: {ErrorContent}", 
+                    response.StatusCode, errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in TransferOwnershipAsync for organization {OrganizationId}", organizationId);
+        }
+
+        return false;
+    }
+
     private async Task SetAuthHeaderAsync()
     {
         _logger.LogDebug("SetAuthHeaderAsync called - getting token from auth service");

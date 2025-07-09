@@ -262,6 +262,44 @@ public class MembersController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Transfer organization ownership to another member
+    /// </summary>
+    [HttpPost("transfer-ownership")]
+    public async Task<ActionResult<ApiResponse<object>>> TransferOwnership(
+        Guid organizationId,
+        [FromBody] TransferOwnershipRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(ApiResponse<object>.ErrorResult("Invalid input", errors));
+            }
+
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null)
+                return Unauthorized(ApiResponse<object>.ErrorResult("Invalid token"));
+
+            var success = await _memberService.TransferOwnershipAsync(organizationId, request.NewOwnerId, currentUserId.Value);
+            
+            if (!success)
+                return BadRequest(ApiResponse<object>.ErrorResult("Unable to transfer ownership. Check permissions and ensure the new owner is a member."));
+
+            return Ok(ApiResponse<object>.SuccessResult(new object(), "Ownership transferred successfully"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error transferring ownership to user {NewOwnerId} in organization {OrganizationId}", request.NewOwnerId, organizationId);
+            return StatusCode(500, ApiResponse<object>.ErrorResult("An error occurred while transferring ownership"));
+        }
+    }
+
     private int? GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -273,6 +311,12 @@ public class UpdateMemberRoleRequest
 {
     [Required]
     public required string Role { get; set; }
+}
+
+public class TransferOwnershipRequest
+{
+    [Required]
+    public required int NewOwnerId { get; set; }
 }
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false)]

@@ -511,7 +511,7 @@ public class OrganizationMemberService : IOrganizationMemberService
             return false;
         }
 
-        // Don't allow changing the owner's role unless done by the owner themselves
+        // Get target membership
         var targetMembership = await _context.OrganizationUsers
             .FirstOrDefaultAsync(ou => ou.OrganizationId == organizationId && 
                                       ou.UserId == userId && 
@@ -520,7 +520,8 @@ public class OrganizationMemberService : IOrganizationMemberService
         if (targetMembership == null)
             return false;
 
-        if (targetMembership.Role == Roles.OrganizationOwner && requestingUserId != userId)
+        // If target is an Owner and requesting user is not an Owner, deny
+        if (targetMembership.Role == Roles.OrganizationOwner && requestingUserRole != Roles.OrganizationOwner)
         {
             _logger.LogWarning("Attempted to change owner role by non-owner user {UserId}", requestingUserId);
             return false;
@@ -533,6 +534,48 @@ public class OrganizationMemberService : IOrganizationMemberService
             return false;
         }
 
+        // Special handling for promoting to Owner role
+        if (newRole == Roles.OrganizationOwner)
+        {
+            // Only existing owners can promote others to Owner
+            if (requestingUserRole != Roles.OrganizationOwner)
+            {
+                _logger.LogWarning("User {UserId} attempted to promote user {TargetUserId} to Owner without being an Owner themselves", 
+                    requestingUserId, userId);
+                return false;
+            }
+
+            // Check if user is trying to promote themselves (not allowed through this method)
+            if (requestingUserId == userId)
+            {
+                _logger.LogWarning("User {UserId} attempted to promote themselves to Owner", requestingUserId);
+                return false;
+            }
+
+            _logger.LogInformation("User {UserId} promoted to Owner by {RequestingUserId} in organization {OrganizationId}", 
+                userId, requestingUserId, organizationId);
+        }
+
+        // Special handling for demoting from Owner role
+        if (targetMembership.Role == Roles.OrganizationOwner && newRole != Roles.OrganizationOwner)
+        {
+            // Ensure there will be at least one owner after demotion
+            var ownerCount = await _context.OrganizationUsers
+                .CountAsync(ou => ou.OrganizationId == organizationId && 
+                                ou.Role == Roles.OrganizationOwner && 
+                                ou.IsActive);
+
+            if (ownerCount <= 1)
+            {
+                _logger.LogWarning("Cannot demote the last owner {UserId} in organization {OrganizationId}", 
+                    userId, organizationId);
+                return false;
+            }
+
+            _logger.LogInformation("Owner {UserId} demoted from Owner role by {RequestingUserId} in organization {OrganizationId}", 
+                userId, requestingUserId, organizationId);
+        }
+
         targetMembership.Role = newRole;
         await _context.SaveChangesAsync();
 
@@ -540,5 +583,68 @@ public class OrganizationMemberService : IOrganizationMemberService
             userId, newRole, organizationId);
         
         return true;
+    }
+
+    public async Task<bool> TransferOwnershipAsync(Guid organizationId, int newOwnerId, int currentOwnerId)
+    {
+        // Verify that the current user is actually the owner
+        var currentOwnerMembership = await _context.OrganizationUsers
+            .FirstOrDefaultAsync(ou => ou.OrganizationId == organizationId && 
+                                      ou.UserId == currentOwnerId && 
+                                      ou.IsActive && 
+                                      ou.Role == Roles.OrganizationOwner);
+
+        if (currentOwnerMembership == null)
+        {
+            _logger.LogWarning("User {UserId} attempted to transfer ownership but is not the current owner of organization {OrganizationId}", 
+                currentOwnerId, organizationId);
+            return false;
+        }
+
+        // Verify that the new owner is already a member of the organization
+        var newOwnerMembership = await _context.OrganizationUsers
+            .FirstOrDefaultAsync(ou => ou.OrganizationId == organizationId && 
+                                      ou.UserId == newOwnerId && 
+                                      ou.IsActive);
+
+        if (newOwnerMembership == null)
+        {
+            _logger.LogWarning("Cannot transfer ownership to user {UserId} who is not a member of organization {OrganizationId}", 
+                newOwnerId, organizationId);
+            return false;
+        }
+
+        // Cannot transfer ownership to yourself
+        if (currentOwnerId == newOwnerId)
+        {
+            _logger.LogWarning("User {UserId} attempted to transfer ownership to themselves", currentOwnerId);
+            return false;
+        }
+
+        // Perform the transfer
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // Demote current owner to admin
+            currentOwnerMembership.Role = Roles.OrganizationAdmin;
+            
+            // Promote new user to owner
+            newOwnerMembership.Role = Roles.OrganizationOwner;
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            _logger.LogInformation("Ownership transferred from user {CurrentOwnerId} to user {NewOwnerId} in organization {OrganizationId}", 
+                currentOwnerId, newOwnerId, organizationId);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Failed to transfer ownership from user {CurrentOwnerId} to user {NewOwnerId} in organization {OrganizationId}", 
+                currentOwnerId, newOwnerId, organizationId);
+            return false;
+        }
     }
 }

@@ -178,11 +178,15 @@
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        @if (member.User != null && CanManageMembers() && member.Role != Roles.OrganizationOwner)
+                                                        @if (member.User != null && CanManageMembers() && (member.Role != Roles.OrganizationOwner || IsOwner()))
                                                         {
                                                             <select class="form-select form-select-sm" @onchange="(e) => UpdateMemberRole(member.UserId, e.Value?.ToString() ?? member.Role)">
                                                                 <option value="@Roles.OrganizationMember" selected="@(member.Role == Roles.OrganizationMember)">Member</option>
                                                                 <option value="@Roles.OrganizationAdmin" selected="@(member.Role == Roles.OrganizationAdmin)">Admin</option>
+                                                                @if (IsOwner())
+                                                                {
+                                                                    <option value="@Roles.OrganizationOwner" selected="@(member.Role == Roles.OrganizationOwner)" style="color: #dc3545; font-weight: bold;">Owner</option>
+                                                                }
                                                             </select>
                                                         }
                                                         else if (member.User == null)
@@ -202,7 +206,7 @@
                                                                 <i class="bi bi-trash3"></i> Cleanup
                                                             </button>
                                                         }
-                                                        else if (CanManageMembers() && member.Role != Roles.OrganizationOwner && member.User != null)
+                                                        else if (CanManageMembers() && member.User != null && (member.Role != Roles.OrganizationOwner || IsOwner()))
                                                         {
                                                             <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveMember(member.UserId)" disabled="@isProcessing">
                                                                 <i class="bi bi-person-dash"></i> Remove
@@ -212,9 +216,13 @@
                                                         {
                                                             <span class="text-muted">削除済み</span>
                                                         }
-                                                        else
+                                                        else if (member.Role == Roles.OrganizationOwner && !IsOwner())
                                                         {
                                                             <span class="text-muted">Owner</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">@GetRoleDisplayName(member.Role)</span>
                                                         }
                                                     </td>
                                                 </tr>
@@ -229,6 +237,76 @@
                             }
                         </div>
                     </div>
+
+                    <!-- Transfer Ownership Section (Only visible to Owner) -->
+                    @if (IsOwner())
+                    {
+                        <div class="card mt-4 border-warning" style="width: 100%; max-width: 100%; overflow: hidden;">
+                            <div class="card-header bg-warning-subtle">
+                                <h5 class="text-warning-emphasis mb-0">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Transfer Ownership
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-warning" role="alert">
+                                    <strong>Warning:</strong> Transferring ownership is a permanent action that cannot be undone without the new owner's permission.
+                                </div>
+                                
+                                <p class="mb-3">
+                                    As the current owner, you can transfer full ownership of this organization to another member. 
+                                    The new owner will have complete control over the organization, and you will become a regular Admin.
+                                </p>
+
+                                @if (showTransferOwnershipSection)
+                                {
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="newOwnerSelect" class="form-label">Select New Owner <span class="text-danger">*</span></label>
+                                                <select id="newOwnerSelect" @bind="selectedNewOwnerId" class="form-select">
+                                                    <option value="">-- Select Member --</option>
+                                                    @if (members?.Items != null)
+                                                    {
+                                                        @foreach (var member in members.Items.Where(m => m.User != null && m.UserId != currentUser?.Id))
+                                                        {
+                                                            <option value="@member.UserId">@member.User.Username (@member.User.Email)</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Current Owner</label>
+                                                <div class="form-control bg-light">
+                                                    <strong>@currentUser?.Username</strong> (@currentUser?.Email)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" @onclick="CancelTransferOwnership">
+                                            Cancel
+                                        </button>
+                                        <button type="button" class="btn btn-danger" @onclick="ConfirmTransferOwnership" disabled="@(isProcessing || selectedNewOwnerId == 0)">
+                                            @if (isProcessing)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                            }
+                                            Transfer Ownership
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-outline-warning" @onclick="ShowTransferOwnershipSection">
+                                        <i class="bi bi-arrow-left-right me-2"></i>Transfer Ownership
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
 
                     <!-- Organization Projects Section -->
                     <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
@@ -336,10 +414,21 @@ else
                             <label for="findUserRole" class="form-label">Organization Role <span class="text-danger">*</span></label>
                             <InputSelect id="findUserRole" @bind-Value="findUserModel.OrganizationRole" class="form-select">
                                 <option value="">-- Select Role --</option>
+                                @if (IsOwner())
+                                {
+                                    <option value="@Roles.OrganizationOwner" style="color: #dc3545; font-weight: bold;">Owner</option>
+                                }
                                 <option value="@Roles.OrganizationAdmin">Admin</option>
                                 <option value="@Roles.OrganizationMember">Member</option>
                             </InputSelect>
                             <ValidationMessage For="@(() => findUserModel.OrganizationRole)" />
+                            @if (IsOwner())
+                            {
+                                <div class="form-text text-warning">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <strong>Warning:</strong> Promoting someone to Owner gives them full control over the organization.
+                                </div>
+                            }
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -457,6 +546,8 @@ else
     private string findUserErrorMessage = string.Empty;
     private string createUserErrorMessage = string.Empty;
     private UserDto? currentUser;
+    private bool showTransferOwnershipSection = false;
+    private int selectedNewOwnerId = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -612,6 +703,18 @@ else
                userMembership?.Role == Roles.OrganizationAdmin;
     }
 
+    private bool IsOwner()
+    {
+        if (currentUser == null || organization == null) return false;
+        
+        // System admin can act as owner in any organization
+        if (currentUser.Role == Roles.SystemAdmin) return true;
+        
+        // Check if user is organization owner
+        var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
+        return userMembership?.Role == Roles.OrganizationOwner;
+    }
+
     private bool CanCreateProject()
     {
         if (currentUser == null || organization == null) return false;
@@ -628,6 +731,44 @@ else
     {
         if (isProcessing) return;
         
+        // Get current member information
+        var currentMember = members?.Items?.FirstOrDefault(m => m.UserId == userId);
+        if (currentMember == null) return;
+        
+        var currentRole = currentMember.Role;
+        var memberName = currentMember.User?.Username ?? "Unknown User";
+        
+        // Check for ownership changes that require confirmation
+        bool confirmed = true;
+        
+        // Case 1: Promoting to Owner
+        if (newRole == Roles.OrganizationOwner && currentRole != Roles.OrganizationOwner)
+        {
+            confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+                $"⚠️ PROMOTE TO OWNER ⚠️\n\n" +
+                $"Are you sure you want to promote \"{memberName}\" to Owner?\n\n" +
+                $"This will give them:\n" +
+                $"• Full control over the organization\n" +
+                $"• Ability to delete the organization\n" +
+                $"• Ability to promote/demote other members\n" +
+                $"• Cannot be removed by other members\n\n" +
+                $"This action cannot be undone without their permission.");
+        }
+        // Case 2: Demoting from Owner
+        else if (currentRole == Roles.OrganizationOwner && newRole != Roles.OrganizationOwner)
+        {
+            confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+                $"⚠️ DEMOTE FROM OWNER ⚠️\n\n" +
+                $"Are you sure you want to demote \"{memberName}\" from Owner to {GetRoleDisplayName(newRole)}?\n\n" +
+                $"This will remove their:\n" +
+                $"• Full control over the organization\n" +
+                $"• Ability to delete the organization\n" +
+                $"• Ability to promote others to Owner\n\n" +
+                $"They will become a regular {GetRoleDisplayName(newRole)} member.");
+        }
+        
+        if (!confirmed) return;
+        
         isProcessing = true;
         try
         {
@@ -635,6 +776,16 @@ else
             if (success)
             {
                 await LoadMembers(); // Refresh the member list
+                
+                // Show success message for ownership changes
+                if (newRole == Roles.OrganizationOwner)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", $"✅ {memberName} has been successfully promoted to Owner.");
+                }
+                else if (currentRole == Roles.OrganizationOwner)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", $"✅ {memberName} has been successfully demoted from Owner to {GetRoleDisplayName(newRole)}.");
+                }
             }
             else
             {
@@ -981,6 +1132,88 @@ else
         {
             Console.WriteLine($"Error during bulk cleanup: {ex.Message}");
             await JSRuntime.InvokeVoidAsync("alert", "一括クリーンアップ中にエラーが発生しました。");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void ShowTransferOwnershipSection()
+    {
+        showTransferOwnershipSection = true;
+        selectedNewOwnerId = 0;
+    }
+
+    private void CancelTransferOwnership()
+    {
+        showTransferOwnershipSection = false;
+        selectedNewOwnerId = 0;
+    }
+
+    private async Task ConfirmTransferOwnership()
+    {
+        if (selectedNewOwnerId == 0 || isProcessing) return;
+
+        // Get the selected member information
+        var selectedMember = members?.Items?.FirstOrDefault(m => m.UserId == selectedNewOwnerId);
+        if (selectedMember?.User == null) return;
+
+        var newOwnerName = selectedMember.User.Username;
+        var currentOwnerName = currentUser?.Username ?? "Unknown";
+
+        // Show final confirmation dialog
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"🚨 TRANSFER OWNERSHIP CONFIRMATION 🚨\n\n" +
+            $"Are you absolutely sure you want to transfer ownership of this organization?\n\n" +
+            $"FROM: {currentOwnerName} (You)\n" +
+            $"TO: {newOwnerName}\n\n" +
+            $"After this transfer:\n" +
+            $"• {newOwnerName} will become the new Owner\n" +
+            $"• You will become a regular Admin\n" +
+            $"• {newOwnerName} will have full control over the organization\n" +
+            $"• This action CANNOT be undone without {newOwnerName}'s permission\n\n" +
+            $"Type 'TRANSFER' to confirm (case-sensitive):");
+
+        if (!confirmed) return;
+
+        // Additional confirmation with typing requirement
+        var typeConfirmation = await JSRuntime.InvokeAsync<string>("prompt", 
+            $"Please type 'TRANSFER' to confirm the ownership transfer:");
+
+        if (typeConfirmation != "TRANSFER")
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Transfer cancelled. You must type 'TRANSFER' exactly to confirm.");
+            return;
+        }
+
+        isProcessing = true;
+        try
+        {
+            var success = await OrganizationService.TransferOwnershipAsync(Id, selectedNewOwnerId);
+            if (success)
+            {
+                await LoadMembers(); // Refresh the member list
+                await LoadCurrentUser(); // Refresh current user info
+                
+                // Hide the transfer section
+                showTransferOwnershipSection = false;
+                selectedNewOwnerId = 0;
+                
+                await JSRuntime.InvokeVoidAsync("alert", 
+                    $"✅ Ownership successfully transferred to {newOwnerName}!\n\n" +
+                    $"You are now a regular Admin in this organization.");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", 
+                    "Failed to transfer ownership. Please check that the selected member is still active and try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error transferring ownership: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while transferring ownership. Please try again.");
         }
         finally
         {

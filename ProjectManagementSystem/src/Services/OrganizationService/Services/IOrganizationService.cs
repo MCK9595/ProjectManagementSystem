@@ -28,4 +28,5 @@ public interface IOrganizationMemberService
     Task<OrganizationMemberDto?> CreateUserAndAddMemberAsync(Guid organizationId, CreateUserAndAddMemberDto createUserDto, int requestingUserId);
     Task<bool> RemoveMemberAsync(Guid organizationId, int userId, int requestingUserId);
     Task<bool> UpdateMemberRoleAsync(Guid organizationId, int userId, string newRole, int requestingUserId);
+    Task<bool> TransferOwnershipAsync(Guid organizationId, int newOwnerId, int currentOwnerId);
 }
