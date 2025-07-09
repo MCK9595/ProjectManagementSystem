@@ -67,6 +67,27 @@ public class TasksController : ControllerBase
         }
     }
 
+    [HttpGet("my-tasks")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
+    public async Task<ActionResult<ApiResponse<PagedResult<TaskDto>>>> GetMyTasks(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            _logger.LogInformation("Getting tasks for current user {UserId}", currentUserId);
+
+            var tasks = await _taskService.GetTasksByUserAsync(currentUserId, pageNumber, pageSize);
+            return Ok(ApiResponse<PagedResult<TaskDto>>.SuccessResult(tasks));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting tasks for current user");
+            return StatusCode(500, ApiResponse<PagedResult<TaskDto>>.ErrorResult("Internal server error"));
+        }
+    }
+
     [HttpGet("{id}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
     public async Task<ActionResult<ApiResponse<TaskDto>>> GetTask(Guid id)

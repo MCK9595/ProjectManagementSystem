@@ -35,6 +35,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Add HttpContextAccessor for authentication forwarding
+builder.Services.AddHttpContextAccessor();
+
 // Register services
 builder.Services.AddScoped<ITaskService, ProjectManagementSystem.TaskService.Services.TaskService>();
 builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
@@ -44,6 +47,14 @@ builder.Services.AddHttpClient<IUserService, UserService>(client =>
 {
     // The service discovery will resolve https://identity-service automatically
     client.BaseAddress = new Uri("https://identity-service/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+// Register HttpClient for ProjectService to call ProjectService
+builder.Services.AddHttpClient<IProjectService, ProjectService>(client =>
+{
+    // The service discovery will resolve https://project-service automatically
+    client.BaseAddress = new Uri("https://project-service/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 

@@ -12,12 +12,14 @@ public class TaskService : ITaskService
     private readonly TaskDbContext _context;
     private readonly ILogger<TaskService> _logger;
     private readonly IUserService _userService;
+    private readonly IProjectService _projectService;
 
-    public TaskService(TaskDbContext context, ILogger<TaskService> logger, IUserService userService)
+    public TaskService(TaskDbContext context, ILogger<TaskService> logger, IUserService userService, IProjectService projectService)
     {
         _context = context;
         _logger = logger;
         _userService = userService;
+        _projectService = projectService;
     }
 
     public async Task<PagedResult<TaskDto>> GetTasksAsync(Guid projectId, int pageNumber = 1, int pageSize = 10)
@@ -29,11 +31,18 @@ public class TaskService : ITaskService
             .ThenByDescending(t => t.CreatedAt);
 
         var totalCount = await query.CountAsync();
-        var tasks = await query
+        var taskEntities = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(t => MapTaskToDto(t))
             .ToListAsync();
+
+        // Convert each task entity to DTO with related data
+        var tasks = new List<TaskDto>();
+        foreach (var taskEntity in taskEntities)
+        {
+            var taskDto = await MapTaskToDtoAsync(taskEntity);
+            tasks.Add(taskDto);
+        }
 
         return new PagedResult<TaskDto>
         {
@@ -53,11 +62,18 @@ public class TaskService : ITaskService
             .ThenByDescending(t => t.CreatedAt);
 
         var totalCount = await query.CountAsync();
-        var tasks = await query
+        var taskEntities = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(t => MapTaskToDto(t))
             .ToListAsync();
+
+        // Convert each task entity to DTO with related data
+        var tasks = new List<TaskDto>();
+        foreach (var taskEntity in taskEntities)
+        {
+            var taskDto = await MapTaskToDtoAsync(taskEntity);
+            tasks.Add(taskDto);
+        }
 
         return new PagedResult<TaskDto>
         {
@@ -74,7 +90,7 @@ public class TaskService : ITaskService
             .Where(t => t.Id == taskId && t.IsActive)
             .FirstOrDefaultAsync();
 
-        return task != null ? MapTaskToDto(task) : null;
+        return task != null ? await MapTaskToDtoAsync(task) : null;
     }
 
     public async Task<TaskDto> CreateTaskAsync(CreateTaskDto createTaskDto, int createdByUserId)
@@ -116,7 +132,7 @@ public class TaskService : ITaskService
                 _logger.LogInformation("Task {TaskTitle} (#{TaskNumber}) created by user {UserId}", 
                     task.Title, task.TaskNumber, createdByUserId);
 
-                return MapTaskToDto(task);
+                return await MapTaskToDtoAsync(task);
             }
             catch (Exception ex)
             {
@@ -173,7 +189,7 @@ public class TaskService : ITaskService
 
         _logger.LogInformation("Task {TaskId} updated", taskId);
 
-        return MapTaskToDto(task);
+        return await MapTaskToDtoAsync(task);
     }
 
     public async Task<bool> UpdateTaskStatusAsync(Guid taskId, string status)
@@ -298,26 +314,67 @@ public class TaskService : ITaskService
         });
     }
 
-    private static TaskDto MapTaskToDto(Data.Entities.Task task)
+    private async Task<TaskDto> MapTaskToDtoAsync(Data.Entities.Task task)
     {
-        return new TaskDto
+        try
         {
-            Id = task.Id,
-            TaskNumber = task.TaskNumber,
-            Title = task.Title,
-            Description = task.Description,
-            Status = task.Status,
-            Priority = task.Priority,
-            StartDate = task.StartDate,
-            DueDate = task.DueDate,
-            CompletedDate = task.CompletedDate,
-            EstimatedHours = task.EstimatedHours,
-            ActualHours = task.ActualHours,
-            CreatedAt = task.CreatedAt,
-            UpdatedAt = task.UpdatedAt,
-            ProjectId = task.ProjectId,
-            CreatedByUserId = task.CreatedByUserId,
-            AssignedToUserId = task.AssignedToUserId
-        };
+            // Fetch project and user information in parallel
+            var projectTask = _projectService.GetProjectAsync(task.ProjectId);
+            var assignedUserTask = task.AssignedToUserId.HasValue 
+                ? _userService.GetUserByIdAsync(task.AssignedToUserId.Value) 
+                : Task.FromResult<UserDto?>(null);
+
+            await Task.WhenAll(projectTask, assignedUserTask);
+
+            var project = await projectTask;
+            var assignedUser = await assignedUserTask;
+
+            return new TaskDto
+            {
+                Id = task.Id,
+                TaskNumber = task.TaskNumber,
+                Title = task.Title,
+                Description = task.Description,
+                Status = task.Status,
+                Priority = task.Priority,
+                StartDate = task.StartDate,
+                DueDate = task.DueDate,
+                CompletedDate = task.CompletedDate,
+                EstimatedHours = task.EstimatedHours,
+                ActualHours = task.ActualHours,
+                CreatedAt = task.CreatedAt,
+                UpdatedAt = task.UpdatedAt,
+                ProjectId = task.ProjectId,
+                CreatedByUserId = task.CreatedByUserId,
+                AssignedToUserId = task.AssignedToUserId,
+                Project = project,
+                AssignedTo = assignedUser
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error mapping task {TaskId} to DTO", task.Id);
+            
+            // Return basic task info if external service calls fail
+            return new TaskDto
+            {
+                Id = task.Id,
+                TaskNumber = task.TaskNumber,
+                Title = task.Title,
+                Description = task.Description,
+                Status = task.Status,
+                Priority = task.Priority,
+                StartDate = task.StartDate,
+                DueDate = task.DueDate,
+                CompletedDate = task.CompletedDate,
+                EstimatedHours = task.EstimatedHours,
+                ActualHours = task.ActualHours,
+                CreatedAt = task.CreatedAt,
+                UpdatedAt = task.UpdatedAt,
+                ProjectId = task.ProjectId,
+                CreatedByUserId = task.CreatedByUserId,
+                AssignedToUserId = task.AssignedToUserId
+            };
+        }
     }
 }

@@ -16,6 +16,7 @@ public class TaskServiceUserDeletionTests : IDisposable
     private readonly TaskDbContext _context;
     private readonly Mock<ILogger<ProjectManagementSystem.TaskService.Services.TaskService>> _mockLogger;
     private readonly Mock<IUserService> _mockUserService;
+    private readonly Mock<IProjectService> _mockProjectService;
     private readonly ProjectManagementSystem.TaskService.Services.TaskService _service;
 
     public TaskServiceUserDeletionTests()
@@ -28,7 +29,8 @@ public class TaskServiceUserDeletionTests : IDisposable
         _context = new TaskDbContext(options);
         _mockLogger = new Mock<ILogger<ProjectManagementSystem.TaskService.Services.TaskService>>();
         _mockUserService = new Mock<IUserService>();
-        _service = new ProjectManagementSystem.TaskService.Services.TaskService(_context, _mockLogger.Object, _mockUserService.Object);
+        _mockProjectService = new Mock<IProjectService>();
+        _service = new ProjectManagementSystem.TaskService.Services.TaskService(_context, _mockLogger.Object, _mockUserService.Object, _mockProjectService.Object);
     }
 
     [Fact]
