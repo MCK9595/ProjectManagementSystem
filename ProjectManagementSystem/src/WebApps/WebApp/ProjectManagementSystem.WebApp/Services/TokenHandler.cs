@@ -19,14 +19,15 @@ public class TokenHandler : DelegatingHandler
     {
         try
         {
-            _logger.LogInformation("TokenHandler: Processing request to {Uri}", request.RequestUri);
+            _logger.LogDebug("TokenHandler: Processing request to {Uri}", request.RequestUri);
             
             var accessToken = await _sessionTokenService.GetTokenAsync();
             
             if (!string.IsNullOrEmpty(accessToken))
             {
-                _logger.LogInformation("TokenHandler: Adding JWT token to Authorization header");
+                _logger.LogInformation("TokenHandler: Adding JWT token to Authorization header (Length: {Length})", accessToken.Length);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                _logger.LogDebug("TokenHandler: Authorization header set: {AuthHeader}", request.Headers.Authorization?.ToString() ?? "NULL");
             }
             else
             {

@@ -210,6 +210,9 @@ public class AuthService : IAuthService
         {
             await _sessionTokenService.SetTokenAsync(token);
             _logger.LogDebug("Token stored successfully");
+            
+            // Try to flush pending token to session immediately
+            await _sessionTokenService.FlushPendingTokenAsync();
         }
         catch (Exception ex)
         {

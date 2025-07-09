@@ -88,7 +88,7 @@
             if (authState.User.Identity?.IsAuthenticated == true)
             {
                 Logger.LogInformation("User already authenticated, redirecting to home");
-                Navigation.NavigateTo("/", forceLoad: true);
+                Navigation.NavigateTo("/");
             }
             else
             {
@@ -168,33 +168,42 @@
                 {
                     Logger.LogInformation("Authentication confirmed, navigating to home page");
                     
-                    // For Interactive Server mode, force reload is necessary to ensure proper navigation
+                    // Try client-side navigation first to preserve session state
                     try 
                     {
-                        Logger.LogInformation("Attempting navigation with forceLoad=true");
-                        Navigation.NavigateTo("/", forceLoad: true);
+                        Logger.LogInformation("Attempting client-side navigation");
+                        Navigation.NavigateTo("/");
                     }
                     catch (Exception navEx)
                     {
-                        Logger.LogError(navEx, "Navigation failed, trying alternative approach");
-                        // Alternative: Use window.location.href via JS
+                        Logger.LogWarning(navEx, "Client-side navigation failed, trying forceLoad");
                         try 
                         {
-                            Logger.LogInformation("Attempting JavaScript navigation");
-                            await JSRuntime.InvokeVoidAsync("window.location.assign", "/");
+                            Logger.LogInformation("Attempting navigation with forceLoad=true");
+                            Navigation.NavigateTo("/");
                         }
-                        catch (Exception jsEx)
+                        catch (Exception forceNavEx)
                         {
-                            Logger.LogError(jsEx, "JavaScript navigation also failed");
-                            errorMessage = "Login successful! Please click here to continue or refresh the page.";
-                            StateHasChanged();
+                            Logger.LogError(forceNavEx, "Force navigation failed, trying JavaScript approach");
+                            // Alternative: Use window.location.href via JS
+                            try 
+                            {
+                                Logger.LogInformation("Attempting JavaScript navigation");
+                                await JSRuntime.InvokeVoidAsync("window.location.assign", "/");
+                            }
+                            catch (Exception jsEx)
+                            {
+                                Logger.LogError(jsEx, "All navigation methods failed");
+                                errorMessage = "Login successful! Please click here to continue or refresh the page.";
+                                StateHasChanged();
+                            }
                         }
                     }
                 }
                 else
                 {
                     Logger.LogWarning("Authentication state not confirmed after notification");
-                    errorMessage = "Authentication succeeded but state update failed. Please refresh the page.";
+                    errorMessage = "Login was successful but the authentication state is still updating. Please wait a moment or refresh the page.";
                 }
             }
             else

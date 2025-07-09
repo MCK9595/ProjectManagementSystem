@@ -1,8 +1,10 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using ProjectManagementSystem.Shared.Common.Constants
+@using System
 @rendermode InteractiveServer
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ILogger<AuthorizedNavLinks> Logger
+@implements IDisposable
 
 <AuthorizeView>
     <Authorized>
@@ -42,17 +44,81 @@
 
 @code {
     private bool showUserManagement = false;
+    private bool isAuthenticated = false;
+    private string? currentUserRole = null;
+    private string? currentUserName = null;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        Logger.LogDebug("AuthorizedNavLinks initializing");
         
-        if (authState.User.Identity?.IsAuthenticated == true)
+        // Subscribe to authentication state changes
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        
+        // Load initial authentication state
+        await LoadAuthenticationStateAsync();
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        Logger.LogDebug("Authentication state changed - reloading nav links");
+        await LoadAuthenticationStateAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadAuthenticationStateAsync()
+    {
+        try
         {
-            var userRole = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            Logger.LogDebug("User role: {UserRole}, Expected: {ExpectedRole}", userRole, Roles.SystemAdmin);
-            showUserManagement = userRole == Roles.SystemAdmin;
-            Logger.LogDebug("Show user management: {ShowUserManagement}", showUserManagement);
+            Logger.LogDebug("Loading authentication state for nav links");
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            
+            isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+            Logger.LogDebug("User authenticated: {IsAuthenticated}", isAuthenticated);
+            
+            if (isAuthenticated)
+            {
+                currentUserName = authState.User.Identity?.Name;
+                currentUserRole = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                
+                Logger.LogInformation("AuthorizedNavLinks - User: {UserName}, Role: {UserRole}", 
+                    currentUserName ?? "NULL", currentUserRole ?? "NULL");
+                
+                // Check if user has SystemAdmin role
+                showUserManagement = !string.IsNullOrEmpty(currentUserRole) && 
+                                     currentUserRole.Equals(Roles.SystemAdmin, StringComparison.OrdinalIgnoreCase);
+                
+                Logger.LogInformation("Show user management: {ShowUserManagement} (Role: {Role}, Expected: {ExpectedRole})", 
+                    showUserManagement, currentUserRole, Roles.SystemAdmin);
+                
+                // Additional debugging for role comparison
+                if (!showUserManagement && !string.IsNullOrEmpty(currentUserRole))
+                {
+                    Logger.LogWarning("User management not shown - Role mismatch. Current: '{CurrentRole}', Expected: '{ExpectedRole}', Equals: {Equals}", 
+                        currentUserRole, Roles.SystemAdmin, 
+                        currentUserRole.Equals(Roles.SystemAdmin, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            else
+            {
+                Logger.LogDebug("User not authenticated, hiding user management");
+                currentUserName = null;
+                currentUserRole = null;
+                showUserManagement = false;
+            }
         }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading authentication state for nav links");
+            isAuthenticated = false;
+            showUserManagement = false;
+            currentUserName = null;
+            currentUserRole = null;
+        }
+    }
+
+    public void Dispose()
+    {
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 }

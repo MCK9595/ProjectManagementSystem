@@ -35,17 +35,25 @@ builder.Services.AddAuthorization();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromHours(1); // Set session timeout
+    options.IdleTimeout = TimeSpan.FromHours(8); // Extended session timeout
+    options.Cookie.Name = ".ProjectManagement.Session"; // Custom cookie name
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SameSite = SameSiteMode.Lax; // Changed from Strict to allow navigation
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Use HTTPS in production
+    options.IOTimeout = TimeSpan.FromMinutes(1); // Allow more time for session operations
 });
 
 // Add HttpContextAccessor for session access
 builder.Services.AddHttpContextAccessor();
 
+// Add memory cache service for token storage
+builder.Services.AddMemoryCache();
+
 // Add server-side token service
-builder.Services.AddScoped<ProjectManagementSystem.Shared.Common.Services.ISessionTokenService, ProjectManagementSystem.WebApp.Services.SessionTokenService>();
+// Use MemoryTokenService with IMemoryCache for better Blazor Server compatibility
+// Changed to Scoped to work properly with Blazor Server circuits
+builder.Services.AddScoped<ProjectManagementSystem.Shared.Common.Services.ISessionTokenService, ProjectManagementSystem.WebApp.Services.MemoryTokenService>();
 
 // Add TokenHandler for automatic JWT token attachment
 builder.Services.AddScoped<ProjectManagementSystem.WebApp.Services.TokenHandler>();
@@ -102,6 +110,31 @@ app.UseHttpsRedirection();
 
 // Use session middleware (must be before UseRouting)
 app.UseSession();
+
+// Add custom middleware to ensure session is initialized and handle token flushing
+app.Use(async (context, next) =>
+{
+    // Ensure session is loaded early in the request pipeline
+    await context.Session.LoadAsync();
+    
+    // Call next middleware
+    await next();
+    
+    // Try to flush any pending tokens after the request is processed
+    var sessionTokenService = context.RequestServices.GetService<ProjectManagementSystem.Shared.Common.Services.ISessionTokenService>();
+    if (sessionTokenService != null)
+    {
+        try
+        {
+            await sessionTokenService.FlushPendingTokenAsync();
+        }
+        catch (Exception ex)
+        {
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogWarning(ex, "Failed to flush pending tokens after request completion");
+        }
+    }
+});
 
 // Add authentication and authorization middleware
 app.UseAuthentication();

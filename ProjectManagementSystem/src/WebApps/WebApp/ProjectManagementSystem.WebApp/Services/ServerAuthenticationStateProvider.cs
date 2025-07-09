@@ -68,12 +68,36 @@ public class ServerAuthenticationStateProvider : AuthenticationStateProvider
     {
         _logger.LogInformation("=== Notifying Authentication State Change ===");
         
+        try
+        {
+            // Try to flush any pending tokens first
+            await _sessionTokenService.FlushPendingTokenAsync();
+            _logger.LogDebug("Pending tokens flushed before authentication state refresh");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to flush pending tokens before authentication state refresh");
+        }
+        
         // Force refresh the authentication state
         var authState = await GetAuthenticationStateAsync();
         
-        _logger.LogInformation("New auth state - IsAuthenticated: {IsAuthenticated}, Name: {Name}", 
+        _logger.LogInformation("New auth state - IsAuthenticated: {IsAuthenticated}, Name: {Name}, Role: {Role}", 
             authState.User.Identity?.IsAuthenticated ?? false,
-            authState.User.Identity?.Name ?? "NULL");
+            authState.User.Identity?.Name ?? "NULL",
+            authState.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "NULL");
+        
+        // Verify token availability for debugging
+        try
+        {
+            var token = await _sessionTokenService.GetTokenAsync();
+            _logger.LogDebug("Token available during notification: {HasToken}, Length: {Length}", 
+                !string.IsNullOrEmpty(token), token?.Length ?? 0);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to check token availability during notification");
+        }
             
         NotifyAuthenticationStateChanged(Task.FromResult(authState));
         
