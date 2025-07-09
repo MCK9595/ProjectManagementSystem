@@ -1,0 +1,1314 @@
+2025-07-09T12:09:23.7919090Z Waiting for resource 'api-gateway' to enter the 'Running' state.
+2025-07-09T12:09:33.3993760Z Waiting for resource ready to execute for 'api-gateway'.
+2025-07-09T12:09:33.3993980Z Finished waiting for resource 'api-gateway'.
+2025-07-09T12:09:34.0780000Z info: Program[0]
+2025-07-09T12:09:34.0780000Z       === BLAZOR SERVER STARTING ===
+2025-07-09T12:09:34.1240000Z info: Program[0]
+2025-07-09T12:09:34.1240000Z       === BLAZOR SERVER APP BUILT SUCCESSFULLY ===
+2025-07-09T12:09:34.1240000Z warn: Program[0]
+2025-07-09T12:09:34.1240000Z       === WARNING TEST: Server-side logging is working ===
+2025-07-09T12:09:34.1240000Z fail: Program[0]
+2025-07-09T12:09:34.1240000Z       === ERROR TEST: This should appear in server console ===
+2025-07-09T12:09:34.3350000Z info: Microsoft.Hosting.Lifetime[14]
+2025-07-09T12:09:34.3350000Z       Now listening on: https://localhost:53871
+2025-07-09T12:09:34.3350000Z info: Microsoft.Hosting.Lifetime[14]
+2025-07-09T12:09:34.3350000Z       Now listening on: http://localhost:53872
+2025-07-09T12:09:34.3350000Z info: Microsoft.Hosting.Lifetime[0]
+2025-07-09T12:09:34.3350000Z       Application started. Press Ctrl+C to shut down.
+2025-07-09T12:09:34.3360000Z info: Microsoft.Hosting.Lifetime[0]
+2025-07-09T12:09:34.3360000Z       Hosting environment: Development
+2025-07-09T12:09:34.3360000Z info: Microsoft.Hosting.Lifetime[0]
+2025-07-09T12:09:34.3360000Z       Content root path: /Users/sakamakiyoshiki/src/dotnetProject/ProjectManagementSystem/ProjectManagementSystem/src/WebApps/WebApp/ProjectManagementSystem.WebApp
+2025-07-09T12:09:57.3020000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3020000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.3040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3040000Z       Getting token from memory cache
+2025-07-09T12:09:57.3040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3040000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.3040000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.3040000Z       No token found in session
+2025-07-09T12:09:57.3040000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.3040000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.3070000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3070000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.3280000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3280000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.3280000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3280000Z       Getting token from memory cache
+2025-07-09T12:09:57.3280000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3280000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.3280000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.3280000Z       No token found in session
+2025-07-09T12:09:57.3280000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.3280000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.3910000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3910000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.3910000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3910000Z       Getting token from memory cache
+2025-07-09T12:09:57.3910000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3910000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.3910000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.3910000Z       No token found in session
+2025-07-09T12:09:57.3910000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.3910000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.3920000Z dbug: Microsoft.AspNetCore.Authorization.AuthorizationMiddleware[0]
+2025-07-09T12:09:57.3920000Z       Policy authentication schemes  did not succeed
+2025-07-09T12:09:57.3930000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:09:57.3930000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:09:57.3930000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:09:57.3930000Z info: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[12]
+2025-07-09T12:09:57.3930000Z       AuthenticationScheme: Custom was challenged.
+2025-07-09T12:09:57.3930000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.3930000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.4060000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4060000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.4060000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4060000Z       Getting token from memory cache
+2025-07-09T12:09:57.4060000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4060000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.4060000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.4060000Z       No token found in session
+2025-07-09T12:09:57.4060000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.4060000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.4260000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4260000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.4270000Z info: Program[0]
+2025-07-09T12:09:57.4270000Z       === HttpClient configured with BaseAddress: http://api-gateway/ ===
+2025-07-09T12:09:57.4270000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4270000Z       AuthService initialized - BaseAddress: http://api-gateway/
+2025-07-09T12:09:57.4410000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4410000Z       === Getting Server Authentication State ===
+2025-07-09T12:09:57.4420000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4420000Z       Getting token from memory cache
+2025-07-09T12:09:57.4420000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4420000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.4420000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4420000Z       Token retrieved from storage - HasToken: False
+2025-07-09T12:09:57.4420000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4420000Z       No token found, user not authenticated
+2025-07-09T12:09:57.4420000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4420000Z       No user found, authentication state: NOT AUTHENTICATED
+2025-07-09T12:09:57.4420000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4420000Z       Returning anonymous authentication state
+2025-07-09T12:09:57.4440000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4440000Z       === Getting Server Authentication State ===
+2025-07-09T12:09:57.4440000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4440000Z       Getting token from memory cache
+2025-07-09T12:09:57.4440000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4440000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.4440000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4440000Z       Token retrieved from storage - HasToken: False
+2025-07-09T12:09:57.4440000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4440000Z       No token found, user not authenticated
+2025-07-09T12:09:57.4440000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4440000Z       No user found, authentication state: NOT AUTHENTICATED
+2025-07-09T12:09:57.4440000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4440000Z       Returning anonymous authentication state
+2025-07-09T12:09:57.4450000Z info: ProjectManagementSystem.WebApp.Components.Layout.AuthStatusDisplay[0]
+2025-07-09T12:09:57.4450000Z       === AUTH STATUS DISPLAY INITIALIZED ===
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:57.4460000Z       === LOGIN COMPONENT INITIALIZED (SYNC) ===
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:57.4460000Z       Render mode: Server
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:57.4460000Z       === LOGIN PAGE INITIALIZED ===
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:57.4460000Z       Navigation URI: https://localhost:7125/login
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:57.4460000Z       Base URI: https://localhost:7125/
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4460000Z       === Getting Server Authentication State ===
+2025-07-09T12:09:57.4460000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4460000Z       Getting token from memory cache
+2025-07-09T12:09:57.4460000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4460000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.4460000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4460000Z       Token retrieved from storage - HasToken: False
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4460000Z       No token found, user not authenticated
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4460000Z       No user found, authentication state: NOT AUTHENTICATED
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4460000Z       Returning anonymous authentication state
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:57.4460000Z       Auth state retrieved - IsAuthenticated: False
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:57.4460000Z       User Identity Name: NULL
+2025-07-09T12:09:57.4460000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:57.4460000Z       User not authenticated, showing login form
+2025-07-09T12:09:57.4470000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:09:57.4470000Z       AuthorizedNavLinks initializing
+2025-07-09T12:09:57.4480000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:09:57.4480000Z       Loading authentication state for nav links
+2025-07-09T12:09:57.4480000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4480000Z       === Getting Server Authentication State ===
+2025-07-09T12:09:57.4480000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4480000Z       Getting token from memory cache
+2025-07-09T12:09:57.4480000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4480000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.4480000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4480000Z       Token retrieved from storage - HasToken: False
+2025-07-09T12:09:57.4480000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:57.4480000Z       No token found, user not authenticated
+2025-07-09T12:09:57.4480000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4480000Z       No user found, authentication state: NOT AUTHENTICATED
+2025-07-09T12:09:57.4480000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:57.4480000Z       Returning anonymous authentication state
+2025-07-09T12:09:57.4480000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:09:57.4480000Z       User authenticated: False
+2025-07-09T12:09:57.4480000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:09:57.4480000Z       User not authenticated, hiding user management
+2025-07-09T12:09:57.4480000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:09:57.4480000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:09:57.4480000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:09:57.4490000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:09:57.4490000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:09:57.4490000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:09:57.4710000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4710000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.4910000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.4910000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.6010000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6010000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.6010000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6010000Z       Getting token from memory cache
+2025-07-09T12:09:57.6010000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6010000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.6010000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.6010000Z       No token found in session
+2025-07-09T12:09:57.6010000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.6010000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.6020000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6030000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6030000Z       Getting token from memory cache
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6030000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.6030000Z       No token found in session
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.6030000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6030000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6030000Z       Getting token from memory cache
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6030000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.6030000Z       No token found in session
+2025-07-09T12:09:57.6030000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.6030000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       Getting token from memory cache
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.6040000Z       No token found in session
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.6040000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       Getting token from memory cache
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.6040000Z       No token found in session
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.6040000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       Getting token from memory cache
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6040000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.6040000Z       No token found in session
+2025-07-09T12:09:57.6040000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.6040000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.6070000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6070000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.6070000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6070000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.6070000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6070000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.6070000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6070000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.6070000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6070000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.6070000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.6070000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:57.7690000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.7690000Z       MemoryTokenService initialized
+2025-07-09T12:09:57.7690000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.7690000Z       Getting token from memory cache
+2025-07-09T12:09:57.7690000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.7690000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:57.7690000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:57.7690000Z       No token found in session
+2025-07-09T12:09:57.7690000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:57.7690000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:57.7740000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:57.7740000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:58.1680000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.1680000Z       MemoryTokenService initialized
+2025-07-09T12:09:58.1680000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.1680000Z       Getting token from memory cache
+2025-07-09T12:09:58.1680000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.1680000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:58.1680000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:58.1680000Z       No token found in session
+2025-07-09T12:09:58.1680000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:58.1680000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:58.1680000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.1680000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:58.3180000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.3180000Z       MemoryTokenService initialized
+2025-07-09T12:09:58.3180000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.3180000Z       Getting token from memory cache
+2025-07-09T12:09:58.3180000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.3180000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:58.3180000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:58.3180000Z       No token found in session
+2025-07-09T12:09:58.3180000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:58.3180000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:58.3200000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.3200000Z       MemoryTokenService initialized
+2025-07-09T12:09:58.3200000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.3200000Z       Getting token from memory cache
+2025-07-09T12:09:58.3200000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.3200000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:58.3200000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[0]
+2025-07-09T12:09:58.3200000Z       No token found in session
+2025-07-09T12:09:58.3200000Z dbug: ProjectManagementSystem.WebApp.Services.CustomAuthenticationHandler[9]
+2025-07-09T12:09:58.3200000Z       AuthenticationScheme: Custom was not authenticated.
+2025-07-09T12:09:58.3230000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.3230000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:09:58.4370000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4370000Z       MemoryTokenService initialized
+2025-07-09T12:09:58.4370000Z info: Program[0]
+2025-07-09T12:09:58.4370000Z       === HttpClient configured with BaseAddress: http://api-gateway/ ===
+2025-07-09T12:09:58.4370000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4370000Z       AuthService initialized - BaseAddress: http://api-gateway/
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       === Getting Server Authentication State ===
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4500000Z       Getting token from memory cache
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4500000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4500000Z       Token retrieved from storage - HasToken: False
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4500000Z       No token found, user not authenticated
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       No user found, authentication state: NOT AUTHENTICATED
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       Returning anonymous authentication state
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       === Getting Server Authentication State ===
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4500000Z       Getting token from memory cache
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4500000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4500000Z       Token retrieved from storage - HasToken: False
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4500000Z       No token found, user not authenticated
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       No user found, authentication state: NOT AUTHENTICATED
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       Returning anonymous authentication state
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Layout.AuthStatusDisplay[0]
+2025-07-09T12:09:58.4500000Z       === AUTH STATUS DISPLAY INITIALIZED ===
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:58.4500000Z       === LOGIN COMPONENT INITIALIZED (SYNC) ===
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:58.4500000Z       Render mode: Server
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:58.4500000Z       === LOGIN PAGE INITIALIZED ===
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:58.4500000Z       Navigation URI: https://localhost:7125/login
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:58.4500000Z       Base URI: https://localhost:7125/
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       === Getting Server Authentication State ===
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4500000Z       Getting token from memory cache
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4500000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4500000Z       Token retrieved from storage - HasToken: False
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4500000Z       No token found, user not authenticated
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       No user found, authentication state: NOT AUTHENTICATED
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       Returning anonymous authentication state
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:58.4500000Z       Auth state retrieved - IsAuthenticated: False
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:58.4500000Z       User Identity Name: NULL
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:09:58.4500000Z       User not authenticated, showing login form
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:09:58.4500000Z       AuthorizedNavLinks initializing
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:09:58.4500000Z       Loading authentication state for nav links
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       === Getting Server Authentication State ===
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4500000Z       Getting token from memory cache
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:09:58.4500000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4500000Z       Token retrieved from storage - HasToken: False
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:09:58.4500000Z       No token found, user not authenticated
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       No user found, authentication state: NOT AUTHENTICATED
+2025-07-09T12:09:58.4500000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:09:58.4500000Z       Returning anonymous authentication state
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:09:58.4500000Z       User authenticated: False
+2025-07-09T12:09:58.4500000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:09:58.4500000Z       User not authenticated, hiding user management
+2025-07-09T12:09:58.4500000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:09:58.4500000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:09:58.4500000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:09:58.4500000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:09:58.4500000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:09:58.4500000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:11:56.8410000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:56.8410000Z       === HANDLE LOGIN STARTED ===
+2025-07-09T12:11:56.8410000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:56.8410000Z       Login attempt for user: admin@projectmanagement.com
+2025-07-09T12:11:56.8410000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:56.8410000Z       Model state - Username: 'admin@projectmanagement.com', Password length: 17
+2025-07-09T12:11:56.8410000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:56.8410000Z       Login model populated - proceeding with login
+2025-07-09T12:11:56.8410000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:56.8410000Z       Loading state set to true
+2025-07-09T12:11:56.8410000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:56.8410000Z       Calling AuthService.LoginAsync
+2025-07-09T12:11:56.8450000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:56.8450000Z       Login attempt for user: admin@projectmanagement.com
+2025-07-09T12:11:56.8490000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:11:56.8490000Z       Start processing HTTP request POST http://api-gateway/api/auth/login
+2025-07-09T12:11:56.8590000Z dbug: Polly[1]
+2025-07-09T12:11:56.8590000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:11:56.8800000Z dbug: Microsoft.Extensions.ServiceDiscovery.ServiceEndpointWatcher[1]
+2025-07-09T12:11:56.8800000Z       Creating endpoint resolver for service 'http://api-gateway' with 2 providers: Configuration, Pass-through.
+2025-07-09T12:11:56.8830000Z dbug: Microsoft.Extensions.ServiceDiscovery.ServiceEndpointWatcher[1]
+2025-07-09T12:11:56.8830000Z       Resolving endpoints for service 'http://api-gateway'.
+2025-07-09T12:11:56.8850000Z dbug: Microsoft.Extensions.ServiceDiscovery.Configuration.ConfigurationServiceEndpointProvider[2]
+2025-07-09T12:11:56.8850000Z       Using configuration from path 'Services:api-gateway:http' to resolve endpoint 'http' for service 'api-gateway'.
+2025-07-09T12:11:56.8850000Z dbug: Microsoft.Extensions.ServiceDiscovery.Configuration.ConfigurationServiceEndpointProvider[4]
+2025-07-09T12:11:56.8850000Z       Endpoints configured for service 'api-gateway' from path 'Services:api-gateway:http': http://localhost:5057/.
+2025-07-09T12:11:56.8880000Z dbug: Microsoft.Extensions.ServiceDiscovery.ServiceEndpointWatcher[3]
+2025-07-09T12:11:56.8880000Z       Resolved 1 endpoints for service 'http://api-gateway': http://localhost:5057/ (Configuration).
+2025-07-09T12:11:56.8900000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:56.8900000Z       TokenHandler: Processing request to http://localhost:5057/api/auth/login
+2025-07-09T12:11:56.8900000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:56.8900000Z       Getting token from memory cache
+2025-07-09T12:11:56.8900000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:56.8900000Z       No user ID or session token found - user not authenticated
+2025-07-09T12:11:56.8900000Z warn: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:56.8900000Z       TokenHandler: No access token found in session
+2025-07-09T12:11:56.8910000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:11:56.8910000Z       Sending HTTP request POST http://localhost:5057/api/auth/login
+2025-07-09T12:11:57.4340000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[103]
+2025-07-09T12:11:57.4340000Z       HttpMessageHandler expired after 120000ms for client 'ApiGateway'
+2025-07-09T12:11:57.6540000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:11:57.6540000Z       Received HTTP response headers after 762.463ms - 200
+2025-07-09T12:11:57.6570000Z info: Polly[3]
+2025-07-09T12:11:57.6570000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 787.4423ms
+2025-07-09T12:11:57.6590000Z dbug: Polly[2]
+2025-07-09T12:11:57.6590000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 803.3102ms
+2025-07-09T12:11:57.6600000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:11:57.6600000Z       End processing HTTP request after 813.889ms - 200
+2025-07-09T12:11:57.6610000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.6610000Z       Login request completed - Status: OK, Duration: 815.727ms
+2025-07-09T12:11:57.6640000Z info: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.6640000Z       Login successful for user: admin@projectmanagement.com
+2025-07-09T12:11:57.6640000Z info: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.6640000Z       Setting token in memory cache
+2025-07-09T12:11:57.6640000Z info: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.6640000Z       Token stored in cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.6640000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.6640000Z       Token stored successfully
+2025-07-09T12:11:57.6640000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.6640000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:11:57.6640000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.6640000Z       AuthService.LoginAsync completed, result is null: False
+2025-07-09T12:11:57.6640000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.6640000Z       Login result successful, notifying authentication state provider
+2025-07-09T12:11:57.6640000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.6640000Z       Notifying ServerAuthenticationStateProvider
+2025-07-09T12:11:57.6650000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.6650000Z       === Notifying Authentication State Change ===
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.6650000Z       FlushPendingTokenAsync called - no action needed for memory cache implementation
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.6650000Z       Pending tokens flushed before authentication state refresh
+2025-07-09T12:11:57.6650000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.6650000Z       === Getting Server Authentication State ===
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.6650000Z       Getting token from memory cache
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.6650000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.6650000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.6650000Z       Getting current user from API - BaseAddress: http://api-gateway/
+2025-07-09T12:11:57.6650000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:11:57.6650000Z       Start processing HTTP request GET http://api-gateway/api/auth/me
+2025-07-09T12:11:57.6650000Z dbug: Polly[1]
+2025-07-09T12:11:57.6650000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.6650000Z       TokenHandler: Processing request to http://localhost:5057/api/auth/me
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.6650000Z       Getting token from memory cache
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.6650000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.6650000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.6650000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:11:57.6650000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.6650000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:11:57.6650000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:11:57.6650000Z       Sending HTTP request GET http://localhost:5057/api/auth/me
+2025-07-09T12:11:57.7200000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:11:57.7200000Z       Received HTTP response headers after 55.2501ms - 200
+2025-07-09T12:11:57.7200000Z info: Polly[3]
+2025-07-09T12:11:57.7200000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 55.4217ms
+2025-07-09T12:11:57.7200000Z dbug: Polly[2]
+2025-07-09T12:11:57.7200000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 55.4827ms
+2025-07-09T12:11:57.7200000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:11:57.7200000Z       End processing HTTP request after 55.5322ms - 200
+2025-07-09T12:11:57.7200000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.7200000Z       GetCurrentUser request completed - Status: OK, Duration: 55.616ms
+2025-07-09T12:11:57.7210000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.7210000Z       Current user retrieved: admin
+2025-07-09T12:11:57.7210000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.7210000Z       User authenticated: admin (ID: 1, Role: SystemAdmin)
+2025-07-09T12:11:57.7210000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.7210000Z       Authentication state: AUTHENTICATED
+2025-07-09T12:11:57.7210000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.7210000Z       New auth state - IsAuthenticated: True, Name: admin, Role: SystemAdmin
+2025-07-09T12:11:57.7210000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.7210000Z       Getting token from memory cache
+2025-07-09T12:11:57.7210000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.7210000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.7210000Z dbug: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.7210000Z       Token available during notification: True, Length: 1005
+2025-07-09T12:11:57.7210000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:11:57.7210000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:11:57.7210000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:11:57.7210000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:11:57.7210000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:11:57.7210000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:11:57.7210000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:11:57.7210000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:11:57.7210000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:11:57.7210000Z info: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[2]
+2025-07-09T12:11:57.7210000Z       Authorization failed. These requirements were not met:
+2025-07-09T12:11:57.7210000Z       DenyAnonymousAuthorizationRequirement: Requires an authenticated user.
+2025-07-09T12:11:57.7220000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.7220000Z       Authorization was successful.
+2025-07-09T12:11:57.7220000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.7220000Z       Authorization was successful.
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:11:57.7230000Z       Authentication state changed - reloading nav links
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:11:57.7230000Z       Loading authentication state for nav links
+2025-07-09T12:11:57.7230000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.7230000Z       === Getting Server Authentication State ===
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.7230000Z       Getting token from memory cache
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.7230000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.7230000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.7230000Z       Getting current user from API - BaseAddress: http://api-gateway/
+2025-07-09T12:11:57.7230000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:11:57.7230000Z       Start processing HTTP request GET http://api-gateway/api/auth/me
+2025-07-09T12:11:57.7230000Z dbug: Polly[1]
+2025-07-09T12:11:57.7230000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.7230000Z       TokenHandler: Processing request to http://localhost:5057/api/auth/me
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.7230000Z       Getting token from memory cache
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.7230000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.7230000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.7230000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:11:57.7230000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.7230000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:11:57.7230000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:11:57.7230000Z       Sending HTTP request GET http://localhost:5057/api/auth/me
+2025-07-09T12:11:57.7230000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.7230000Z       Authentication state change notification sent
+2025-07-09T12:11:57.7230000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.7230000Z       ServerAuthenticationStateProvider notified
+2025-07-09T12:11:57.7230000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.7230000Z       Login successful - Token: True, User: admin
+2025-07-09T12:11:57.7230000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.7230000Z       Clearing form and preparing navigation
+2025-07-09T12:11:57.7330000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:11:57.7330000Z       Received HTTP response headers after 9.8797ms - 200
+2025-07-09T12:11:57.7330000Z info: Polly[3]
+2025-07-09T12:11:57.7330000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 9.9861ms
+2025-07-09T12:11:57.7330000Z dbug: Polly[2]
+2025-07-09T12:11:57.7330000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 10.0297ms
+2025-07-09T12:11:57.7330000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:11:57.7330000Z       End processing HTTP request after 10.0698ms - 200
+2025-07-09T12:11:57.7330000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.7330000Z       GetCurrentUser request completed - Status: OK, Duration: 10.118ms
+2025-07-09T12:11:57.7330000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.7330000Z       Current user retrieved: admin
+2025-07-09T12:11:57.7330000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.7330000Z       User authenticated: admin (ID: 1, Role: SystemAdmin)
+2025-07-09T12:11:57.7330000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.7330000Z       Authentication state: AUTHENTICATED
+2025-07-09T12:11:57.7330000Z dbug: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:11:57.7330000Z       User authenticated: True
+2025-07-09T12:11:57.7330000Z info: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:11:57.7330000Z       AuthorizedNavLinks - User: admin, Role: SystemAdmin
+2025-07-09T12:11:57.7330000Z info: ProjectManagementSystem.WebApp.Components.Layout.AuthorizedNavLinks[0]
+2025-07-09T12:11:57.7330000Z       Show user management: True (Role: SystemAdmin, Expected: SystemAdmin)
+2025-07-09T12:11:57.7330000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.7330000Z       Authorization was successful.
+2025-07-09T12:11:57.8260000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.8260000Z       === Getting Server Authentication State ===
+2025-07-09T12:11:57.8260000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.8260000Z       Getting token from memory cache
+2025-07-09T12:11:57.8260000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.8260000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.8260000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.8260000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:11:57.8260000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.8260000Z       Getting current user from API - BaseAddress: http://api-gateway/
+2025-07-09T12:11:57.8260000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:11:57.8260000Z       Start processing HTTP request GET http://api-gateway/api/auth/me
+2025-07-09T12:11:57.8260000Z dbug: Polly[1]
+2025-07-09T12:11:57.8260000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:11:57.8260000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.8260000Z       TokenHandler: Processing request to http://localhost:5057/api/auth/me
+2025-07-09T12:11:57.8260000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.8260000Z       Getting token from memory cache
+2025-07-09T12:11:57.8260000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.8260000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.8260000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.8260000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:11:57.8260000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.8260000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:11:57.8260000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:11:57.8260000Z       Sending HTTP request GET http://localhost:5057/api/auth/me
+2025-07-09T12:11:57.8360000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:11:57.8360000Z       Received HTTP response headers after 10.4799ms - 200
+2025-07-09T12:11:57.8360000Z info: Polly[3]
+2025-07-09T12:11:57.8360000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 10.6045ms
+2025-07-09T12:11:57.8360000Z dbug: Polly[2]
+2025-07-09T12:11:57.8360000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 10.6516ms
+2025-07-09T12:11:57.8360000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:11:57.8360000Z       End processing HTTP request after 10.7168ms - 200
+2025-07-09T12:11:57.8360000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.8360000Z       GetCurrentUser request completed - Status: OK, Duration: 10.762ms
+2025-07-09T12:11:57.8360000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.8360000Z       Current user retrieved: admin
+2025-07-09T12:11:57.8360000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.8360000Z       User authenticated: admin (ID: 1, Role: SystemAdmin)
+2025-07-09T12:11:57.8360000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.8360000Z       Authentication state: AUTHENTICATED
+2025-07-09T12:11:57.8360000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.8360000Z       Authentication verification attempt 1: IsAuthenticated = True, Name = admin
+2025-07-09T12:11:57.8360000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.8360000Z       Authentication confirmed on attempt 1
+2025-07-09T12:11:57.8360000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.8360000Z       Authentication confirmed, navigating to home page
+2025-07-09T12:11:57.8360000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.8360000Z       Attempting client-side navigation
+2025-07-09T12:11:57.8390000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.8390000Z       === HANDLE LOGIN COMPLETED ===
+2025-07-09T12:11:57.8390000Z info: ProjectManagementSystem.WebApp.Components.Pages.Login[0]
+2025-07-09T12:11:57.8390000Z       Final state - isLoading: false, errorMessage: ''
+2025-07-09T12:11:57.8460000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8460000Z       Authorization was successful.
+2025-07-09T12:11:57.8460000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8460000Z       Authorization was successful.
+2025-07-09T12:11:57.8470000Z info: ProjectManagementSystem.WebApp.Components.Pages.Home[0]
+2025-07-09T12:11:57.8470000Z       Home component initialized
+2025-07-09T12:11:57.8470000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.8470000Z       === Getting Server Authentication State ===
+2025-07-09T12:11:57.8470000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.8470000Z       Getting token from memory cache
+2025-07-09T12:11:57.8470000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.8470000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.8470000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.8470000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:11:57.8470000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.8470000Z       Getting current user from API - BaseAddress: http://api-gateway/
+2025-07-09T12:11:57.8470000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:11:57.8470000Z       Start processing HTTP request GET http://api-gateway/api/auth/me
+2025-07-09T12:11:57.8470000Z dbug: Polly[1]
+2025-07-09T12:11:57.8470000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:11:57.8470000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.8470000Z       TokenHandler: Processing request to http://localhost:5057/api/auth/me
+2025-07-09T12:11:57.8470000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.8470000Z       Getting token from memory cache
+2025-07-09T12:11:57.8470000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:57.8470000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:57.8470000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.8470000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:11:57.8470000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:57.8470000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:11:57.8480000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:11:57.8480000Z       Sending HTTP request GET http://localhost:5057/api/auth/me
+2025-07-09T12:11:57.8490000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8490000Z       Authorization was successful.
+2025-07-09T12:11:57.8490000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8490000Z       Authorization was successful.
+2025-07-09T12:11:57.8490000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8490000Z       Authorization was successful.
+2025-07-09T12:11:57.8490000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8490000Z       Authorization was successful.
+2025-07-09T12:11:57.8560000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:11:57.8560000Z       Received HTTP response headers after 8.0016ms - 200
+2025-07-09T12:11:57.8560000Z info: Polly[3]
+2025-07-09T12:11:57.8560000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 8.1216ms
+2025-07-09T12:11:57.8560000Z dbug: Polly[2]
+2025-07-09T12:11:57.8560000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 8.1697ms
+2025-07-09T12:11:57.8560000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:11:57.8560000Z       End processing HTTP request after 8.2208ms - 200
+2025-07-09T12:11:57.8560000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.8560000Z       GetCurrentUser request completed - Status: OK, Duration: 8.274ms
+2025-07-09T12:11:57.8560000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:57.8560000Z       Current user retrieved: admin
+2025-07-09T12:11:57.8560000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.8560000Z       User authenticated: admin (ID: 1, Role: SystemAdmin)
+2025-07-09T12:11:57.8560000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:11:57.8560000Z       Authentication state: AUTHENTICATED
+2025-07-09T12:11:57.8560000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8560000Z       Authorization was successful.
+2025-07-09T12:11:57.8560000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8560000Z       Authorization was successful.
+2025-07-09T12:11:57.8560000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8560000Z       Authorization was successful.
+2025-07-09T12:11:57.8560000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:57.8560000Z       Authorization was successful.
+2025-07-09T12:11:59.8060000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:59.8060000Z       Authorization was successful.
+2025-07-09T12:11:59.8060000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:59.8060000Z       Authorization was successful.
+2025-07-09T12:11:59.8060000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:59.8060000Z       Authorization was successful.
+2025-07-09T12:11:59.8060000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:59.8060000Z       Authorization was successful.
+2025-07-09T12:11:59.8060000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:59.8060000Z       Authorization was successful.
+2025-07-09T12:11:59.8060000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:59.8060000Z       Authorization was successful.
+2025-07-09T12:11:59.8060000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:11:59.8060000Z       Authorization was successful.
+2025-07-09T12:11:59.8090000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:59.8090000Z       MemoryTokenService initialized
+2025-07-09T12:11:59.8090000Z info: Program[0]
+2025-07-09T12:11:59.8090000Z       === HttpClient configured with BaseAddress: http://api-gateway/ ===
+2025-07-09T12:11:59.8140000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:59.8140000Z       Getting token from memory cache
+2025-07-09T12:11:59.8140000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:59.8140000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:59.8140000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:11:59.8140000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:11:59.8140000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:11:59.8140000Z       Start processing HTTP request GET http://api-gateway/api/projects?*
+2025-07-09T12:11:59.8140000Z dbug: Polly[1]
+2025-07-09T12:11:59.8140000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:11:59.8140000Z dbug: Microsoft.Extensions.ServiceDiscovery.ServiceEndpointWatcher[1]
+2025-07-09T12:11:59.8140000Z       Creating endpoint resolver for service 'http://api-gateway' with 2 providers: Configuration, Pass-through.
+2025-07-09T12:11:59.8150000Z dbug: Microsoft.Extensions.ServiceDiscovery.ServiceEndpointWatcher[1]
+2025-07-09T12:11:59.8150000Z       Resolving endpoints for service 'http://api-gateway'.
+2025-07-09T12:11:59.8150000Z dbug: Microsoft.Extensions.ServiceDiscovery.Configuration.ConfigurationServiceEndpointProvider[2]
+2025-07-09T12:11:59.8150000Z       Using configuration from path 'Services:api-gateway:http' to resolve endpoint 'http' for service 'api-gateway'.
+2025-07-09T12:11:59.8150000Z dbug: Microsoft.Extensions.ServiceDiscovery.Configuration.ConfigurationServiceEndpointProvider[4]
+2025-07-09T12:11:59.8150000Z       Endpoints configured for service 'api-gateway' from path 'Services:api-gateway:http': http://localhost:5057/.
+2025-07-09T12:11:59.8150000Z dbug: Microsoft.Extensions.ServiceDiscovery.ServiceEndpointWatcher[3]
+2025-07-09T12:11:59.8150000Z       Resolved 1 endpoints for service 'http://api-gateway': http://localhost:5057/ (Configuration).
+2025-07-09T12:11:59.8150000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:59.8150000Z       TokenHandler: Processing request to http://localhost:5057/api/projects?pageNumber=1&pageSize=9
+2025-07-09T12:11:59.8150000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:59.8150000Z       Getting token from memory cache
+2025-07-09T12:11:59.8150000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:11:59.8150000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:11:59.8150000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:59.8150000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:11:59.8150000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:11:59.8150000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:11:59.8150000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:11:59.8150000Z       Sending HTTP request GET http://localhost:5057/api/projects?*
+2025-07-09T12:12:00.3860000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:00.3860000Z       Received HTTP response headers after 570.6525ms - 200
+2025-07-09T12:12:00.3860000Z info: Polly[3]
+2025-07-09T12:12:00.3860000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 571.8604ms
+2025-07-09T12:12:00.3860000Z dbug: Polly[2]
+2025-07-09T12:12:00.3860000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 571.9707ms
+2025-07-09T12:12:00.3860000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:00.3860000Z       End processing HTTP request after 572.1378ms - 200
+2025-07-09T12:12:04.6300000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:12:04.6300000Z       Authorization was successful.
+2025-07-09T12:12:04.6300000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:12:04.6300000Z       Authorization was successful.
+2025-07-09T12:12:04.6300000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:12:04.6300000Z       Authorization was successful.
+2025-07-09T12:12:04.6330000Z info: Program[0]
+2025-07-09T12:12:04.6330000Z       === HttpClient configured with BaseAddress: http://api-gateway/ ===
+2025-07-09T12:12:04.6340000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.6340000Z       === USERSERVICE CONSTRUCTOR STARTED ===
+2025-07-09T12:12:04.6340000Z info: Program[0]
+2025-07-09T12:12:04.6340000Z       === HttpClient configured with BaseAddress: http://api-gateway/ ===
+2025-07-09T12:12:04.6340000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.6340000Z       HttpClient created with name: ApiGateway
+2025-07-09T12:12:04.6340000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.6340000Z       HttpClient BaseAddress: http://api-gateway/
+2025-07-09T12:12:04.6350000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.6350000Z       HttpClient Timeout: 00:00:30
+2025-07-09T12:12:04.6350000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.6350000Z       === USERSERVICE CONSTRUCTOR COMPLETED ===
+2025-07-09T12:12:04.6350000Z info: Program[0]
+2025-07-09T12:12:04.6350000Z       === HttpClient configured with BaseAddress: http://api-gateway/ ===
+2025-07-09T12:12:04.6360000Z dbug: ProjectManagementSystem.WebApp.Services.OrganizationService[0]
+2025-07-09T12:12:04.6360000Z       OrganizationService initialized with HttpClient BaseAddress: http://api-gateway/
+2025-07-09T12:12:04.6380000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:12:04.6380000Z       === Getting Server Authentication State ===
+2025-07-09T12:12:04.6380000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.6380000Z       Getting token from memory cache
+2025-07-09T12:12:04.6380000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.6380000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:04.6380000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:04.6380000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:04.6380000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:04.6380000Z       Getting current user from API - BaseAddress: http://api-gateway/
+2025-07-09T12:12:04.6380000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:04.6380000Z       Start processing HTTP request GET http://api-gateway/api/auth/me
+2025-07-09T12:12:04.6380000Z dbug: Polly[1]
+2025-07-09T12:12:04.6380000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:04.6380000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.6380000Z       TokenHandler: Processing request to http://localhost:5057/api/auth/me
+2025-07-09T12:12:04.6380000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.6380000Z       Getting token from memory cache
+2025-07-09T12:12:04.6380000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.6380000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:04.6380000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.6380000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:04.6380000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.6380000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:04.6380000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:04.6380000Z       Sending HTTP request GET http://localhost:5057/api/auth/me
+2025-07-09T12:12:04.6580000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:04.6580000Z       Received HTTP response headers after 19.5812ms - 200
+2025-07-09T12:12:04.6580000Z info: Polly[3]
+2025-07-09T12:12:04.6580000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 19.953ms
+2025-07-09T12:12:04.6580000Z dbug: Polly[2]
+2025-07-09T12:12:04.6580000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 20.114ms
+2025-07-09T12:12:04.6580000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:04.6580000Z       End processing HTTP request after 20.2917ms - 200
+2025-07-09T12:12:04.6580000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:04.6580000Z       GetCurrentUser request completed - Status: OK, Duration: 20.452ms
+2025-07-09T12:12:04.6590000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:04.6590000Z       Current user retrieved: admin
+2025-07-09T12:12:04.6590000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:12:04.6590000Z       User authenticated: admin (ID: 1, Role: SystemAdmin)
+2025-07-09T12:12:04.6590000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:12:04.6590000Z       Authentication state: AUTHENTICATED
+2025-07-09T12:12:04.6600000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.6600000Z       === GET USER BY ID REQUEST STARTED === ID: 1
+2025-07-09T12:12:04.6600000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.6600000Z       Request URI: /api/usermanagement/1
+2025-07-09T12:12:04.6600000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:04.6600000Z       Start processing HTTP request GET http://api-gateway/api/usermanagement/1
+2025-07-09T12:12:04.6610000Z dbug: Polly[1]
+2025-07-09T12:12:04.6610000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:04.6610000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.6610000Z       TokenHandler: Processing request to http://localhost:5057/api/usermanagement/1
+2025-07-09T12:12:04.6610000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.6610000Z       Getting token from memory cache
+2025-07-09T12:12:04.6610000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.6610000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:04.6610000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.6610000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:04.6610000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.6610000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:04.6610000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:04.6610000Z       Sending HTTP request GET http://localhost:5057/api/usermanagement/1
+2025-07-09T12:12:04.7070000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:04.7070000Z       Received HTTP response headers after 46.529ms - 200
+2025-07-09T12:12:04.7070000Z info: Polly[3]
+2025-07-09T12:12:04.7070000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 46.7855ms
+2025-07-09T12:12:04.7070000Z dbug: Polly[2]
+2025-07-09T12:12:04.7070000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 46.8697ms
+2025-07-09T12:12:04.7070000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:04.7070000Z       End processing HTTP request after 46.958ms - 200
+2025-07-09T12:12:04.7070000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.7070000Z       GetUserById request completed with status: OK
+2025-07-09T12:12:04.7080000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:04.7080000Z       User retrieved successfully - ID: 1, Username: 'admin'
+2025-07-09T12:12:04.7090000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.7090000Z       Getting token from memory cache
+2025-07-09T12:12:04.7090000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.7090000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:04.7090000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:04.7090000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:04.7090000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:04.7090000Z       Start processing HTTP request GET http://api-gateway/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:04.7090000Z dbug: Polly[1]
+2025-07-09T12:12:04.7090000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:04.7090000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.7090000Z       TokenHandler: Processing request to http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:04.7090000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.7090000Z       Getting token from memory cache
+2025-07-09T12:12:04.7090000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:04.7090000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:04.7090000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.7090000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:04.7090000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:04.7090000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:04.7090000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:04.7090000Z       Sending HTTP request GET http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:05.2710000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.2710000Z       Received HTTP response headers after 562.2672ms - 200
+2025-07-09T12:12:05.2710000Z info: Polly[3]
+2025-07-09T12:12:05.2710000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 562.4211ms
+2025-07-09T12:12:05.2710000Z dbug: Polly[2]
+2025-07-09T12:12:05.2710000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 562.4838ms
+2025-07-09T12:12:05.2710000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.2710000Z       End processing HTTP request after 562.5827ms - 200
+2025-07-09T12:12:05.2720000Z Loading creator for user ID: 1
+2025-07-09T12:12:05.2720000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.2720000Z       === GET USER BY ID REQUEST STARTED === ID: 1
+2025-07-09T12:12:05.2720000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.2720000Z       Request URI: /api/usermanagement/1
+2025-07-09T12:12:05.2720000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.2720000Z       Start processing HTTP request GET http://api-gateway/api/usermanagement/1
+2025-07-09T12:12:05.2720000Z dbug: Polly[1]
+2025-07-09T12:12:05.2720000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.2730000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.2730000Z       TokenHandler: Processing request to http://localhost:5057/api/usermanagement/1
+2025-07-09T12:12:05.2730000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.2730000Z       Getting token from memory cache
+2025-07-09T12:12:05.2730000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.2730000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.2730000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.2730000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.2730000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.2730000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.2730000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.2730000Z       Sending HTTP request GET http://localhost:5057/api/usermanagement/1
+2025-07-09T12:12:05.2780000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.2780000Z       Received HTTP response headers after 4.9797ms - 200
+2025-07-09T12:12:05.2780000Z info: Polly[3]
+2025-07-09T12:12:05.2780000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 5.1004ms
+2025-07-09T12:12:05.2780000Z dbug: Polly[2]
+2025-07-09T12:12:05.2780000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 5.1393ms
+2025-07-09T12:12:05.2780000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.2780000Z       End processing HTTP request after 5.1895ms - 200
+2025-07-09T12:12:05.2780000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.2780000Z       GetUserById request completed with status: OK
+2025-07-09T12:12:05.2780000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.2780000Z       User retrieved successfully - ID: 1, Username: 'admin'
+2025-07-09T12:12:05.2780000Z Successfully loaded creator: admin (admin@projectmanagement.com)
+2025-07-09T12:12:05.2780000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.2780000Z       Getting token from memory cache
+2025-07-09T12:12:05.2780000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.2780000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.2780000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.2780000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:05.2780000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.2780000Z       Start processing HTTP request GET http://api-gateway/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?*
+2025-07-09T12:12:05.2790000Z dbug: Polly[1]
+2025-07-09T12:12:05.2790000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.2790000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.2790000Z       TokenHandler: Processing request to http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?pageNumber=1&pageSize=10
+2025-07-09T12:12:05.2790000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.2790000Z       Getting token from memory cache
+2025-07-09T12:12:05.2790000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.2790000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.2790000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.2790000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.2790000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.2790000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.2790000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.2790000Z       Sending HTTP request GET http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?*
+2025-07-09T12:12:05.3380000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.3380000Z       Received HTTP response headers after 59.0366ms - 200
+2025-07-09T12:12:05.3380000Z info: Polly[3]
+2025-07-09T12:12:05.3380000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 59.1598ms
+2025-07-09T12:12:05.3380000Z dbug: Polly[2]
+2025-07-09T12:12:05.3380000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 59.2107ms
+2025-07-09T12:12:05.3380000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.3380000Z       End processing HTTP request after 59.2549ms - 200
+2025-07-09T12:12:05.3400000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.3400000Z       Getting token from memory cache
+2025-07-09T12:12:05.3400000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.3400000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.3400000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.3400000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:05.3400000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.3400000Z       Start processing HTTP request GET http://api-gateway/api/tasks/project/2b062514-c26f-4a7d-bd5a-48d987ff8f79?*
+2025-07-09T12:12:05.3400000Z dbug: Polly[1]
+2025-07-09T12:12:05.3400000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.3400000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.3400000Z       TokenHandler: Processing request to http://localhost:5057/api/tasks/project/2b062514-c26f-4a7d-bd5a-48d987ff8f79?pageNumber=1&pageSize=20
+2025-07-09T12:12:05.3400000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.3400000Z       Getting token from memory cache
+2025-07-09T12:12:05.3400000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.3400000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.3400000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.3400000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.3400000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.3400000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.3400000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.3400000Z       Sending HTTP request GET http://localhost:5057/api/tasks/project/2b062514-c26f-4a7d-bd5a-48d987ff8f79?*
+2025-07-09T12:12:05.8670000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.8670000Z       Received HTTP response headers after 527.3432ms - 200
+2025-07-09T12:12:05.8670000Z info: Polly[3]
+2025-07-09T12:12:05.8670000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 527.4749ms
+2025-07-09T12:12:05.8670000Z dbug: Polly[2]
+2025-07-09T12:12:05.8670000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 527.5222ms
+2025-07-09T12:12:05.8670000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.8670000Z       End processing HTTP request after 527.5646ms - 200
+2025-07-09T12:12:05.8710000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:12:05.8710000Z       === Getting Server Authentication State ===
+2025-07-09T12:12:05.8710000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8710000Z       Getting token from memory cache
+2025-07-09T12:12:05.8710000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8710000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.8710000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.8710000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:05.8710000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.8710000Z       Getting current user from API - BaseAddress: http://api-gateway/
+2025-07-09T12:12:05.8710000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.8710000Z       Start processing HTTP request GET http://api-gateway/api/auth/me
+2025-07-09T12:12:05.8710000Z dbug: Polly[1]
+2025-07-09T12:12:05.8710000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.8710000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8710000Z       TokenHandler: Processing request to http://localhost:5057/api/auth/me
+2025-07-09T12:12:05.8710000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8710000Z       Getting token from memory cache
+2025-07-09T12:12:05.8710000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8710000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.8710000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8710000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.8710000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8710000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.8710000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.8710000Z       Sending HTTP request GET http://localhost:5057/api/auth/me
+2025-07-09T12:12:05.8800000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.8800000Z       Received HTTP response headers after 8.1304ms - 200
+2025-07-09T12:12:05.8800000Z info: Polly[3]
+2025-07-09T12:12:05.8800000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 8.2328ms
+2025-07-09T12:12:05.8800000Z dbug: Polly[2]
+2025-07-09T12:12:05.8800000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 8.2749ms
+2025-07-09T12:12:05.8800000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.8800000Z       End processing HTTP request after 8.312ms - 200
+2025-07-09T12:12:05.8800000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.8800000Z       GetCurrentUser request completed - Status: OK, Duration: 8.356ms
+2025-07-09T12:12:05.8800000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.8800000Z       Current user retrieved: admin
+2025-07-09T12:12:05.8800000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:12:05.8800000Z       User authenticated: admin (ID: 1, Role: SystemAdmin)
+2025-07-09T12:12:05.8800000Z info: ProjectManagementSystem.WebApp.Services.ServerAuthenticationStateProvider[0]
+2025-07-09T12:12:05.8800000Z       Authentication state: AUTHENTICATED
+2025-07-09T12:12:05.8800000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.8800000Z       === GET USER BY ID REQUEST STARTED === ID: 1
+2025-07-09T12:12:05.8800000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.8800000Z       Request URI: /api/usermanagement/1
+2025-07-09T12:12:05.8800000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.8800000Z       Start processing HTTP request GET http://api-gateway/api/usermanagement/1
+2025-07-09T12:12:05.8800000Z dbug: Polly[1]
+2025-07-09T12:12:05.8800000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.8800000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8800000Z       TokenHandler: Processing request to http://localhost:5057/api/usermanagement/1
+2025-07-09T12:12:05.8800000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8800000Z       Getting token from memory cache
+2025-07-09T12:12:05.8800000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8800000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.8800000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8800000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.8800000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8800000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.8800000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.8800000Z       Sending HTTP request GET http://localhost:5057/api/usermanagement/1
+2025-07-09T12:12:05.8830000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.8830000Z       Received HTTP response headers after 3.2872ms - 200
+2025-07-09T12:12:05.8830000Z info: Polly[3]
+2025-07-09T12:12:05.8830000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 3.3662ms
+2025-07-09T12:12:05.8830000Z dbug: Polly[2]
+2025-07-09T12:12:05.8830000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 3.396ms
+2025-07-09T12:12:05.8830000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.8830000Z       End processing HTTP request after 3.4217ms - 200
+2025-07-09T12:12:05.8830000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.8830000Z       GetUserById request completed with status: OK
+2025-07-09T12:12:05.8830000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.8830000Z       User retrieved successfully - ID: 1, Username: 'admin'
+2025-07-09T12:12:05.8830000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8830000Z       Getting token from memory cache
+2025-07-09T12:12:05.8830000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8830000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.8830000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.8830000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:05.8830000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.8830000Z       Start processing HTTP request GET http://api-gateway/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:05.8830000Z dbug: Polly[1]
+2025-07-09T12:12:05.8830000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.8830000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8830000Z       TokenHandler: Processing request to http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:05.8830000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8830000Z       Getting token from memory cache
+2025-07-09T12:12:05.8830000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8830000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.8830000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8830000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.8830000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8830000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.8830000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.8830000Z       Sending HTTP request GET http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:05.8960000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.8960000Z       Received HTTP response headers after 13.052ms - 200
+2025-07-09T12:12:05.8960000Z info: Polly[3]
+2025-07-09T12:12:05.8960000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 13.138ms
+2025-07-09T12:12:05.8960000Z dbug: Polly[2]
+2025-07-09T12:12:05.8960000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 13.1841ms
+2025-07-09T12:12:05.8960000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.8960000Z       End processing HTTP request after 13.2187ms - 200
+2025-07-09T12:12:05.8970000Z Loading creator for user ID: 1
+2025-07-09T12:12:05.8970000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.8970000Z       === GET USER BY ID REQUEST STARTED === ID: 1
+2025-07-09T12:12:05.8970000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.8970000Z       Request URI: /api/usermanagement/1
+2025-07-09T12:12:05.8970000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.8970000Z       Start processing HTTP request GET http://api-gateway/api/usermanagement/1
+2025-07-09T12:12:05.8970000Z dbug: Polly[1]
+2025-07-09T12:12:05.8970000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.8970000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8970000Z       TokenHandler: Processing request to http://localhost:5057/api/usermanagement/1
+2025-07-09T12:12:05.8970000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8970000Z       Getting token from memory cache
+2025-07-09T12:12:05.8970000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.8970000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.8970000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8970000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.8970000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.8970000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.8970000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.8970000Z       Sending HTTP request GET http://localhost:5057/api/usermanagement/1
+2025-07-09T12:12:05.9010000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.9010000Z       Received HTTP response headers after 4.0767ms - 200
+2025-07-09T12:12:05.9010000Z info: Polly[3]
+2025-07-09T12:12:05.9010000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 4.1844ms
+2025-07-09T12:12:05.9010000Z dbug: Polly[2]
+2025-07-09T12:12:05.9010000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 4.2202ms
+2025-07-09T12:12:05.9010000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.9010000Z       End processing HTTP request after 4.2566ms - 200
+2025-07-09T12:12:05.9010000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.9010000Z       GetUserById request completed with status: OK
+2025-07-09T12:12:05.9010000Z Successfully loaded creator: admin (admin@projectmanagement.com)
+2025-07-09T12:12:05.9010000Z info: ProjectManagementSystem.WebApp.Services.UserService[0]
+2025-07-09T12:12:05.9010000Z       User retrieved successfully - ID: 1, Username: 'admin'
+2025-07-09T12:12:05.9010000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.9010000Z       Getting token from memory cache
+2025-07-09T12:12:05.9010000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.9010000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.9010000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.9010000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:05.9010000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.9010000Z       Start processing HTTP request GET http://api-gateway/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?*
+2025-07-09T12:12:05.9010000Z dbug: Polly[1]
+2025-07-09T12:12:05.9010000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.9010000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.9010000Z       TokenHandler: Processing request to http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?pageNumber=1&pageSize=10
+2025-07-09T12:12:05.9010000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.9010000Z       Getting token from memory cache
+2025-07-09T12:12:05.9010000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.9010000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.9010000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.9010000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.9010000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.9010000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.9010000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.9010000Z       Sending HTTP request GET http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?*
+2025-07-09T12:12:05.9150000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.9150000Z       Received HTTP response headers after 14.0825ms - 200
+2025-07-09T12:12:05.9150000Z info: Polly[3]
+2025-07-09T12:12:05.9150000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 14.1633ms
+2025-07-09T12:12:05.9150000Z dbug: Polly[2]
+2025-07-09T12:12:05.9150000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 14.1937ms
+2025-07-09T12:12:05.9150000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.9150000Z       End processing HTTP request after 14.2216ms - 200
+2025-07-09T12:12:05.9150000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.9150000Z       Getting token from memory cache
+2025-07-09T12:12:05.9150000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.9150000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.9150000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:05.9150000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:05.9150000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:05.9150000Z       Start processing HTTP request GET http://api-gateway/api/tasks/project/2b062514-c26f-4a7d-bd5a-48d987ff8f79?*
+2025-07-09T12:12:05.9150000Z dbug: Polly[1]
+2025-07-09T12:12:05.9150000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:05.9150000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.9150000Z       TokenHandler: Processing request to http://localhost:5057/api/tasks/project/2b062514-c26f-4a7d-bd5a-48d987ff8f79?pageNumber=1&pageSize=20
+2025-07-09T12:12:05.9150000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.9150000Z       Getting token from memory cache
+2025-07-09T12:12:05.9150000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:05.9150000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:05.9150000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.9150000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:05.9150000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:05.9150000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:05.9150000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:05.9150000Z       Sending HTTP request GET http://localhost:5057/api/tasks/project/2b062514-c26f-4a7d-bd5a-48d987ff8f79?*
+2025-07-09T12:12:05.9260000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:05.9260000Z       Received HTTP response headers after 10.2115ms - 200
+2025-07-09T12:12:05.9260000Z info: Polly[3]
+2025-07-09T12:12:05.9260000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 10.3052ms
+2025-07-09T12:12:05.9260000Z dbug: Polly[2]
+2025-07-09T12:12:05.9260000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 10.3393ms
+2025-07-09T12:12:05.9260000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:05.9260000Z       End processing HTTP request after 10.3751ms - 200
+2025-07-09T12:12:07.4440000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:12:07.4440000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:12:07.4500000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:12:07.4500000Z       Ending HttpMessageHandler cleanup cycle after 0.0363ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:12:09.3470000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:12:09.3470000Z       Authorization was successful.
+2025-07-09T12:12:09.3470000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:12:09.3470000Z       Authorization was successful.
+2025-07-09T12:12:09.3470000Z dbug: Microsoft.AspNetCore.Authorization.DefaultAuthorizationService[1]
+2025-07-09T12:12:09.3470000Z       Authorization was successful.
+2025-07-09T12:12:09.3560000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.3560000Z       Getting token from memory cache
+2025-07-09T12:12:09.3560000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.3560000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:09.3560000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:09.3560000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:09.3560000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:09.3560000Z       Start processing HTTP request GET http://api-gateway/api/projects?*
+2025-07-09T12:12:09.3560000Z dbug: Polly[1]
+2025-07-09T12:12:09.3560000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:09.3570000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.3570000Z       TokenHandler: Processing request to http://localhost:5057/api/projects?pageNumber=1&pageSize=100
+2025-07-09T12:12:09.3570000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.3570000Z       Getting token from memory cache
+2025-07-09T12:12:09.3570000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.3570000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:09.3570000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.3570000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:09.3570000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.3570000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:09.3570000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:09.3570000Z       Sending HTTP request GET http://localhost:5057/api/projects?*
+2025-07-09T12:12:09.3760000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:09.3760000Z       Received HTTP response headers after 19.4316ms - 200
+2025-07-09T12:12:09.3890000Z info: Polly[3]
+2025-07-09T12:12:09.3890000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 32.0796ms
+2025-07-09T12:12:09.3890000Z dbug: Polly[2]
+2025-07-09T12:12:09.3890000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 32.2399ms
+2025-07-09T12:12:09.3890000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:09.3890000Z       End processing HTTP request after 32.4258ms - 200
+2025-07-09T12:12:09.3900000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.3900000Z       Getting token from memory cache
+2025-07-09T12:12:09.3900000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.3900000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:09.3900000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:09.3900000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:09.3900000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:09.3900000Z       Start processing HTTP request GET http://api-gateway/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?*
+2025-07-09T12:12:09.3900000Z dbug: Polly[1]
+2025-07-09T12:12:09.3900000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:09.3900000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.3900000Z       TokenHandler: Processing request to http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?pageNumber=1&pageSize=100
+2025-07-09T12:12:09.3900000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.3900000Z       Getting token from memory cache
+2025-07-09T12:12:09.3900000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.3900000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:09.3900000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.3900000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:09.3900000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.3900000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:09.3900000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:09.3900000Z       Sending HTTP request GET http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79/members?*
+2025-07-09T12:12:09.4090000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:09.4090000Z       Received HTTP response headers after 19.4907ms - 200
+2025-07-09T12:12:09.4090000Z info: Polly[3]
+2025-07-09T12:12:09.4090000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 19.6865ms
+2025-07-09T12:12:09.4090000Z dbug: Polly[2]
+2025-07-09T12:12:09.4090000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 19.7831ms
+2025-07-09T12:12:09.4090000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:09.4090000Z       End processing HTTP request after 19.862ms - 200
+2025-07-09T12:12:09.4100000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.4100000Z       Getting token from memory cache
+2025-07-09T12:12:09.4100000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.4100000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:09.4100000Z dbug: ProjectManagementSystem.WebApp.Services.AuthService[0]
+2025-07-09T12:12:09.4100000Z       Token retrieved from storage - HasToken: True
+2025-07-09T12:12:09.4100000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[100]
+2025-07-09T12:12:09.4100000Z       Start processing HTTP request GET http://api-gateway/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:09.4100000Z dbug: Polly[1]
+2025-07-09T12:12:09.4100000Z       Resilience pipeline executing. Source: '-standard/', Operation Key: '(null)'
+2025-07-09T12:12:09.4110000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.4110000Z       TokenHandler: Processing request to http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:09.4110000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.4110000Z       Getting token from memory cache
+2025-07-09T12:12:09.4110000Z dbug: ProjectManagementSystem.WebApp.Services.MemoryTokenService[0]
+2025-07-09T12:12:09.4110000Z       Token retrieved from cache for session 29f103a2-b359-8d75-7596-f9cdd0ead2bd, Length: 1005
+2025-07-09T12:12:09.4110000Z info: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.4110000Z       TokenHandler: Adding JWT token to Authorization header (Length: 1005)
+2025-07-09T12:12:09.4110000Z dbug: ProjectManagementSystem.WebApp.Services.TokenHandler[0]
+2025-07-09T12:12:09.4110000Z       TokenHandler: Authorization header set: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYWRtaW4iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJhZG1pbkBwcm9qZWN0bWFuYWdlbWVudC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9naXZlbm5hbWUiOiJTeXN0ZW0iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9zdXJuYW1lIjoiQWRtaW5pc3RyYXRvciIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlN5c3RlbUFkbWluIiwic2VjdXJpdHlfc3RhbXAiOiJGTVg2UkZDTTZQV0FDVUI0NjRZRlVMSURYQ0pIQ0FDUyIsImp0aSI6ImFiZmE1M2MyLTk3Y2MtNGZlNy1hYWQyLWU4ZWI4ZmU4NWNjYyIsImlhdCI6MTc1MjA2MzExNywiZXhwIjoxNzUyMDY0MDE3LCJpc3MiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5JZGVudGl0eVNlcnZpY2UiLCJhdWQiOiJQcm9qZWN0TWFuYWdlbWVudFN5c3RlbS5Vc2VycyJ9.BzSKdOxZUZROPTNP-cUX6N1BEbE_n_zHq6j6812PGOU
+2025-07-09T12:12:09.4110000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[100]
+2025-07-09T12:12:09.4110000Z       Sending HTTP request GET http://localhost:5057/api/projects/2b062514-c26f-4a7d-bd5a-48d987ff8f79
+2025-07-09T12:12:09.4300000Z info: System.Net.Http.HttpClient.ApiGateway.ClientHandler[101]
+2025-07-09T12:12:09.4300000Z       Received HTTP response headers after 19.0063ms - 200
+2025-07-09T12:12:09.4300000Z info: Polly[3]
+2025-07-09T12:12:09.4300000Z       Execution attempt. Source: '-standard//Standard-Retry', Operation Key: '', Result: '200', Handled: 'False', Attempt: '0', Execution Time: 19.2197ms
+2025-07-09T12:12:09.4300000Z dbug: Polly[2]
+2025-07-09T12:12:09.4300000Z       Resilience pipeline executed. Source: '-standard/', Operation Key: '', Result: '200', Execution Time: 19.2972ms
+2025-07-09T12:12:09.4300000Z info: System.Net.Http.HttpClient.ApiGateway.LogicalHandler[101]
+2025-07-09T12:12:09.4300000Z       End processing HTTP request after 19.3698ms - 200
+2025-07-09T12:12:17.4540000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:12:17.4540000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:12:17.4540000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:12:17.4540000Z       Ending HttpMessageHandler cleanup cycle after 0.0103ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:12:27.4560000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:12:27.4560000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:12:27.4560000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:12:27.4560000Z       Ending HttpMessageHandler cleanup cycle after 0.0054ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:12:37.4580000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:12:37.4580000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:12:37.4580000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:12:37.4580000Z       Ending HttpMessageHandler cleanup cycle after 0.0033ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:12:47.4610000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:12:47.4610000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:12:47.4610000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:12:47.4610000Z       Ending HttpMessageHandler cleanup cycle after 0.0056ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:12:57.4640000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:12:57.4640000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:12:57.4640000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:12:57.4640000Z       Ending HttpMessageHandler cleanup cycle after 0.0055ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:13:07.4660000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:13:07.4660000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:13:07.4660000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:13:07.4660000Z       Ending HttpMessageHandler cleanup cycle after 0.006ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:13:17.4680000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:13:17.4680000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:13:17.4680000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:13:17.4680000Z       Ending HttpMessageHandler cleanup cycle after 0.0051ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:13:27.4700000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:13:27.4700000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:13:27.4700000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:13:27.4700000Z       Ending HttpMessageHandler cleanup cycle after 0.0053ms - processed: 0 items - remaining: 1 items
+2025-07-09T12:13:37.4720000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[100]
+2025-07-09T12:13:37.4720000Z       Starting HttpMessageHandler cleanup cycle with 1 items
+2025-07-09T12:13:37.4720000Z dbug: Microsoft.Extensions.Http.DefaultHttpClientFactory[101]
+2025-07-09T12:13:37.4720000Z       Ending HttpMessageHandler cleanup cycle after 0.0053ms - processed: 0 items - remaining: 1 items

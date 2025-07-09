@@ -22,104 +22,176 @@ public class MemoryTokenService : ISessionTokenService
         _logger.LogDebug("MemoryTokenService initialized");
     }
 
-    public Task<string?> GetTokenAsync()
+    public async Task<string?> GetTokenAsync()
     {
         _logger.LogDebug("Getting token from memory cache");
         
-        var userId = GetUserId();
-        if (string.IsNullOrEmpty(userId))
+        try
         {
+            // Ensure session is loaded first
+            await EnsureSessionLoadedAsync();
+            
+            // Primary method: session-based token storage
             var sessionId = GetSessionId();
             if (!string.IsNullOrEmpty(sessionId))
             {
                 var sessionKey = $"{TokenKeyPrefix}session_{sessionId}";
                 if (_memoryCache.TryGetValue(sessionKey, out string? sessionToken))
                 {
-                    _logger.LogDebug("Token retrieved from cache for session {SessionId}, Length: {Length}", 
+                    _logger.LogDebug("Token retrieved from session cache {SessionId}, Length: {Length}", 
                         sessionId, sessionToken?.Length ?? 0);
-                    return Task.FromResult(sessionToken);
+                    return sessionToken;
                 }
-            }
-            
-            _logger.LogDebug("No user ID or session token found - user not authenticated");
-            return Task.FromResult<string?>(null);
-        }
-        
-        var cacheKey = $"{TokenKeyPrefix}{userId}";
-        
-        if (_memoryCache.TryGetValue(cacheKey, out string? token))
-        {
-            _logger.LogDebug("Token retrieved from cache for user {UserId}, Length: {Length}", 
-                userId, token?.Length ?? 0);
-            return Task.FromResult(token);
-        }
-        
-        _logger.LogDebug("No token found in cache for user {UserId}", userId);
-        return Task.FromResult<string?>(null);
-    }
-
-    public Task SetTokenAsync(string token)
-    {
-        _logger.LogInformation("Setting token in memory cache");
-        
-        var userId = GetUserId();
-        var sessionId = GetSessionId();
-        
-        if (string.IsNullOrEmpty(userId))
-        {
-            if (!string.IsNullOrEmpty(sessionId))
-            {
-                var sessionKey = $"{TokenKeyPrefix}session_{sessionId}";
-                var options = new MemoryCacheEntryOptions()
-                    .SetSlidingExpiration(TimeSpan.FromHours(8))
-                    .SetAbsoluteExpiration(TimeSpan.FromHours(24));
-                    
-                _memoryCache.Set(sessionKey, token, options);
-                _logger.LogInformation("Token stored in cache for session {SessionId}, Length: {Length}", 
-                    sessionId, token.Length);
+                else
+                {
+                    _logger.LogDebug("No token found in session cache for session {SessionId}", sessionId);
+                }
             }
             else
             {
-                _logger.LogWarning("Cannot store token - no user ID or session ID available");
+                _logger.LogDebug("Session ID not available");
             }
-            return Task.CompletedTask;
+            
+            // Secondary method: user-based token (only if already authenticated)
+            var userId = GetUserId();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var userKey = $"{TokenKeyPrefix}user_{userId}";
+                if (_memoryCache.TryGetValue(userKey, out string? userToken))
+                {
+                    _logger.LogDebug("Token retrieved from user cache {UserId}, Length: {Length}", 
+                        userId, userToken?.Length ?? 0);
+                    
+                    // If we found a user token but no session token, copy it to session cache
+                    if (!string.IsNullOrEmpty(sessionId))
+                    {
+                        var sessionKey = $"{TokenKeyPrefix}session_{sessionId}";
+                        var cacheOptions = new MemoryCacheEntryOptions()
+                            .SetSlidingExpiration(TimeSpan.FromHours(8))
+                            .SetAbsoluteExpiration(TimeSpan.FromHours(24));
+                        _memoryCache.Set(sessionKey, userToken, cacheOptions);
+                        _logger.LogDebug("Copied user token to session cache");
+                    }
+                    
+                    return userToken;
+                }
+            }
+            
+            _logger.LogDebug("No token found in cache - sessionId: {SessionId}, userId: {UserId}", 
+                sessionId ?? "null", userId ?? "null");
+            return null;
         }
-        
-        var cacheKey = $"{TokenKeyPrefix}{userId}";
-        
-        var cacheOptions = new MemoryCacheEntryOptions()
-            .SetSlidingExpiration(TimeSpan.FromHours(8))
-            .SetAbsoluteExpiration(TimeSpan.FromHours(24));
-        
-        _memoryCache.Set(cacheKey, token, cacheOptions);
-        _logger.LogInformation("Token successfully stored in cache for user {UserId}, Length: {Length}", 
-            userId, token.Length);
-        
-        return Task.CompletedTask;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception getting token from cache");
+            return null;
+        }
     }
 
-    public Task RemoveTokenAsync()
+    public async Task SetTokenAsync(string token)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            _logger.LogWarning("Attempted to set null or empty token");
+            return;
+        }
+        
+        _logger.LogInformation("Setting token in memory cache, Length: {Length}", token.Length);
+        
+        try
+        {
+            // Ensure session is loaded first
+            await EnsureSessionLoadedAsync();
+            
+            var sessionId = GetSessionId();
+            var userId = GetUserId();
+            
+            var cacheOptions = new MemoryCacheEntryOptions()
+                .SetSlidingExpiration(TimeSpan.FromHours(8))
+                .SetAbsoluteExpiration(TimeSpan.FromHours(24));
+            
+            bool tokenStored = false;
+            
+            // Primary storage: session-based (works for both authenticated and unauthenticated users)
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                var sessionKey = $"{TokenKeyPrefix}session_{sessionId}";
+                _memoryCache.Set(sessionKey, token, cacheOptions);
+                _logger.LogInformation("Token stored in session cache {SessionId}", sessionId);
+                tokenStored = true;
+            }
+            else
+            {
+                _logger.LogWarning("Session ID not available for token storage");
+            }
+            
+            // Secondary storage: user-based (for authenticated users)
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var userKey = $"{TokenKeyPrefix}user_{userId}";
+                _memoryCache.Set(userKey, token, cacheOptions);
+                _logger.LogInformation("Token also stored in user cache {UserId}", userId);
+                tokenStored = true;
+            }
+            
+            // Fallback: if neither session nor user ID available, use a temporary key
+            if (!tokenStored)
+            {
+                var tempKey = $"{TokenKeyPrefix}temp_{DateTime.UtcNow.Ticks}";
+                _memoryCache.Set(tempKey, token, cacheOptions);
+                _logger.LogWarning("Token stored with temporary key - session and user ID not available");
+            }
+            
+            _logger.LogDebug("Token storage complete - sessionId: {SessionId}, userId: {UserId}", 
+                sessionId ?? "null", userId ?? "null");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception setting token in cache");
+        }
+    }
+
+    public async Task RemoveTokenAsync()
     {
         _logger.LogInformation("Removing token from memory cache");
         
-        var userId = GetUserId();
-        var sessionId = GetSessionId();
-        
-        if (!string.IsNullOrEmpty(userId))
+        try
         {
-            var cacheKey = $"{TokenKeyPrefix}{userId}";
-            _memoryCache.Remove(cacheKey);
-            _logger.LogDebug("Token removed from cache for user {UserId}", userId);
+            // Ensure session is loaded first
+            await EnsureSessionLoadedAsync();
+            
+            var userId = GetUserId();
+            var sessionId = GetSessionId();
+            
+            bool tokenRemoved = false;
+            
+            // Remove from session cache
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                var sessionKey = $"{TokenKeyPrefix}session_{sessionId}";
+                _memoryCache.Remove(sessionKey);
+                _logger.LogDebug("Token removed from session cache {SessionId}", sessionId);
+                tokenRemoved = true;
+            }
+            
+            // Remove from user cache
+            if (!string.IsNullOrEmpty(userId))
+            {
+                var userKey = $"{TokenKeyPrefix}user_{userId}";
+                _memoryCache.Remove(userKey);
+                _logger.LogDebug("Token removed from user cache {UserId}", userId);
+                tokenRemoved = true;
+            }
+            
+            if (!tokenRemoved)
+            {
+                _logger.LogWarning("Could not remove token - no session or user ID available");
+            }
         }
-        
-        if (!string.IsNullOrEmpty(sessionId))
+        catch (Exception ex)
         {
-            var sessionKey = $"{TokenKeyPrefix}session_{sessionId}";
-            _memoryCache.Remove(sessionKey);
-            _logger.LogDebug("Token removed from cache for session {SessionId}", sessionId);
+            _logger.LogError(ex, "Exception removing token from cache");
         }
-        
-        return Task.CompletedTask;
     }
     
     public Task FlushPendingTokenAsync()
@@ -130,28 +202,77 @@ public class MemoryTokenService : ISessionTokenService
     
     private string? GetUserId()
     {
-        var user = _httpContextAccessor.HttpContext?.User;
-        if (user?.Identity?.IsAuthenticated == true)
+        try
         {
-            return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user?.Identity?.IsAuthenticated == true)
+            {
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                           ?? user.FindFirst("id")?.Value 
+                           ?? user.FindFirst("sub")?.Value;
+                           
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogDebug("User ID retrieved: {UserId}", userId);
+                    return userId;
+                }
+            }
+            
+            _logger.LogDebug("User not authenticated or no user ID found");
+            return null;
         }
-        return null;
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get user ID");
+            return null;
+        }
     }
     
     private string? GetSessionId()
     {
         try
         {
-            var session = _httpContextAccessor.HttpContext?.Session;
-            if (session?.IsAvailable == true)
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext?.Session != null)
             {
-                return session.Id;
+                // Check if session is available
+                if (httpContext.Session.IsAvailable)
+                {
+                    var sessionId = httpContext.Session.Id;
+                    _logger.LogDebug("Session ID retrieved: {SessionId}", sessionId);
+                    return sessionId;
+                }
+                else
+                {
+                    _logger.LogDebug("Session not available");
+                }
+            }
+            else
+            {
+                _logger.LogDebug("HttpContext or Session is null");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogDebug(ex, "Failed to get session ID");
+            _logger.LogWarning(ex, "Failed to get session ID");
         }
         return null;
+    }
+    
+    private async Task EnsureSessionLoadedAsync()
+    {
+        try
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext?.Session != null && !httpContext.Session.IsAvailable)
+            {
+                _logger.LogDebug("Loading session");
+                await httpContext.Session.LoadAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load session");
+        }
     }
 }

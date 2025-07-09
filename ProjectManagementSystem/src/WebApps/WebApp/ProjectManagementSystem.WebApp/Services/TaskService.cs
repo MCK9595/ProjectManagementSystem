@@ -26,10 +26,15 @@ public class TaskService : ITaskService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<PagedResult<TaskDto>>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<PagedResult<TaskDto>>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)
@@ -50,10 +55,15 @@ public class TaskService : ITaskService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<PagedResult<TaskDto>>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<PagedResult<TaskDto>>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)
@@ -74,10 +84,15 @@ public class TaskService : ITaskService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<TaskDto>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<TaskDto>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)
@@ -98,10 +113,15 @@ public class TaskService : ITaskService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<TaskDto>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<TaskDto>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)
@@ -122,10 +142,15 @@ public class TaskService : ITaskService
             if (response.IsSuccessStatusCode)
             {
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<TaskDto>(jsonContent, new JsonSerializerOptions
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<TaskDto>>(jsonContent, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
+
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
             }
         }
         catch (Exception)

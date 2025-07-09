@@ -1,0 +1,42 @@
+2025-07-09T12:09:23.7913120Z Waiting for resource 'migration-service' to complete.
+2025-07-09T12:09:23.7913440Z Waiting for resource 'identity-service' to enter the 'Running' state.
+2025-07-09T12:09:23.7913720Z Waiting for resource 'project-service' to enter the 'Running' state.
+2025-07-09T12:09:33.3234230Z Finished waiting for resource 'migration-service'.
+2025-07-09T12:09:33.3346590Z Waiting for resource ready to execute for 'identity-service'.
+2025-07-09T12:09:33.3347140Z Finished waiting for resource 'identity-service'.
+2025-07-09T12:09:33.3618930Z Waiting for resource ready to execute for 'project-service'.
+2025-07-09T12:09:33.3619050Z Finished waiting for resource 'project-service'.
+2025-07-09T12:09:34.2750000Z info: Microsoft.Hosting.Lifetime[14]
+2025-07-09T12:09:34.2750000Z       Now listening on: https://localhost:53867
+2025-07-09T12:09:34.2760000Z info: Microsoft.Hosting.Lifetime[14]
+2025-07-09T12:09:34.2760000Z       Now listening on: http://localhost:53868
+2025-07-09T12:09:34.2760000Z info: Microsoft.Hosting.Lifetime[0]
+2025-07-09T12:09:34.2760000Z       Application started. Press Ctrl+C to shut down.
+2025-07-09T12:09:34.2770000Z info: Microsoft.Hosting.Lifetime[0]
+2025-07-09T12:09:34.2770000Z       Hosting environment: Development
+2025-07-09T12:09:34.2770000Z info: Microsoft.Hosting.Lifetime[0]
+2025-07-09T12:09:34.2770000Z       Content root path: /Users/sakamakiyoshiki/src/dotnetProject/ProjectManagementSystem/ProjectManagementSystem/src/Services/TaskService
+2025-07-09T12:12:05.7890000Z info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+2025-07-09T12:12:05.7890000Z       Executed DbCommand (29ms) [Parameters=[@__projectId_0='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+2025-07-09T12:12:05.7890000Z       SELECT COUNT(*)
+2025-07-09T12:12:05.7890000Z       FROM [tasks] AS [t]
+2025-07-09T12:12:05.7890000Z       WHERE [t].[project_id] = @__projectId_0 AND [t].[is_active] = CAST(1 AS bit)
+2025-07-09T12:12:05.8320000Z info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+2025-07-09T12:12:05.8320000Z       Executed DbCommand (15ms) [Parameters=[@__projectId_0='?' (DbType = Guid), @__p_1='?' (DbType = Int32), @__p_2='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+2025-07-09T12:12:05.8320000Z       SELECT [t].[id], [t].[actual_hours], [t].[assigned_to_user_id], [t].[completed_date], [t].[created_at], [t].[created_by_user_id], [t].[description], [t].[due_date], [t].[estimated_hours], [t].[is_active], [t].[priority], [t].[project_id], [t].[start_date], [t].[status], [t].[task_number], [t].[title], [t].[updated_at]
+2025-07-09T12:12:05.8320000Z       FROM [tasks] AS [t]
+2025-07-09T12:12:05.8320000Z       WHERE [t].[project_id] = @__projectId_0 AND [t].[is_active] = CAST(1 AS bit)
+2025-07-09T12:12:05.8320000Z       ORDER BY [t].[priority], [t].[due_date], [t].[created_at] DESC
+2025-07-09T12:12:05.8320000Z       OFFSET @__p_1 ROWS FETCH NEXT @__p_2 ROWS ONLY
+2025-07-09T12:12:05.9210000Z info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+2025-07-09T12:12:05.9210000Z       Executed DbCommand (2ms) [Parameters=[@__projectId_0='?' (DbType = Guid)], CommandType='Text', CommandTimeout='30']
+2025-07-09T12:12:05.9210000Z       SELECT COUNT(*)
+2025-07-09T12:12:05.9210000Z       FROM [tasks] AS [t]
+2025-07-09T12:12:05.9210000Z       WHERE [t].[project_id] = @__projectId_0 AND [t].[is_active] = CAST(1 AS bit)
+2025-07-09T12:12:05.9250000Z info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+2025-07-09T12:12:05.9250000Z       Executed DbCommand (3ms) [Parameters=[@__projectId_0='?' (DbType = Guid), @__p_1='?' (DbType = Int32), @__p_2='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+2025-07-09T12:12:05.9250000Z       SELECT [t].[id], [t].[actual_hours], [t].[assigned_to_user_id], [t].[completed_date], [t].[created_at], [t].[created_by_user_id], [t].[description], [t].[due_date], [t].[estimated_hours], [t].[is_active], [t].[priority], [t].[project_id], [t].[start_date], [t].[status], [t].[task_number], [t].[title], [t].[updated_at]
+2025-07-09T12:12:05.9250000Z       FROM [tasks] AS [t]
+2025-07-09T12:12:05.9250000Z       WHERE [t].[project_id] = @__projectId_0 AND [t].[is_active] = CAST(1 AS bit)
+2025-07-09T12:12:05.9250000Z       ORDER BY [t].[priority], [t].[due_date], [t].[created_at] DESC
+2025-07-09T12:12:05.9250000Z       OFFSET @__p_1 ROWS FETCH NEXT @__p_2 ROWS ONLY

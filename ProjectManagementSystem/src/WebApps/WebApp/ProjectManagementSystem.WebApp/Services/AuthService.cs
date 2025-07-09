@@ -115,8 +115,45 @@ public class AuthService : IAuthService
 
     public async Task<bool> IsAuthenticatedAsync()
     {
-        var token = await GetTokenAsync();
-        return !string.IsNullOrEmpty(token);
+        try
+        {
+            _logger.LogDebug("Checking authentication status");
+            
+            var token = await GetTokenAsync();
+            var isAuthenticated = !string.IsNullOrEmpty(token);
+            
+            _logger.LogDebug("Authentication check result: {IsAuthenticated}", isAuthenticated);
+            
+            if (isAuthenticated)
+            {
+                // Also verify we can get current user info
+                try
+                {
+                    var user = await GetCurrentUserAsync();
+                    var userDataAvailable = user != null;
+                    
+                    _logger.LogDebug("User data availability: {UserDataAvailable}", userDataAvailable);
+                    
+                    if (!userDataAvailable)
+                    {
+                        _logger.LogWarning("Token exists but user data not available - possible token expiry");
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to verify user data - token may be invalid");
+                    return false;
+                }
+            }
+            
+            return isAuthenticated;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception checking authentication status");
+            return false;
+        }
     }
 
     public async Task<UserDto?> GetCurrentUserAsync()
@@ -188,18 +225,34 @@ public class AuthService : IAuthService
     {
         try
         {
+            _logger.LogDebug("Getting token from session token service");
             var token = await _sessionTokenService.GetTokenAsync();
             
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if (!string.IsNullOrEmpty(token))
             {
-                _logger.LogDebug("Token retrieved from storage - HasToken: {HasToken}", !string.IsNullOrEmpty(token));
+                _logger.LogDebug("Token retrieved successfully - Length: {Length}", token.Length);
+                
+                // Basic token validation
+                var parts = token.Split('.');
+                if (parts.Length == 3)
+                {
+                    _logger.LogDebug("Token format appears valid (3 parts)");
+                }
+                else
+                {
+                    _logger.LogWarning("Token format invalid - expected 3 parts, got {Parts}", parts.Length);
+                }
+            }
+            else
+            {
+                _logger.LogDebug("No token found in storage");
             }
             
             return token;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception getting token");
+            _logger.LogError(ex, "Exception getting token from storage");
             return null;
         }
     }
@@ -208,15 +261,35 @@ public class AuthService : IAuthService
     {
         try
         {
+            if (string.IsNullOrEmpty(token))
+            {
+                _logger.LogWarning("Attempted to set null or empty token");
+                return;
+            }
+            
+            _logger.LogInformation("Setting authentication token - Length: {Length}", token.Length);
+            
             await _sessionTokenService.SetTokenAsync(token);
-            _logger.LogDebug("Token stored successfully");
+            _logger.LogDebug("Token stored in session service successfully");
             
             // Try to flush pending token to session immediately
             await _sessionTokenService.FlushPendingTokenAsync();
+            _logger.LogDebug("Token flushed to session storage");
+            
+            // Verify token was stored correctly
+            var verifyToken = await _sessionTokenService.GetTokenAsync();
+            if (!string.IsNullOrEmpty(verifyToken) && verifyToken == token)
+            {
+                _logger.LogDebug("Token storage verification successful");
+            }
+            else
+            {
+                _logger.LogWarning("Token storage verification failed - stored token differs from original");
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception setting token");
+            _logger.LogError(ex, "Exception setting token in storage");
         }
     }
 
@@ -224,11 +297,24 @@ public class AuthService : IAuthService
     {
         try
         {
+            _logger.LogInformation("Removing authentication token from storage");
+            
             await _sessionTokenService.RemoveTokenAsync();
+            
+            // Verify token was removed
+            var verifyToken = await _sessionTokenService.GetTokenAsync();
+            if (string.IsNullOrEmpty(verifyToken))
+            {
+                _logger.LogDebug("Token removal verification successful");
+            }
+            else
+            {
+                _logger.LogWarning("Token removal verification failed - token still present");
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception removing token");
+            _logger.LogError(ex, "Exception removing token from storage");
         }
     }
 
