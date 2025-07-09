@@ -8,12 +8,14 @@ public class UserService : IUserService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<UserService> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public UserService(HttpClient httpClient, ILogger<UserService> logger)
+    public UserService(HttpClient httpClient, ILogger<UserService> logger, IHttpContextAccessor httpContextAccessor)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -25,6 +27,19 @@ public class UserService : IUserService
         try
         {
             _logger.LogInformation("Fetching user data for user ID: {UserId}", userId);
+            
+            // Get authorization header from current request and forward it
+            var authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = 
+                    System.Net.Http.Headers.AuthenticationHeaderValue.Parse(authHeader);
+                _logger.LogDebug("Authorization header set for UserService call");
+            }
+            else
+            {
+                _logger.LogWarning("No authorization header found in current request for user {UserId}", userId);
+            }
             
             var response = await _httpClient.GetAsync($"api/internaluser/{userId}");
             

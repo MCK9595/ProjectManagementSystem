@@ -158,6 +158,26 @@
                                 }
                             </dd>
                             
+                            <dt class="col-sm-3">Created By:</dt>
+                            <dd class="col-sm-9">
+                                @if (isLoadingCreator)
+                                {
+                                    <span class="text-muted">Loading...</span>
+                                }
+                                else if (creatorUser != null)
+                                {
+                                    <span>@creatorUser.Username</span>
+                                    @if (!string.IsNullOrEmpty(creatorUser.Email))
+                                    {
+                                        <br /><small class="text-muted">@creatorUser.Email</small>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Unknown User</span>
+                                }
+                            </dd>
+                            
                             <dt class="col-sm-3">Status:</dt>
                             <dd class="col-sm-9">
                                 <span class="badge bg-@GetStatusBadgeColor(project.Status)">@project.Status</span>
@@ -493,6 +513,8 @@ else
     private bool isLoadingMembers = false;
     private bool isLoadingTasks = false;
     private bool isProcessing = false;
+    private UserDto? creatorUser = null;
+    private bool isLoadingCreator = false;
     private bool isTaskKanbanView = true;
     private bool IsEditMode => Navigation.Uri.Contains("/edit");
     private string errorMessage = string.Empty;
@@ -555,6 +577,9 @@ else
                 updateModel.Priority = project.Priority;
                 updateModel.StartDate = project.StartDate;
                 updateModel.EndDate = project.EndDate;
+                
+                // Load creator information
+                await LoadCreator();
             }
         }
         catch (Exception ex)
@@ -564,6 +589,41 @@ else
         finally
         {
             isLoading = false;
+        }
+    }
+
+    private async Task LoadCreator()
+    {
+        if (project == null) return;
+        
+        isLoadingCreator = true;
+        try
+        {
+            Console.WriteLine($"Loading creator for user ID: {project.CreatedByUserId}");
+            creatorUser = await UserService.GetUserByIdAsync(project.CreatedByUserId);
+            
+            if (creatorUser != null)
+            {
+                Console.WriteLine($"Successfully loaded creator: {creatorUser.Username} ({creatorUser.Email})");
+            }
+            else
+            {
+                Console.WriteLine($"Creator user not found for ID: {project.CreatedByUserId}");
+                var lastError = UserService.GetLastError();
+                if (!string.IsNullOrEmpty(lastError))
+                {
+                    Console.WriteLine($"UserService error: {lastError}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception loading creator: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
+        finally
+        {
+            isLoadingCreator = false;
         }
     }
 

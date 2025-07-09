@@ -35,6 +35,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Add HttpContextAccessor for accessing current request context
+builder.Services.AddHttpContextAccessor();
+
 // Register services
 builder.Services.AddScoped<IProjectService, ProjectManagementSystem.ProjectService.Services.ProjectService>();
 builder.Services.AddScoped<IProjectMemberService, ProjectMemberService>();
@@ -44,6 +47,14 @@ builder.Services.AddHttpClient<IUserService, UserService>(client =>
 {
     // The service discovery will resolve https://identity-service automatically
     client.BaseAddress = new Uri("https://identity-service/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+
+// Register HttpClient for OrganizationService to call OrganizationService
+builder.Services.AddHttpClient<IOrganizationService, OrganizationService>(client =>
+{
+    // The service discovery will resolve https://organization-service automatically
+    client.BaseAddress = new Uri("https://organization-service/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 

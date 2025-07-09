@@ -15,6 +15,7 @@ public class ProjectServiceUserDeletionTests : IDisposable
 {
     private readonly ProjectDbContext _context;
     private readonly Mock<ILogger<ProjectManagementSystem.ProjectService.Services.ProjectService>> _mockLogger;
+    private readonly Mock<IOrganizationService> _mockOrganizationService;
     private readonly ProjectManagementSystem.ProjectService.Services.ProjectService _service;
 
     public ProjectServiceUserDeletionTests()
@@ -26,7 +27,8 @@ public class ProjectServiceUserDeletionTests : IDisposable
 
         _context = new ProjectDbContext(options);
         _mockLogger = new Mock<ILogger<ProjectManagementSystem.ProjectService.Services.ProjectService>>();
-        _service = new ProjectManagementSystem.ProjectService.Services.ProjectService(_context, _mockLogger.Object);
+        _mockOrganizationService = new Mock<IOrganizationService>();
+        _service = new ProjectManagementSystem.ProjectService.Services.ProjectService(_context, _mockLogger.Object, _mockOrganizationService.Object);
     }
 
     [Fact]

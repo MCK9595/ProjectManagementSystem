@@ -11,11 +11,13 @@ public class ProjectService : IProjectService
 {
     private readonly ProjectDbContext _context;
     private readonly ILogger<ProjectService> _logger;
+    private readonly IOrganizationService _organizationService;
 
-    public ProjectService(ProjectDbContext context, ILogger<ProjectService> logger)
+    public ProjectService(ProjectDbContext context, ILogger<ProjectService> logger, IOrganizationService organizationService)
     {
         _context = context;
         _logger = logger;
+        _organizationService = organizationService;
     }
 
     public async Task<PagedResult<ProjectDto>> GetProjectsAsync(Guid organizationId, int pageNumber = 1, int pageSize = 10)
@@ -97,6 +99,18 @@ public class ProjectService : IProjectService
         if (project == null)
             return null;
 
+        // Load organization information
+        OrganizationDto? organization = null;
+        try
+        {
+            organization = await _organizationService.GetOrganizationByIdAsync(project.OrganizationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load organization {OrganizationId} for project {ProjectId}", 
+                project.OrganizationId, projectId);
+        }
+
         return new ProjectDto
         {
             Id = project.Id,
@@ -109,7 +123,8 @@ public class ProjectService : IProjectService
             CreatedAt = project.CreatedAt,
             UpdatedAt = project.UpdatedAt,
             OrganizationId = project.OrganizationId,
-            CreatedByUserId = project.CreatedByUserId
+            CreatedByUserId = project.CreatedByUserId,
+            Organization = organization
         };
     }
 
