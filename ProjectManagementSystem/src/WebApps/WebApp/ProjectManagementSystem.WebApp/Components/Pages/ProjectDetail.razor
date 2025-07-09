@@ -242,7 +242,7 @@
                     <h5>Project Members</h5>
                     @if (CanManageMembers())
                     {
-                        <button class="btn btn-sm btn-outline-primary" @onclick="OpenAddMemberModal">
+                        <button class="btn btn-sm btn-outline-primary" @onclick="@(async () => await OpenAddMemberModal())">
                             <i class="bi bi-person-plus"></i> Add Member
                         </button>
                     }
@@ -280,29 +280,56 @@
                                             </div>
                                         </td>
                                         <td>
-                                            @if (CanManageMembers() && member.Role != Roles.ProjectManager)
+                                            @if (CanManageMembers() && currentUser?.Id != member.UserId)
                                             {
-                                                <select class="form-select form-select-sm" @onchange="(e) => UpdateMemberRole(member.UserId, e.Value?.ToString() ?? member.Role)">
-                                                    <option value="@Roles.ProjectMember" selected="@(member.Role == Roles.ProjectMember)">Member</option>
-                                                    <option value="@Roles.ProjectManager" selected="@(member.Role == Roles.ProjectManager)">Manager</option>
-                                                </select>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <select class="form-select form-select-sm" style="max-width: 140px;" @onchange="(e) => UpdateMemberRole(member.UserId, e.Value?.ToString() ?? member.Role)" disabled="@isProcessing">
+                                                        <option value="@Roles.ProjectMember" selected="@(member.Role == Roles.ProjectMember)">Member</option>
+                                                        <option value="@Roles.ProjectManager" selected="@(member.Role == Roles.ProjectManager)">Manager</option>
+                                                    </select>
+                                                </div>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-@GetProjectRoleBadgeColor(member.Role)">@GetProjectRoleDisplayName(member.Role)</span>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge bg-@GetProjectRoleBadgeColor(member.Role) me-1">@GetProjectRoleDisplayName(member.Role)</span>
+                                                    @if (currentUser?.Id == member.UserId)
+                                                    {
+                                                        <small class="text-muted">(You)</small>
+                                                    }
+                                                </div>
                                             }
                                         </td>
                                         <td class="text-truncate">@member.JoinedAt.ToString("MMM dd, yyyy")</td>
                                         <td>
-                                            @if (CanManageMembers() && member.Role != Roles.ProjectManager)
+                                            @if (CanManageMembers() && currentUser?.Id != member.UserId)
                                             {
-                                                <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveMember(member.UserId)" disabled="@isProcessing">
-                                                    <i class="bi bi-person-dash"></i> Remove
-                                                </button>
+                                                <div class="d-flex gap-1">
+                                                    <button class="btn btn-sm btn-outline-danger" 
+                                                            @onclick="() => RemoveMember(member.UserId)" 
+                                                            disabled="@isProcessing"
+                                                            title="Remove member from project">
+                                                        @if (isProcessing)
+                                                        {
+                                                            <span class="spinner-border spinner-border-sm"></span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="bi bi-person-dash"></i>
+                                                        }
+                                                    </button>
+                                                </div>
+                                            }
+                                            else if (currentUser?.Id == member.UserId)
+                                            {
+                                                <span class="text-muted small">
+                                                    <i class="bi bi-person-check me-1"></i>
+                                                    You cannot manage your own membership
+                                                </span>
                                             }
                                             else
                                             {
-                                                <span class="text-muted">Manager</span>
+                                                <span class="text-muted">No actions available</span>
                                             }
                                         </td>
                                     </tr>
@@ -317,6 +344,88 @@
                 }
             </div>
         </div>
+
+        <!-- Add Member Modal -->
+        @if (showAddMemberModal)
+        {
+            <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Add Project Member</h5>
+                            <button type="button" class="btn-close" @onclick="CloseAddMemberModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            @if (isLoadingOrganizationMembers)
+                            {
+                                <div class="text-center">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">Loading organization members...</span>
+                                    </div>
+                                    <p class="mt-2">Loading organization members...</p>
+                                </div>
+                            }
+                            else if (availableOrganizationMembers.Any())
+                            {
+                                <div class="mb-3">
+                                    <label for="organizationMemberSelect" class="form-label">Select Organization Member</label>
+                                    <select class="form-select" id="organizationMemberSelect" @bind="selectedOrganizationMemberId" @bind:after="OnSelectedMemberChanged">
+                                        <option value="0">-- Select a member --</option>
+                                        @foreach (var orgMember in availableOrganizationMembers)
+                                        {
+                                            <option value="@orgMember.UserId">
+                                                @($"{orgMember.User?.FirstName} {orgMember.User?.LastName} ({orgMember.User?.Email}) - {orgMember.Role}")
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+
+                                @if (selectedOrganizationMember != null)
+                                {
+                                    <div class="mb-3">
+                                        <label for="memberRole" class="form-label">Project Role</label>
+                                        <select class="form-select" id="memberRole" @bind="selectedRole">
+                                            <option value="@Roles.ProjectMember">Member</option>
+                                            <option value="@Roles.ProjectManager">Manager</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="alert alert-info">
+                                        <strong>Selected Member:</strong> @selectedOrganizationMember.User?.FirstName @selectedOrganizationMember.User?.LastName (@selectedOrganizationMember.User?.Email)
+                                        <br />
+                                        <strong>Organization Role:</strong> @selectedOrganizationMember.Role
+                                        <br />
+                                        <strong>Project Role:</strong> @(selectedRole == Roles.ProjectMember ? "Member" : "Manager")
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <strong>No available members</strong>
+                                    <br />
+                                    All organization members with appropriate permissions are already part of this project, or there are no organization members with Member or higher roles.
+                                </div>
+                            }
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" @onclick="CloseAddMemberModal">Cancel</button>
+                            <button type="button" 
+                                    class="btn btn-primary" 
+                                    @onclick="AddMember" 
+                                    disabled="@(selectedOrganizationMember == null || isAddingMember)">
+                                @if (isAddingMember)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2"></span>
+                                }
+                                Add Member
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
         <!-- Project Tasks Section -->
         <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
@@ -520,6 +629,15 @@ else
     private string errorMessage = string.Empty;
     private UserDto? currentUser;
     private readonly string[] taskStatuses = { TaskStatusConst.ToDo, TaskStatusConst.InProgress, TaskStatusConst.InReview, TaskStatusConst.Done };
+    
+    // Add member modal variables
+    private bool showAddMemberModal = false;
+    private List<OrganizationMemberDto> availableOrganizationMembers = new();
+    private OrganizationMemberDto? selectedOrganizationMember = null;
+    private int selectedOrganizationMemberId = 0;
+    private string selectedRole = Roles.ProjectMember;
+    private bool isLoadingOrganizationMembers = false;
+    private bool isAddingMember = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -709,6 +827,34 @@ else
     {
         if (isProcessing) return;
         
+        var member = members?.Items?.FirstOrDefault(m => m.UserId == userId);
+        if (member == null) return;
+        
+        // Prevent self-modification
+        if (currentUser?.Id == userId)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "You cannot modify your own role.");
+            return;
+        }
+        
+        var memberName = member.User?.Username ?? "Unknown User";
+        var currentRoleDisplay = GetProjectRoleDisplayName(member.Role);
+        var newRoleDisplay = GetProjectRoleDisplayName(newRole);
+        
+        // Create more descriptive confirmation message
+        var actionType = newRole == Roles.ProjectManager ? "promote" : "demote";
+        var roleDescription = newRole == Roles.ProjectManager 
+            ? "Project Manager (can manage members, edit project settings)" 
+            : "Project Member (can view project and manage tasks)";
+        
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Are you sure you want to {actionType} '{memberName}' from {currentRoleDisplay} to {newRoleDisplay}?\\n\\n" +
+            $"New role: {roleDescription}");
+        if (!confirmed) 
+        {
+            return;
+        }
+        
         isProcessing = true;
         try
         {
@@ -716,16 +862,23 @@ else
             if (success)
             {
                 await LoadMembers(); // Refresh the member list
+                
+                // Show success message with role description
+                var successMessage = newRole == Roles.ProjectManager 
+                    ? $"'{memberName}' has been promoted to Project Manager and can now manage project members and settings."
+                    : $"'{memberName}' has been demoted to Project Member and can now view project and manage tasks.";
+                
+                await JSRuntime.InvokeVoidAsync("alert", successMessage);
             }
             else
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Failed to update member role. Please try again.");
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to update member role. Please check your permissions and try again.");
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error updating member role: {ex.Message}");
-            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while updating the member role.");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while updating the member role. Please try again.");
         }
         finally
         {
@@ -737,7 +890,12 @@ else
     {
         if (isProcessing) return;
         
-        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this member from the project?");
+        var member = members?.Items?.FirstOrDefault(m => m.UserId == userId);
+        if (member == null) return;
+        
+        var memberName = member.User?.Username ?? "Unknown User";
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Are you sure you want to remove '{memberName}' from the project?\n\nThis action cannot be undone.");
         if (!confirmed) return;
         
         isProcessing = true;
@@ -747,6 +905,7 @@ else
             if (success)
             {
                 await LoadMembers(); // Refresh the member list
+                await JSRuntime.InvokeVoidAsync("alert", $"'{memberName}' has been successfully removed from the project.");
             }
             else
             {
@@ -764,11 +923,106 @@ else
         }
     }
 
-    private void OpenAddMemberModal()
+    private async Task OpenAddMemberModal()
     {
-        // TODO: Implement add member modal - this would require a modal component
-        // For now, provide feedback that the feature needs a modal implementation
-        JSRuntime.InvokeVoidAsync("alert", "Add member functionality requires a modal component. This would be implemented with a user selection modal.");
+        showAddMemberModal = true;
+        selectedOrganizationMember = null;
+        selectedOrganizationMemberId = 0;
+        selectedRole = Roles.ProjectMember;
+        await LoadAvailableOrganizationMembers();
+    }
+
+    private void CloseAddMemberModal()
+    {
+        showAddMemberModal = false;
+        availableOrganizationMembers.Clear();
+        selectedOrganizationMember = null;
+        selectedOrganizationMemberId = 0;
+        selectedRole = Roles.ProjectMember;
+    }
+
+    private async Task LoadAvailableOrganizationMembers()
+    {
+        if (project?.OrganizationId == null) return;
+        
+        isLoadingOrganizationMembers = true;
+        try
+        {
+            var organizationMembers = await OrganizationService.GetOrganizationMembersAsync(project.OrganizationId, 1, 100);
+            if (organizationMembers?.Items != null)
+            {
+                // Filter to members with Member or higher roles (exclude regular users)
+                var eligibleMembers = organizationMembers.Items
+                    .Where(om => om.Role == Roles.OrganizationMember || 
+                                om.Role == Roles.OrganizationAdmin || 
+                                om.Role == Roles.OrganizationOwner)
+                    .ToList();
+                
+                // Filter out users who are already project members
+                var existingMemberIds = members?.Items?.Select(m => m.UserId).ToHashSet() ?? new HashSet<int>();
+                availableOrganizationMembers = eligibleMembers
+                    .Where(om => !existingMemberIds.Contains(om.UserId))
+                    .OrderBy(om => om.User?.FirstName)
+                    .ThenBy(om => om.User?.LastName)
+                    .ToList();
+            }
+            else
+            {
+                availableOrganizationMembers.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading organization members: {ex.Message}");
+            availableOrganizationMembers.Clear();
+        }
+        finally
+        {
+            isLoadingOrganizationMembers = false;
+        }
+    }
+
+    private void OnSelectedMemberChanged()
+    {
+        selectedOrganizationMember = availableOrganizationMembers.FirstOrDefault(m => m.UserId == selectedOrganizationMemberId);
+    }
+
+    private async Task AddMember()
+    {
+        if (selectedOrganizationMember == null)
+            return;
+
+        isAddingMember = true;
+        try
+        {
+            var addMemberDto = new AddProjectMemberDto
+            {
+                UserId = selectedOrganizationMember.UserId,
+                Role = selectedRole
+            };
+
+            var result = await ProjectService.AddMemberAsync(Id, addMemberDto);
+            if (result != null)
+            {
+                await LoadMembers(); // Refresh the member list
+                CloseAddMemberModal();
+                var memberName = selectedOrganizationMember.User?.FirstName + " " + selectedOrganizationMember.User?.LastName;
+                await JSRuntime.InvokeVoidAsync("alert", $"'{memberName}' has been successfully added to the project.");
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to add member. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding member: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while adding the member.");
+        }
+        finally
+        {
+            isAddingMember = false;
+        }
     }
 
     private string GetStatusBadgeColor(string status)
