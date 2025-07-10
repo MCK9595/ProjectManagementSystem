@@ -338,18 +338,127 @@
 
     @if (!IsEditMode)
     {
-        <!-- Task Comments Section (Placeholder) -->
+        <!-- Task Comments Section -->
         <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5>Comments</h5>
-                    <button class="btn btn-sm btn-outline-primary" disabled>
+                    <h5>Comments (@(comments?.TotalCount ?? 0))</h5>
+                    <button class="btn btn-sm btn-outline-primary" @onclick="ShowAddCommentForm" disabled="@isLoadingComments">
                         <i class="bi bi-plus-circle"></i> Add Comment
                     </button>
                 </div>
             </div>
             <div class="card-body">
-                <p class="text-muted">Comment functionality will be implemented in the next phase.</p>
+                @if (showAddCommentForm)
+                {
+                    <div class="border rounded p-3 mb-3">
+                        <EditForm Model="@newComment" OnValidSubmit="@HandleAddComment">
+                            <DataAnnotationsValidator />
+                            <div class="mb-3">
+                                <label for="commentContent" class="form-label">Your Comment</label>
+                                <InputTextArea id="commentContent" @bind-Value="newComment.Content" class="form-control" rows="3" placeholder="Write your comment here..." />
+                                <ValidationMessage For="@(() => newComment.Content)" />
+                            </div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="CancelAddComment">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-primary" disabled="@isAddingComment">
+                                    @if (isAddingComment)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    }
+                                    Add Comment
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                }
+
+                @if (isLoadingComments)
+                {
+                    <div class="text-center py-3">
+                        <div class="spinner-border spinner-border-sm" role="status">
+                            <span class="visually-hidden">Loading comments...</span>
+                        </div>
+                        <p class="mt-2 mb-0 text-muted">Loading comments...</p>
+                    </div>
+                }
+                else if (comments?.Items?.Any() == true)
+                {
+                    <div class="comment-list">
+                        @foreach (var comment in comments.Items)
+                        {
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <strong class="me-2">@(comment.User?.Username ?? "Unknown User")</strong>
+                                        <small class="text-muted">@comment.CreatedAt.ToString("MMM dd, yyyy 'at' h:mm tt")</small>
+                                    </div>
+                                    @if (comment.UserId == currentUser?.Id)
+                                    {
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><button class="dropdown-item" @onclick="() => StartEditComment(comment)">Edit</button></li>
+                                                <li><button class="dropdown-item text-danger" @onclick="() => DeleteComment(comment.Id)">Delete</button></li>
+                                            </ul>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                @if (editingCommentId == comment.Id)
+                                {
+                                    <EditForm Model="@editComment" OnValidSubmit="@HandleUpdateComment">
+                                        <DataAnnotationsValidator />
+                                        <div class="mb-3">
+                                            <InputTextArea @bind-Value="editComment.Content" class="form-control" rows="3" />
+                                            <ValidationMessage For="@(() => editComment.Content)" />
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="CancelEditComment">
+                                                Cancel
+                                            </button>
+                                            <button type="submit" class="btn btn-sm btn-primary" disabled="@isUpdatingComment">
+                                                @if (isUpdatingComment)
+                                                {
+                                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                }
+                                                Update
+                                            </button>
+                                        </div>
+                                    </EditForm>
+                                }
+                                else
+                                {
+                                    <p class="mb-0">@comment.Content</p>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    @if (comments.TotalCount > comments.Items.Count)
+                    {
+                        <div class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="LoadMoreComments" disabled="@isLoadingComments">
+                                @if (isLoadingComments)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                Load More Comments
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat-text text-muted" style="font-size: 2rem;"></i>
+                        <p class="text-muted mt-2 mb-0">No comments yet. Be the first to comment!</p>
+                    </div>
+                }
             </div>
         </div>
     }
@@ -385,6 +494,18 @@ else
     private string errorMessage = string.Empty;
     private UserDto? currentUser;
 
+    // Comment related properties
+    private PagedResult<TaskCommentDto>? comments;
+    private CreateTaskCommentDto newComment = new() { Content = "" };
+    private UpdateTaskCommentDto editComment = new() { Content = "" };
+    private bool isLoadingComments = false;
+    private bool isAddingComment = false;
+    private bool isUpdatingComment = false;
+    private bool showAddCommentForm = false;
+    private int editingCommentId = 0;
+    private int currentCommentPage = 1;
+    private const int commentPageSize = 10;
+
     protected override async Task OnInitializedAsync()
     {
         await LoadCurrentUser();
@@ -392,6 +513,7 @@ else
         if (!IsEditMode && task != null)
         {
             await LoadProjectMembers();
+            await LoadComments();
         }
     }
 
@@ -402,6 +524,7 @@ else
         if (!IsEditMode && task != null)
         {
             await LoadProjectMembers();
+            await LoadComments();
         }
     }
 
@@ -636,6 +759,193 @@ else
         else
         {
             Navigation.NavigateTo("/tasks");
+        }
+    }
+
+    // Comment related methods
+
+    private async Task LoadComments()
+    {
+        if (task == null) return;
+
+        isLoadingComments = true;
+        try
+        {
+            comments = await TaskService.GetTaskCommentsAsync(task.Id, currentCommentPage, commentPageSize);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading comments: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingComments = false;
+        }
+    }
+
+    private async Task LoadMoreComments()
+    {
+        if (task == null || isLoadingComments) return;
+
+        currentCommentPage++;
+        isLoadingComments = true;
+        try
+        {
+            var moreComments = await TaskService.GetTaskCommentsAsync(task.Id, currentCommentPage, commentPageSize);
+            if (moreComments?.Items?.Any() == true && comments != null)
+            {
+                // Merge the new comments with existing ones
+                var allComments = comments.Items.ToList();
+                allComments.AddRange(moreComments.Items);
+                
+                comments = new PagedResult<TaskCommentDto>
+                {
+                    Items = allComments,
+                    TotalCount = moreComments.TotalCount,
+                    PageNumber = currentCommentPage,
+                    PageSize = commentPageSize
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading more comments: {ex.Message}");
+            currentCommentPage--; // Rollback page increment on error
+        }
+        finally
+        {
+            isLoadingComments = false;
+        }
+    }
+
+    private void ShowAddCommentForm()
+    {
+        showAddCommentForm = true;
+        newComment = new CreateTaskCommentDto { Content = "" };
+    }
+
+    private void CancelAddComment()
+    {
+        showAddCommentForm = false;
+        newComment = new CreateTaskCommentDto { Content = "" };
+    }
+
+    private async Task HandleAddComment()
+    {
+        if (task == null || isAddingComment) return;
+
+        isAddingComment = true;
+        try
+        {
+            var result = await TaskService.CreateTaskCommentAsync(task.Id, newComment);
+            if (result != null)
+            {
+                showAddCommentForm = false;
+                newComment = new CreateTaskCommentDto { Content = "" };
+                
+                // Reload comments to show the new one
+                currentCommentPage = 1;
+                await LoadComments();
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to add comment. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding comment: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while adding the comment.");
+        }
+        finally
+        {
+            isAddingComment = false;
+        }
+    }
+
+    private void StartEditComment(TaskCommentDto comment)
+    {
+        editingCommentId = comment.Id;
+        editComment = new UpdateTaskCommentDto { Content = comment.Content };
+    }
+
+    private void CancelEditComment()
+    {
+        editingCommentId = 0;
+        editComment = new UpdateTaskCommentDto { Content = "" };
+    }
+
+    private async Task HandleUpdateComment()
+    {
+        if (editingCommentId == 0 || isUpdatingComment) return;
+
+        isUpdatingComment = true;
+        try
+        {
+            var result = await TaskService.UpdateTaskCommentAsync(editingCommentId, editComment, task.Id);
+            if (result != null)
+            {
+                editingCommentId = 0;
+                editComment = new UpdateTaskCommentDto { Content = "" };
+                
+                // Update the comment in the local list
+                if (comments?.Items != null)
+                {
+                    var commentToUpdate = comments.Items.FirstOrDefault(c => c.Id == result.Id);
+                    if (commentToUpdate != null)
+                    {
+                        commentToUpdate.Content = result.Content;
+                    }
+                }
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to update comment. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating comment: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while updating the comment.");
+        }
+        finally
+        {
+            isUpdatingComment = false;
+        }
+    }
+
+    private async Task DeleteComment(int commentId)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to delete this comment?");
+        if (!confirmed) return;
+
+        try
+        {
+            var success = await TaskService.DeleteTaskCommentAsync(commentId, task.Id);
+            if (success)
+            {
+                // Remove the comment from the local list
+                if (comments?.Items != null)
+                {
+                    var updatedComments = comments.Items.Where(c => c.Id != commentId).ToList();
+                    comments = new PagedResult<TaskCommentDto>
+                    {
+                        Items = updatedComments,
+                        TotalCount = comments.TotalCount - 1,
+                        PageNumber = comments.PageNumber,
+                        PageSize = comments.PageSize
+                    };
+                }
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Failed to delete comment. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting comment: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "An error occurred while deleting the comment.");
         }
     }
 }

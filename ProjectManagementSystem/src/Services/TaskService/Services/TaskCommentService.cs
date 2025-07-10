@@ -10,11 +10,13 @@ public class TaskCommentService : ITaskCommentService
 {
     private readonly TaskDbContext _context;
     private readonly ILogger<TaskCommentService> _logger;
+    private readonly IUserService _userService;
 
-    public TaskCommentService(TaskDbContext context, ILogger<TaskCommentService> logger)
+    public TaskCommentService(TaskDbContext context, ILogger<TaskCommentService> logger, IUserService userService)
     {
         _context = context;
         _logger = logger;
+        _userService = userService;
     }
 
     public async Task<PagedResult<TaskCommentDto>> GetTaskCommentsAsync(Guid taskId, int pageNumber = 1, int pageSize = 10)
@@ -24,11 +26,18 @@ public class TaskCommentService : ITaskCommentService
             .OrderBy(c => c.CreatedAt);
 
         var totalCount = await query.CountAsync();
-        var comments = await query
+        var commentEntities = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(c => MapCommentToDto(c))
             .ToListAsync();
+
+        // Convert entities to DTOs with user information
+        var comments = new List<TaskCommentDto>();
+        foreach (var comment in commentEntities)
+        {
+            var commentDto = await MapCommentToDtoAsync(comment);
+            comments.Add(commentDto);
+        }
 
         return new PagedResult<TaskCommentDto>
         {
@@ -45,7 +54,7 @@ public class TaskCommentService : ITaskCommentService
             .Where(c => c.Id == commentId && c.IsActive)
             .FirstOrDefaultAsync();
 
-        return comment != null ? MapCommentToDto(comment) : null;
+        return comment != null ? await MapCommentToDtoAsync(comment) : null;
     }
 
     public async Task<TaskCommentDto> CreateCommentAsync(Guid taskId, CreateTaskCommentDto createCommentDto, int userId)
@@ -62,7 +71,7 @@ public class TaskCommentService : ITaskCommentService
 
         _logger.LogInformation("Comment created for task {TaskId} by user {UserId}", taskId, userId);
 
-        return MapCommentToDto(comment);
+        return await MapCommentToDtoAsync(comment);
     }
 
     public async Task<TaskCommentDto?> UpdateCommentAsync(int commentId, UpdateTaskCommentDto updateCommentDto)
@@ -79,7 +88,7 @@ public class TaskCommentService : ITaskCommentService
 
         _logger.LogInformation("Comment {CommentId} updated", commentId);
 
-        return MapCommentToDto(comment);
+        return await MapCommentToDtoAsync(comment);
     }
 
     public async Task<bool> DeleteCommentAsync(int commentId)
@@ -104,15 +113,36 @@ public class TaskCommentService : ITaskCommentService
             .AnyAsync(c => c.Id == commentId && c.UserId == userId && c.IsActive);
     }
 
-    private static TaskCommentDto MapCommentToDto(Comment comment)
+    private async Task<TaskCommentDto> MapCommentToDtoAsync(Comment comment)
     {
-        return new TaskCommentDto
+        try
         {
-            Id = comment.Id,
-            Content = comment.Content,
-            CreatedAt = comment.CreatedAt,
-            TaskId = comment.TaskId,
-            UserId = comment.UserId
-        };
+            var user = await _userService.GetUserByIdAsync(comment.UserId);
+            
+            return new TaskCommentDto
+            {
+                Id = comment.Id,
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt,
+                TaskId = comment.TaskId,
+                UserId = comment.UserId,
+                User = user
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching user {UserId} for comment {CommentId}", comment.UserId, comment.Id);
+            
+            // Return comment without user info if user service fails
+            return new TaskCommentDto
+            {
+                Id = comment.Id,
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt,
+                TaskId = comment.TaskId,
+                UserId = comment.UserId,
+                User = null
+            };
+        }
     }
 }

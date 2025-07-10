@@ -13,4 +13,10 @@ public interface ITaskService
     Task<bool> UpdateTaskStatusAsync(Guid id, string status);
     Task<bool> AssignTaskAsync(Guid id, int assignedToUserId);
     Task<bool> DeleteTaskAsync(Guid id);
+    
+    // コメント関連メソッド
+    Task<PagedResult<TaskCommentDto>?> GetTaskCommentsAsync(Guid taskId, int pageNumber = 1, int pageSize = 10);
+    Task<TaskCommentDto?> CreateTaskCommentAsync(Guid taskId, CreateTaskCommentDto commentDto);
+    Task<TaskCommentDto?> UpdateTaskCommentAsync(int commentId, UpdateTaskCommentDto commentDto, Guid taskId);
+    Task<bool> DeleteTaskCommentAsync(int commentId, Guid taskId);
 }

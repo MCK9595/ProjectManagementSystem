@@ -209,6 +209,111 @@ public class TaskService : ITaskService
         return false;
     }
 
+    // コメント関連のメソッド
+
+    public async Task<PagedResult<TaskCommentDto>?> GetTaskCommentsAsync(Guid taskId, int pageNumber = 1, int pageSize = 10)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.GetAsync($"/api/tasks/{taskId}/comments?pageNumber={pageNumber}&pageSize={pageSize}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<PagedResult<TaskCommentDto>>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Log exception
+        }
+
+        return null;
+    }
+
+    public async Task<TaskCommentDto?> CreateTaskCommentAsync(Guid taskId, CreateTaskCommentDto commentDto)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.PostAsJsonAsync($"/api/tasks/{taskId}/comments", commentDto);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<TaskCommentDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Log exception
+        }
+
+        return null;
+    }
+
+    public async Task<TaskCommentDto?> UpdateTaskCommentAsync(int commentId, UpdateTaskCommentDto commentDto, Guid taskId)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.PutAsJsonAsync($"/api/tasks/{taskId}/comments/{commentId}", commentDto);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<TaskCommentDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (apiResponse?.Success == true && apiResponse.Data != null)
+                {
+                    return apiResponse.Data;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Log exception
+        }
+
+        return null;
+    }
+
+    public async Task<bool> DeleteTaskCommentAsync(int commentId, Guid taskId)
+    {
+        try
+        {
+            await SetAuthHeaderAsync();
+            var response = await _httpClient.DeleteAsync($"/api/tasks/{taskId}/comments/{commentId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception)
+        {
+            // Log exception
+        }
+
+        return false;
+    }
+
     private async Task SetAuthHeaderAsync()
     {
         var token = await _authService.GetTokenAsync();
