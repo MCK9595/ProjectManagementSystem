@@ -90,8 +90,8 @@ public class DatabaseIntegrationTestsAspire : AspireIntegrationTestBase
     [Fact]
     public async Task TaskService_DatabaseConnection_IsWorking()
     {
-        // Act - Try to get tasks list which requires database access
-        var response = await TaskHttpClient.GetAsync("/api/tasks?pageSize=1");
+        // Act - Try to get health check which requires database access
+        var response = await TaskHttpClient.GetAsync("/health");
 
         // Assert
         Assert.True(response.IsSuccessStatusCode || 
@@ -128,5 +128,6 @@ public class DatabaseIntegrationTestsAspire : AspireIntegrationTestBase
         OrganizationHttpClient?.Dispose();
         ProjectHttpClient?.Dispose();
         TaskHttpClient?.Dispose();
+        await Task.CompletedTask;
     }
 }

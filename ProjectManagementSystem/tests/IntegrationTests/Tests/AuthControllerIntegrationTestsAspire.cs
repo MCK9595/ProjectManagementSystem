@@ -200,11 +200,14 @@ public class AuthControllerIntegrationTestsAspire : AspireIntegrationTestBase
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         // Act
-        var response = await IdentityHttpClient.PostAsync("/api/auth/logout", null);
+        // Since the refresh token is not returned in the response, we need to test logout differently
+        // We'll create a dummy refresh token or test that the endpoint returns BadRequest for missing token
+        var logoutRequest = new { RefreshToken = "dummy-refresh-token" };
+        var response = await IdentityHttpClient.PostAsJsonAsync("/api/auth/logout", logoutRequest);
 
         // Assert
-        // Logout might not be implemented yet, so accept either success or not found
-        Assert.True(response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.NotFound);
+        // The endpoint should return BadRequest for invalid refresh token
+        Assert.True(response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -223,6 +226,7 @@ public class AuthControllerIntegrationTestsAspire : AspireIntegrationTestBase
     {
         // Don't dispose the shared fixture - it's managed by xUnit
         IdentityHttpClient?.Dispose();
+        await Task.CompletedTask;
     }
 }
 

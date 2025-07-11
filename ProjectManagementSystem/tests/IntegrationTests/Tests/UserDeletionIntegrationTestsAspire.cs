@@ -54,7 +54,11 @@ public class UserDeletionIntegrationTestsAspire : AspireIntegrationTestBase
         var deleteResponse = await IdentityHttpClient.DeleteAsync($"/api/usermanagement/{userId}");
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+        if (deleteResponse.StatusCode != HttpStatusCode.OK)
+        {
+            var errorContent = await deleteResponse.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Delete user failed. Status: {deleteResponse.StatusCode}, Content: {errorContent}");
+        }
         
         var deleteResult = await deleteResponse.Content.ReadFromJsonAsync<ApiResponse<object>>();
         Assert.True(deleteResult?.Success);
@@ -76,16 +80,23 @@ public class UserDeletionIntegrationTestsAspire : AspireIntegrationTestBase
             lastName: "Member",
             role: Roles.User);
 
-        // Create organization
+        // Create organization with unique name
+        var uniqueOrgName = $"Test Organization for Deletion {Guid.NewGuid():N}";
         var createOrgRequest = new ProjectManagementSystem.Shared.Models.DTOs.CreateOrganizationDto
         {
-            Name = "Test Organization for Deletion",
+            Name = uniqueOrgName,
             Description = "Test organization"
         };
 
         var createOrgResponse = await OrganizationHttpClient.PostAsJsonAsync("/api/organizations", createOrgRequest);
+        if (!createOrgResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await createOrgResponse.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create organization. Status: {createOrgResponse.StatusCode}, Content: {errorContent}");
+        }
+        
         var createOrgResult = await createOrgResponse.Content.ReadFromJsonAsync<ApiResponse<ProjectManagementSystem.Shared.Models.DTOs.OrganizationDto>>();
-        var orgId = createOrgResult?.Data?.Id ?? throw new InvalidOperationException("Failed to create organization");
+        var orgId = createOrgResult?.Data?.Id ?? throw new InvalidOperationException("Failed to create organization - no ID returned");
 
         // Add user to organization
         var addMemberRequest = new ProjectManagementSystem.Shared.Models.DTOs.AddMemberDto
@@ -176,16 +187,23 @@ public class UserDeletionIntegrationTestsAspire : AspireIntegrationTestBase
             lastName: "Member",
             role: Roles.User);
 
-        // Create organization first
+        // Create organization first with unique name
+        var uniqueOrgName = $"Test Organization for Project {Guid.NewGuid():N}";
         var createOrgRequest = new ProjectManagementSystem.Shared.Models.DTOs.CreateOrganizationDto
         {
-            Name = "Test Organization for Project",
+            Name = uniqueOrgName,
             Description = "Test organization"
         };
 
         var createOrgResponse = await OrganizationHttpClient.PostAsJsonAsync("/api/organizations", createOrgRequest);
+        if (!createOrgResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await createOrgResponse.Content.ReadAsStringAsync();
+            throw new InvalidOperationException($"Failed to create organization. Status: {createOrgResponse.StatusCode}, Content: {errorContent}");
+        }
+        
         var createOrgResult = await createOrgResponse.Content.ReadFromJsonAsync<ApiResponse<ProjectManagementSystem.Shared.Models.DTOs.OrganizationDto>>();
-        var orgId = createOrgResult?.Data?.Id ?? throw new InvalidOperationException("Failed to create organization");
+        var orgId = createOrgResult?.Data?.Id ?? throw new InvalidOperationException("Failed to create organization - no ID returned");
 
         // Create project
         var createProjectRequest = new ProjectManagementSystem.Shared.Models.DTOs.CreateProjectDto
@@ -253,6 +271,7 @@ public class UserDeletionIntegrationTestsAspire : AspireIntegrationTestBase
         OrganizationHttpClient?.Dispose();
         ProjectHttpClient?.Dispose();
         TaskHttpClient?.Dispose();
+        await Task.CompletedTask;
     }
 }
 
