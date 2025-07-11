@@ -2,6 +2,8 @@ using ProjectManagementSystem.WebApp.Components;
 using ProjectManagementSystem.WebApp.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using ProjectManagementSystem.Shared.Common.Services;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,9 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Add circuit handler for authentication restoration on reconnection
+builder.Services.AddScoped<CircuitHandler, AuthenticationCircuitHandler>();
+
 // Add authorization services (required for AuthorizeRouteView)
 builder.Services.AddAuthorization();
 
@@ -35,13 +40,13 @@ builder.Services.AddAuthorization();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromHours(8); // Extended session timeout
+    options.IdleTimeout = TimeSpan.FromHours(12); // Extended session timeout for better persistence
     options.Cookie.Name = ".ProjectManagement.Session"; // Custom cookie name
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Lax; // Changed from Strict to allow navigation
+    options.Cookie.SameSite = SameSiteMode.Lax; // Allow navigation
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Use HTTPS in production
-    options.IOTimeout = TimeSpan.FromMinutes(1); // Allow more time for session operations
+    options.IOTimeout = TimeSpan.FromMinutes(2); // Allow more time for session operations
 });
 
 // Add HttpContextAccessor for session access
@@ -50,13 +55,21 @@ builder.Services.AddHttpContextAccessor();
 // Add memory cache service for token storage
 builder.Services.AddMemoryCache();
 
-// Add server-side token service
-// Use MemoryTokenService with IMemoryCache for better Blazor Server compatibility
-// Changed to Scoped to work properly with Blazor Server circuits
-builder.Services.AddScoped<ProjectManagementSystem.Shared.Common.Services.ISessionTokenService, ProjectManagementSystem.WebApp.Services.MemoryTokenService>();
+// Add data protection for encrypted cookie storage
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("./DataProtection-Keys"))
+    .SetApplicationName("ProjectManagementSystem");
+
+// Add persistent token service
+// Use PersistentTokenService with multi-layer storage (memory + session + encrypted cookies)
+// This ensures tokens survive page reloads and browser restarts
+builder.Services.AddScoped<ProjectManagementSystem.Shared.Common.Services.ISessionTokenService, ProjectManagementSystem.WebApp.Services.PersistentTokenService>();
 
 // Add TokenHandler for automatic JWT token attachment
 builder.Services.AddScoped<ProjectManagementSystem.WebApp.Services.TokenHandler>();
+
+// Add token refresh background service
+builder.Services.AddTokenRefreshService();
 
 // Add authentication services
 builder.Services.AddAuthentication("Custom")
@@ -143,6 +156,7 @@ app.UseAuthorization();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+// Configure Blazor Server with enhanced settings for authentication persistence
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
