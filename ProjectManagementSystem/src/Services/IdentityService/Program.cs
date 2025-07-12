@@ -5,6 +5,9 @@ using System.Text;
 using ProjectManagementSystem.IdentityService.Data;
 using ProjectManagementSystem.IdentityService.Data.Entities;
 using ProjectManagementSystem.IdentityService.Services;
+using ProjectManagementSystem.Shared.Common.Configuration;
+using ProjectManagementSystem.Shared.Common.Extensions;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,11 +49,16 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Add services to the container
 builder.Services.AddControllers();
 
-// Add JWT Authentication
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
-var issuer = jwtSettings["Issuer"] ?? "ProjectManagementSystem.IdentityService";
-var audience = jwtSettings["Audience"] ?? "ProjectManagementSystem.Users";
+// Configure JWT Settings
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+
+// Validate JWT settings at startup
+var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>();
+if (jwtSettings == null)
+{
+    throw new InvalidOperationException($"Missing {JwtSettings.SectionName} configuration section");
+}
+jwtSettings.Validate();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -66,9 +74,9 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = issuer,
-        ValidAudience = audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
         ClockSkew = TimeSpan.Zero
     };
 });
@@ -153,8 +161,10 @@ if (app.Environment.IsDevelopment())
 // Map service default endpoints.
 app.MapDefaultEndpoints();
 
-// Temporarily disable HTTPS redirection for debugging
-// app.UseHttpsRedirection();
+// Add global exception handling
+app.UseGlobalExceptionHandler();
+
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 

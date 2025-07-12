@@ -40,6 +40,20 @@ builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
     .AddServiceDiscoveryDestinationResolver();
 
+// Configure HttpClientFactory to handle SSL certificates in development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.ConfigureHttpClientDefaults(clientBuilder =>
+    {
+        clientBuilder.ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            var handler = new HttpClientHandler();
+            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+            return handler;
+        });
+    });
+}
+
 // Add detailed logging for YARP and HTTP requests
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information);

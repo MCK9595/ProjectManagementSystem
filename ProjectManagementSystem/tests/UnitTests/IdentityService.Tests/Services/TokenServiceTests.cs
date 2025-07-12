@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
@@ -9,13 +9,14 @@ using ProjectManagementSystem.IdentityService.Data;
 using ProjectManagementSystem.IdentityService.Data.Entities;
 using ProjectManagementSystem.IdentityService.Services;
 using ProjectManagementSystem.IdentityService.Abstractions;
+using ProjectManagementSystem.Shared.Common.Configuration;
 
 namespace ProjectManagementSystem.IdentityService.Tests.Services;
 
 public class TokenServiceTests : IDisposable
 {
     private readonly ApplicationDbContext _context;
-    private readonly Mock<IConfiguration> _configurationMock;
+    private readonly Mock<IOptions<JwtSettings>> _jwtOptionsMock;
     private readonly Mock<ILogger<TokenService>> _loggerMock;
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
     private readonly Mock<IRandomGenerator> _randomGeneratorMock;
@@ -31,16 +32,17 @@ public class TokenServiceTests : IDisposable
             .Options;
         _context = new ApplicationDbContext(options);
 
-        // Setup Configuration mock
-        _configurationMock = new Mock<IConfiguration>();
-        var jwtSectionMock = new Mock<IConfigurationSection>();
-        
-        _configurationMock.Setup(x => x.GetSection("JwtSettings")).Returns(jwtSectionMock.Object);
-        jwtSectionMock.Setup(x => x["SecretKey"]).Returns("ThisIsAVeryLongSecretKeyForJWTTokenGeneration123456789");
-        jwtSectionMock.Setup(x => x["Issuer"]).Returns("TestIssuer");
-        jwtSectionMock.Setup(x => x["Audience"]).Returns("TestAudience");
-        jwtSectionMock.Setup(x => x["AccessTokenExpiryMinutes"]).Returns("15");
-        jwtSectionMock.Setup(x => x["RefreshTokenExpiryDays"]).Returns("7");
+        // Setup JWT Options mock
+        _jwtOptionsMock = new Mock<IOptions<JwtSettings>>();
+        var jwtSettings = new JwtSettings
+        {
+            SecretKey = "ThisIsAVeryLongSecretKeyForJWTTokenGeneration123456789",
+            Issuer = "TestIssuer",
+            Audience = "TestAudience",
+            AccessTokenExpiryMinutes = 15,
+            RefreshTokenExpiryDays = 7
+        };
+        _jwtOptionsMock.Setup(x => x.Value).Returns(jwtSettings);
 
         // Setup other mocks
         _loggerMock = new Mock<ILogger<TokenService>>();
@@ -54,7 +56,7 @@ public class TokenServiceTests : IDisposable
         _guidGeneratorMock.Setup(x => x.NewGuidString()).Returns("mocked-guid-string");
 
         _tokenService = new TokenService(
-            _configurationMock.Object,
+            _jwtOptionsMock.Object,
             _context,
             _loggerMock.Object,
             _dateTimeProviderMock.Object,
@@ -353,15 +355,19 @@ public class TokenServiceTests : IDisposable
         var customIssuer = "CustomIssuer";
         var customAudience = "CustomAudience";
 
-        var jwtSectionMock = new Mock<IConfigurationSection>();
-        _configurationMock.Setup(x => x.GetSection("JwtSettings")).Returns(jwtSectionMock.Object);
-        jwtSectionMock.Setup(x => x["SecretKey"]).Returns("ThisIsAVeryLongSecretKeyForJWTTokenGeneration123456789");
-        jwtSectionMock.Setup(x => x["Issuer"]).Returns(customIssuer);
-        jwtSectionMock.Setup(x => x["Audience"]).Returns(customAudience);
-        jwtSectionMock.Setup(x => x["AccessTokenExpiryMinutes"]).Returns(customExpiryMinutes.ToString());
+        var customJwtOptions = new Mock<IOptions<JwtSettings>>();
+        var customJwtSettings = new JwtSettings
+        {
+            SecretKey = "ThisIsAVeryLongSecretKeyForJWTTokenGeneration123456789",
+            Issuer = customIssuer,
+            Audience = customAudience,
+            AccessTokenExpiryMinutes = customExpiryMinutes,
+            RefreshTokenExpiryDays = 7
+        };
+        customJwtOptions.Setup(x => x.Value).Returns(customJwtSettings);
 
         var customTokenService = new TokenService(
-            _configurationMock.Object,
+            customJwtOptions.Object,
             _context,
             _loggerMock.Object,
             _dateTimeProviderMock.Object,

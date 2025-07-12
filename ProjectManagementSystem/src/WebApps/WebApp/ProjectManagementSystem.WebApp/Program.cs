@@ -92,13 +92,17 @@ builder.Services.AddHttpClient("ApiGateway", (serviceProvider, client) =>
 {
     // Aspire service discovery will automatically resolve the api-gateway URL
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-    var apiGatewayUrl = configuration.GetConnectionString("api-gateway") ?? "http://api-gateway";
+    var apiGatewayUrl = configuration["Services:api-gateway:http:0"] ?? 
+                       configuration.GetConnectionString("api-gateway") ?? 
+                       "http://api-gateway";
     
     client.BaseAddress = new Uri(apiGatewayUrl);
     client.Timeout = TimeSpan.FromSeconds(30);
     
     var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
     logger.LogInformation("=== HttpClient configured with BaseAddress: {BaseAddress} ===", client.BaseAddress);
+    logger.LogInformation("=== Configuration used: Services:api-gateway:http:0 = {EnvVar} ===", configuration["Services:api-gateway:http:0"]);
+    logger.LogInformation("=== Configuration used: ConnectionStrings:api-gateway = {ConnStr} ===", configuration.GetConnectionString("api-gateway"));
 })
 .AddHttpMessageHandler<ProjectManagementSystem.WebApp.Services.TokenHandler>();
 

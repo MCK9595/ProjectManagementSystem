@@ -6,12 +6,14 @@ using System.Text;
 using ProjectManagementSystem.IdentityService.Data;
 using ProjectManagementSystem.IdentityService.Data.Entities;
 using ProjectManagementSystem.IdentityService.Abstractions;
+using ProjectManagementSystem.Shared.Common.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace ProjectManagementSystem.IdentityService.Services;
 
 public class TokenService : ITokenService
 {
-    private readonly IConfiguration _configuration;
+    private readonly JwtSettings _jwtSettings;
     private readonly ApplicationDbContext _context;
     private readonly ILogger<TokenService> _logger;
     private readonly IDateTimeProvider _dateTimeProvider;
@@ -19,14 +21,14 @@ public class TokenService : ITokenService
     private readonly IGuidGenerator _guidGenerator;
 
     public TokenService(
-        IConfiguration configuration,
+        IOptions<JwtSettings> jwtOptions,
         ApplicationDbContext context,
         ILogger<TokenService> logger,
         IDateTimeProvider dateTimeProvider,
         IRandomGenerator randomGenerator,
         IGuidGenerator guidGenerator)
     {
-        _configuration = configuration;
+        _jwtSettings = jwtOptions.Value;
         _context = context;
         _logger = logger;
         _dateTimeProvider = dateTimeProvider;
@@ -36,13 +38,7 @@ public class TokenService : ITokenService
 
     public string GenerateAccessToken(ApplicationUser user)
     {
-        var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey not configured");
-        var issuer = jwtSettings["Issuer"] ?? "ProjectManagementSystem.IdentityService";
-        var audience = jwtSettings["Audience"] ?? "ProjectManagementSystem.Users";
-        var expiryMinutes = int.Parse(jwtSettings["AccessTokenExpiryMinutes"] ?? "15");
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
@@ -61,10 +57,10 @@ public class TokenService : ITokenService
         };
 
         var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
+            issuer: _jwtSettings.Issuer,
+            audience: _jwtSettings.Audience,
             claims: claims,
-            expires: _dateTimeProvider.UtcNow.AddMinutes(expiryMinutes),
+            expires: _dateTimeProvider.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpiryMinutes),
             signingCredentials: credentials
         );
 
@@ -83,9 +79,6 @@ public class TokenService : ITokenService
 
     public async Task<RefreshToken> CreateRefreshTokenAsync(int userId)
     {
-        var jwtSettings = _configuration.GetSection("JwtSettings");
-        var expiryDays = int.Parse(jwtSettings["RefreshTokenExpiryDays"] ?? "7");
-
         // Revoke any existing active refresh tokens for this user
         await RevokeAllUserRefreshTokensAsync(userId);
 
@@ -93,7 +86,7 @@ public class TokenService : ITokenService
         {
             Token = GenerateRefreshToken(),
             UserId = userId,
-            ExpiresAt = _dateTimeProvider.UtcNow.AddDays(expiryDays),
+            ExpiresAt = _dateTimeProvider.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays),
             CreatedAt = _dateTimeProvider.UtcNow
         };
 

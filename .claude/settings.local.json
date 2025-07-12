@@ -24,7 +24,9 @@
       "Bash(dotnet run:*)",
       "Bash(dotnet ef migrations:*)",
       "Bash(dotnet list package:*)",
-      "Bash(timeout 120 dotnet test tests/IntegrationTests/ProjectManagementSystem.IntegrationTests.csproj --verbosity quiet)"
+      "Bash(timeout 120 dotnet test tests/IntegrationTests/ProjectManagementSystem.IntegrationTests.csproj --verbosity quiet)",
+      "Bash(dotnet:*)",
+      "Bash(dotnet user-secrets:*)"
     ],
     "deny": []
   }

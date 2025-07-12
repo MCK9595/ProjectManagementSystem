@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using FluentAssertions;
 using ProjectManagementSystem.IdentityService.Data;
@@ -8,6 +9,7 @@ using ProjectManagementSystem.IdentityService.Data.Entities;
 using ProjectManagementSystem.IdentityService.Services;
 using ProjectManagementSystem.IdentityService.Abstractions;
 using ProjectManagementSystem.Shared.Models.DTOs;
+using ProjectManagementSystem.Shared.Common.Configuration;
 
 namespace ProjectManagementSystem.IdentityService.Tests.Services;
 
@@ -19,6 +21,7 @@ public class AuthServiceTests : IDisposable
     private readonly Mock<ITokenService> _tokenServiceMock;
     private readonly Mock<ILogger<AuthService>> _loggerMock;
     private readonly Mock<IDateTimeProvider> _dateTimeProviderMock;
+    private readonly Mock<IOptions<JwtSettings>> _jwtOptionsMock;
     private readonly AuthService _authService;
     private readonly DateTime _fixedDateTime = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
 
@@ -46,6 +49,18 @@ public class AuthServiceTests : IDisposable
         _tokenServiceMock = new Mock<ITokenService>();
         _loggerMock = new Mock<ILogger<AuthService>>();
         _dateTimeProviderMock = new Mock<IDateTimeProvider>();
+        _jwtOptionsMock = new Mock<IOptions<JwtSettings>>();
+        
+        // Setup JWT settings
+        var jwtSettings = new JwtSettings
+        {
+            SecretKey = "test-secret-key-at-least-32-characters-long",
+            Issuer = "TestIssuer",
+            Audience = "TestAudience",
+            AccessTokenExpiryMinutes = 15,
+            RefreshTokenExpiryDays = 7
+        };
+        _jwtOptionsMock.Setup(x => x.Value).Returns(jwtSettings);
         
         // Setup fixed time for consistent testing
         _dateTimeProviderMock.Setup(x => x.UtcNow).Returns(_fixedDateTime);
@@ -56,7 +71,8 @@ public class AuthServiceTests : IDisposable
             _signInManagerMock.Object,
             _tokenServiceMock.Object,
             _loggerMock.Object,
-            _dateTimeProviderMock.Object);
+            _dateTimeProviderMock.Object,
+            _jwtOptionsMock.Object);
     }
 
     [Fact]

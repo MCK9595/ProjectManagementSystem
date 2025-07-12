@@ -103,9 +103,10 @@ public class AuthService : IAuthService
         {
             await _httpClient.PostAsync("/api/auth/logout", null);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Log exception
+            _logger.LogError(ex, "Error occurred during logout request");
+            // Continue with local logout even if server request fails
         }
         finally
         {
@@ -172,13 +173,13 @@ public class AuthService : IAuthService
                 _logger.LogDebug("Getting current user from API - BaseAddress: {BaseAddress}", _httpClient.BaseAddress);
             }
             
-            // Set Authorization header for this request
-            _httpClient.DefaultRequestHeaders.Authorization = 
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            
-            
             var requestStartTime = DateTime.UtcNow;
-            var response = await _httpClient.GetAsync("/api/auth/me");
+            
+            // Create request with Authorization header
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/me");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            
+            var response = await _httpClient.SendAsync(request);
             var requestDuration = DateTime.UtcNow - requestStartTime;
             
             if (_logger.IsEnabled(LogLevel.Debug))

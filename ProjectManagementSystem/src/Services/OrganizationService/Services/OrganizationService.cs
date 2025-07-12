@@ -77,9 +77,10 @@ public class OrganizationService : IOrganizationService
             
             try
             {
-                // 重複チェック
+                // Check for duplicate organization names
                 var existingOrg = await _context.Organizations
-                    .FirstOrDefaultAsync(o => o.Name.ToLower() == createDto.Name.ToLower() && o.IsActive);
+                    .FirstOrDefaultAsync(o => o.IsActive && 
+                        o.Name.ToLower() == createDto.Name.ToLower());
                 
                 if (existingOrg != null)
                 {

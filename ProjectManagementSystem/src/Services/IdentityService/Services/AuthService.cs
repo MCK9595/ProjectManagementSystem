@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ProjectManagementSystem.IdentityService.Data;
 using ProjectManagementSystem.IdentityService.Data.Entities;
 using ProjectManagementSystem.Shared.Models.DTOs;
 using ProjectManagementSystem.IdentityService.Abstractions;
+using ProjectManagementSystem.Shared.Common.Configuration;
 
 namespace ProjectManagementSystem.IdentityService.Services;
 
@@ -15,6 +17,7 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly ILogger<AuthService> _logger;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly JwtSettings _jwtSettings;
 
     public AuthService(
         ApplicationDbContext context,
@@ -22,7 +25,8 @@ public class AuthService : IAuthService
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
         ILogger<AuthService> logger,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IOptions<JwtSettings> jwtOptions)
     {
         _context = context;
         _userManager = userManager;
@@ -30,6 +34,7 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
         _logger = logger;
         _dateTimeProvider = dateTimeProvider;
+        _jwtSettings = jwtOptions.Value;
     }
 
     public async Task<AuthResponseDto?> LoginAsync(LoginDto loginDto)
@@ -82,7 +87,7 @@ public class AuthService : IAuthService
         {
             Token = accessToken,
             User = await MapUserToDtoAsync(user),
-            ExpiresAt = _dateTimeProvider.UtcNow.AddMinutes(15) // Should match token expiry
+            ExpiresAt = _dateTimeProvider.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpiryMinutes)
         };
     }
 
@@ -120,7 +125,7 @@ public class AuthService : IAuthService
         {
             Token = newAccessToken,
             User = await MapUserToDtoAsync(user),
-            ExpiresAt = _dateTimeProvider.UtcNow.AddMinutes(15)
+            ExpiresAt = _dateTimeProvider.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpiryMinutes)
         };
     }
 
