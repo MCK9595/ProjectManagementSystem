@@ -697,3 +697,483 @@
   outline: none;
   box-shadow: 0 0 0 3px rgb(59 130 246 / 0.15);
 }
+
+/* =========================================
+   Enhanced Task Card Components
+   ========================================= */
+
+.task-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-300);
+}
+
+.task-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    var(--color-primary-500) 0%, 
+    var(--color-primary-400) 50%, 
+    var(--color-secondary-400) 100%);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.task-card:hover::before {
+  opacity: 1;
+}
+
+.task-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4) var(--space-2);
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.task-id {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-500);
+  background: var(--color-gray-50);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.task-priority-icon {
+  font-size: var(--font-size-lg);
+  display: flex;
+  align-items: center;
+}
+
+.task-card-body {
+  padding: var(--space-4);
+}
+
+.task-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--space-2);
+  line-height: var(--line-height-tight);
+}
+
+.task-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+  line-height: var(--line-height-normal);
+  margin-bottom: 0;
+}
+
+.task-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  background: var(--color-gray-25);
+  border-top: 1px solid var(--color-gray-100);
+}
+
+.task-metadata {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.priority-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: none;
+}
+
+.due-date {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.due-overdue {
+  color: var(--color-error-600);
+  background: var(--color-error-50);
+}
+
+.due-critical {
+  color: var(--color-warning-600);
+  background: var(--color-warning-50);
+}
+
+.due-warning {
+  color: var(--color-warning-600);
+  background: var(--color-warning-50);
+}
+
+.due-normal {
+  color: var(--color-gray-600);
+  background: var(--color-gray-100);
+}
+
+.task-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-500);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.btn-icon:hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+  transform: scale(1.1);
+}
+
+/* Kanban Column Headers Enhancement */
+.card-header {
+  background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-white) 100%);
+  border-bottom: 2px solid var(--color-gray-200);
+  position: relative;
+}
+
+.card-header::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    var(--color-primary-500), 
+    var(--color-secondary-400));
+}
+
+/* Status-specific column styling */
+.kanban-column-todo .card-header::before {
+  background: var(--color-gray-400);
+}
+
+.kanban-column-inprogress .card-header::before {
+  background: var(--color-warning-500);
+}
+
+.kanban-column-inreview .card-header::before {
+  background: var(--color-primary-500);
+}
+
+.kanban-column-done .card-header::before {
+  background: var(--color-success-500);
+}
+
+/* Gray-25 color addition */
+:root {
+  --color-gray-25: #fafafa;
+}
+
+/* =========================================
+   Enhanced List View Components
+   ========================================= */
+
+.task-id-list {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-600);
+  background: var(--color-gray-100);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-gray-200);
+}
+
+.task-title-container {
+  line-height: var(--line-height-tight);
+}
+
+.task-title-container .fw-semibold {
+  color: var(--color-gray-900);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-1);
+}
+
+.due-date-list {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.due-date-list.due-overdue {
+  color: var(--color-error-700);
+  background: var(--color-error-50);
+  border: 1px solid var(--color-error-200);
+}
+
+.due-date-list.due-critical {
+  color: var(--color-warning-700);
+  background: var(--color-warning-50);
+  border: 1px solid var(--color-warning-200);
+}
+
+.due-date-list.due-warning {
+  color: var(--color-warning-700);
+  background: var(--color-warning-50);
+  border: 1px solid var(--color-warning-200);
+}
+
+.due-date-list.due-normal {
+  color: var(--color-gray-600);
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+}
+
+.assignee-info {
+  line-height: var(--line-height-tight);
+}
+
+.assignee-info .fw-medium {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-900);
+  margin-bottom: 2px;
+}
+
+.assignee-info small {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+}
+
+/* Enhanced Table Row Styling */
+.task-row {
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.task-row:hover {
+  background: var(--color-primary-25, #f8faff);
+  border-left-color: var(--color-primary-300);
+  transform: translateX(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.task-row.task-overdue {
+  border-left-color: var(--color-error-400);
+  background: var(--color-error-25, #fefefe);
+}
+
+.task-row.task-overdue:hover {
+  background: var(--color-error-50);
+  border-left-color: var(--color-error-500);
+}
+
+.task-row.task-high-priority {
+  border-left-color: var(--color-warning-400);
+}
+
+.task-row.task-high-priority:hover {
+  border-left-color: var(--color-warning-500);
+}
+
+/* Enhanced Badge Styling for List View */
+.badge.d-flex {
+  min-width: 90px;
+  justify-content: center;
+  gap: var(--space-1);
+}
+
+/* Button Group Enhancements */
+.btn-group .btn {
+  border-radius: var(--radius-sm);
+  margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+/* Table Enhancements */
+.table-responsive .table {
+  margin-bottom: 0;
+}
+
+.table th {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-700);
+  border-bottom: 2px solid var(--color-gray-200);
+  background: var(--color-gray-50);
+  padding: var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table td {
+  padding: var(--space-4);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+/* Color additions */
+:root {
+  --color-primary-25: #f8faff;
+  --color-error-25: #fffcfc;
+}
+
+/* =========================================
+   Dashboard Components
+   ========================================= */
+
+.task-row-dashboard {
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.task-row-dashboard:hover {
+  background: var(--color-primary-50);
+  border-left-color: var(--color-primary-400);
+  transform: translateX(3px);
+}
+
+.progress-summary {
+  padding: var(--space-2) 0;
+}
+
+.status-breakdown {
+  margin-top: var(--space-3);
+}
+
+.status-breakdown .border-bottom {
+  border-color: var(--color-gray-200) !important;
+}
+
+/* Dashboard Stats Cards */
+.stats-card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  text-align: center;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-600));
+  transform: scaleX(0);
+  transition: transform var(--transition-base);
+}
+
+.stats-card:hover::before {
+  transform: scaleX(1);
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stats-number {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-2);
+}
+
+.stats-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Quick Actions Enhancement */
+.quick-action-card {
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.quick-action-card:hover {
+  border-color: var(--color-primary-200);
+  box-shadow: var(--shadow-md);
+}
+
+/* Progress Bar Enhancements */
+.progress {
+  background: var(--color-gray-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-bar {
+  border-radius: var(--radius-full);
+  transition: width var(--transition-base);
+}
+
+/* Recent Tasks Table */
+.table-hover tbody tr:hover {
+  background-color: var(--color-primary-25);
+}
+
+/* Animation for count-up numbers */
+.count-up {
+  animation: countUp 0.8s ease-out;
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Dashboard */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: var(--space-4);
+  }
+  
+  .stats-number {
+    font-size: var(--font-size-2xl);
+  }
+}

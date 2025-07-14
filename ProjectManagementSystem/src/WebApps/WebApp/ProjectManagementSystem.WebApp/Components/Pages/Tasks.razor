@@ -4,6 +4,7 @@
 @using ProjectManagementSystem.Shared.Models.DTOs
 @using ProjectManagementSystem.Shared.Common.Models
 @using ProjectManagementSystem.Shared.Common.Constants
+@implements IDisposable
 
 @attribute [Authorize]
 @inject ITaskService TaskService
@@ -28,6 +29,70 @@
                 </div>
             </div>
 
+            <!-- Filter Controls -->
+            <div class="card mb-4">
+                <div class="card-body py-3">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" class="form-control" placeholder="Search tasks..." 
+                                       @bind="searchFilter" @bind:event="oninput" @onkeyup="OnSearchChanged" />
+                                @if (!string.IsNullOrEmpty(searchFilter))
+                                {
+                                    <button class="btn btn-outline-secondary" type="button" @onclick="ClearSearch">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" @bind="statusFilter" @bind:after="OnFilterChanged">
+                                <option value="">All Status</option>
+                                @foreach (var status in taskStatuses)
+                                {
+                                    <option value="@status">@GetStatusDisplayName(status)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" @bind="priorityFilter" @bind:after="OnFilterChanged">
+                                <option value="">All Priorities</option>
+                                @foreach (var priority in Priority.AllPriorities)
+                                {
+                                    <option value="@priority">@priority</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <select class="form-select" @bind="dueDateFilter" @bind:after="OnFilterChanged">
+                                <option value="">All Due Dates</option>
+                                <option value="overdue">Overdue</option>
+                                <option value="today">Due Today</option>
+                                <option value="thisweek">Due This Week</option>
+                                <option value="nodate">No Due Date</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            @if (HasActiveFilters())
+                            {
+                                <button class="btn btn-outline-secondary w-100" @onclick="ClearAllFilters">
+                                    <i class="bi bi-arrow-clockwise"></i> Clear Filters
+                                </button>
+                            }
+                            else
+                            {
+                                <div class="text-muted small text-center">
+                                    @GetFilteredTaskCount() tasks shown
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             @if (isLoading)
             {
                 <div class="text-center">
@@ -45,29 +110,52 @@
                         @foreach (var status in taskStatuses)
                         {
                             <div class="col-md-3 mb-4">
-                                <div class="card">
+                                <div class="card @GetKanbanColumnClass(status)">
                                     <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">@status</h6>
-                                        <span class="badge bg-secondary">@GetTaskCountByStatus(status)</span>
+                                        <h6 class="mb-0 d-flex align-items-center">
+                                            <i class="@GetStatusIcon(status) me-2" style="color: @GetStatusColor(status);"></i>
+                                            @GetStatusDisplayName(status)
+                                        </h6>
+                                        <span class="badge @GetStatusBadgeClass(status)">@GetFilteredTaskCountByStatus(status)</span>
                                     </div>
                                     <div class="card-body p-2" style="min-height: 400px;">
-                                        @foreach (var task in GetTasksByStatus(status))
+                                        @foreach (var task in GetFilteredTasksByStatus(status))
                                         {
-                                            <div class="card mb-2" style="cursor: pointer;" @onclick="() => ViewTask(task.Id)">
-                                                <div class="card-body p-3">
-                                                    <h6 class="card-title mb-2">@task.Title</h6>
+                                            <div class="task-card mb-3" @onclick="() => ViewTask(task.Id)">
+                                                <div class="task-card-header">
+                                                    <div class="task-id">@GetTaskId(task.Id)</div>
+                                                    <div class="task-priority-icon">
+                                                        <i class="@GetPriorityIcon(task.Priority)" style="color: @GetPriorityColor(task.Priority);"></i>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="task-card-body">
+                                                    <h6 class="task-title">@task.Title</h6>
                                                     @if (!string.IsNullOrEmpty(task.Description))
                                                     {
-                                                        <p class="card-text small text-muted mb-2">
-                                                            @(task.Description.Length > 100 ? task.Description.Substring(0, 100) + "..." : task.Description)
+                                                        <p class="task-description">
+                                                            @(task.Description.Length > 80 ? task.Description.Substring(0, 80) + "..." : task.Description)
                                                         </p>
                                                     }
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="badge @GetPriorityBadgeClass(task.Priority)">@task.Priority</span>
+                                                </div>
+
+                                                <div class="task-card-footer">
+                                                    <div class="task-metadata">
+                                                        <span class="priority-badge @GetPriorityBadgeClass(task.Priority)">
+                                                            @task.Priority
+                                                        </span>
                                                         @if (task.DueDate.HasValue)
                                                         {
-                                                            <small class="text-muted">Due: @task.DueDate.Value.ToString("MMM dd")</small>
+                                                            <span class="due-date @GetDueDateClass(task.DueDate.Value)">
+                                                                <i class="bi bi-calendar3"></i>
+                                                                @GetDueDateText(task.DueDate.Value)
+                                                            </span>
                                                         }
+                                                    </div>
+                                                    <div class="task-actions">
+                                                        <button class="btn-icon" @onclick:stopPropagation="true" @onclick="() => ViewTask(task.Id)" title="View details">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -87,59 +175,86 @@
                                 <table class="table table-hover">
                                     <thead>
                                         <tr>
+                                            <th style="width: 120px;">Task ID</th>
                                             <th>Title</th>
-                                            <th>Status</th>
-                                            <th>Priority</th>
-                                            <th>Due Date</th>
-                                            <th>Project</th>
-                                            <th>Actions</th>
+                                            <th style="width: 120px;">Status</th>
+                                            <th style="width: 100px;">Priority</th>
+                                            <th style="width: 140px;">Due Date</th>
+                                            <th style="width: 150px;">Assignee</th>
+                                            <th style="width: 120px;">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var task in tasks.Items)
+                                        @foreach (var task in GetFilteredTasks().OrderBy(GetTaskSortOrder))
                                         {
-                                            <tr>
+                                            <tr class="@GetTaskRowClass(task)">
                                                 <td>
-                                                    <div>
-                                                        <strong>@task.Title</strong>
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="@GetPriorityIcon(task.Priority) me-2" style="color: @GetPriorityColor(task.Priority); font-size: 0.8rem;"></i>
+                                                        <span class="task-id-list">@GetTaskId(task.Id)</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="task-title-container">
+                                                        <div class="fw-semibold">@task.Title</div>
                                                         @if (!string.IsNullOrEmpty(task.Description))
                                                         {
-                                                            <br />
-                                                            <small class="text-muted">@(task.Description.Length > 50 ? task.Description.Substring(0, 50) + "..." : task.Description)</small>
+                                                            <small class="text-muted d-block">@(task.Description.Length > 60 ? task.Description.Substring(0, 60) + "..." : task.Description)</small>
                                                         }
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <span class="badge @GetStatusBadgeClass(task.Status)">@task.Status</span>
+                                                    <span class="badge @GetStatusBadgeClass(task.Status) d-flex align-items-center">
+                                                        <i class="@GetStatusIcon(task.Status) me-1" style="font-size: 0.75rem;"></i>
+                                                        @GetStatusDisplayName(task.Status)
+                                                    </span>
                                                 </td>
                                                 <td>
-                                                    <span class="badge @GetPriorityBadgeClass(task.Priority)">@task.Priority</span>
+                                                    <span class="badge @GetPriorityBadgeClass(task.Priority)">
+                                                        @task.Priority
+                                                    </span>
                                                 </td>
                                                 <td>
                                                     @if (task.DueDate.HasValue)
                                                     {
-                                                        <span class="@(task.DueDate < DateTime.UtcNow ? "text-danger" : "")">
-                                                            @task.DueDate.Value.ToString("MMM dd, yyyy")
-                                                        </span>
+                                                        <div class="due-date-list @GetDueDateClass(task.DueDate.Value)">
+                                                            <i class="bi bi-calendar3 me-1"></i>
+                                                            <span>@GetDueDateText(task.DueDate.Value)</span>
+                                                        </div>
                                                     }
                                                     else
                                                     {
-                                                        <span class="text-muted">No due date</span>
+                                                        <span class="text-muted small">
+                                                            <i class="bi bi-calendar3 me-1"></i>
+                                                            No due date
+                                                        </span>
                                                     }
                                                 </td>
                                                 <td>
-                                                    <span class="text-muted">Project #@task.ProjectId</span>
+                                                    @if (task.AssignedTo != null)
+                                                    {
+                                                        <div class="assignee-info">
+                                                            <div class="fw-medium">@task.AssignedTo.Username</div>
+                                                            <small class="text-muted">@task.AssignedTo.Email</small>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted small">Unassigned</span>
+                                                    }
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => ViewTask(task.Id)">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => EditTask(task.Id)">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTask(task.Id)">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
+                                                    <div class="btn-group" role="group">
+                                                        <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewTask(task.Id)" title="View">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditTask(task.Id)" title="Edit">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteTask(task.Id)" title="Delete">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         }
@@ -199,6 +314,13 @@
     private bool isLoading = true;
     private bool isKanbanView = true;
     private readonly string[] taskStatuses = { ProjectManagementSystem.Shared.Common.Constants.TaskStatus.ToDo, ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InProgress, ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InReview, ProjectManagementSystem.Shared.Common.Constants.TaskStatus.Done };
+
+    // Filter properties
+    private string searchFilter = string.Empty;
+    private string statusFilter = string.Empty;
+    private string priorityFilter = string.Empty;
+    private string dueDateFilter = string.Empty;
+    private System.Threading.Timer? searchTimer;
 
     protected override async Task OnInitializedAsync()
     {
@@ -290,5 +412,261 @@
             Priority.Low => "bg-info",
             _ => "bg-secondary"
         };
+    }
+
+    // New methods for enhanced task card design
+    private string GetTaskId(Guid taskId)
+    {
+        // Generate a readable task ID from GUID
+        var shortId = taskId.ToString().Substring(0, 8).ToUpper();
+        return $"#T-{shortId}";
+    }
+
+    private string GetPriorityIcon(string priority)
+    {
+        return priority switch
+        {
+            Priority.High => "bi bi-exclamation-triangle-fill",
+            Priority.Medium => "bi bi-exclamation-circle-fill", 
+            Priority.Low => "bi bi-info-circle-fill",
+            _ => "bi bi-circle-fill"
+        };
+    }
+
+    private string GetPriorityColor(string priority)
+    {
+        return priority switch
+        {
+            Priority.High => "#dc3545",     // Red
+            Priority.Medium => "#fd7e14",   // Orange
+            Priority.Low => "#17a2b8",      // Blue
+            _ => "#6c757d"                  // Gray
+        };
+    }
+
+    private string GetDueDateClass(DateTime dueDate)
+    {
+        var now = DateTime.UtcNow;
+        var daysUntilDue = (dueDate - now).TotalDays;
+
+        return daysUntilDue switch
+        {
+            ( < 0) => "due-overdue",           // Past due
+            ( <= 1) => "due-critical",        // Due today or tomorrow
+            ( <= 3) => "due-warning",         // Due soon
+            _ => "due-normal"              // Normal
+        };
+    }
+
+    private string GetDueDateText(DateTime dueDate)
+    {
+        var now = DateTime.UtcNow;
+        var daysUntilDue = (dueDate - now).TotalDays;
+
+        return daysUntilDue switch
+        {
+            ( < 0) when Math.Abs(daysUntilDue) == 1 => "1 day overdue",
+            ( < 0) => $"{Math.Abs((int)daysUntilDue)} days overdue",
+            ( <= 1) when daysUntilDue < 0.5 => "Due today",
+            ( <= 1) => "Due tomorrow", 
+            ( <= 7) => $"Due in {(int)daysUntilDue} days",
+            _ => dueDate.ToString("MMM dd")
+        };
+    }
+
+    // Enhanced kanban column methods
+    private string GetKanbanColumnClass(string status)
+    {
+        return status switch
+        {
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.ToDo => "kanban-column-todo",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InProgress => "kanban-column-inprogress",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InReview => "kanban-column-inreview",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.Done => "kanban-column-done",
+            _ => "kanban-column-default"
+        };
+    }
+
+    private string GetStatusIcon(string status)
+    {
+        return status switch
+        {
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.ToDo => "bi bi-circle",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InProgress => "bi bi-arrow-clockwise",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InReview => "bi bi-eye",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.Done => "bi bi-check-circle-fill",
+            _ => "bi bi-question-circle"
+        };
+    }
+
+    private string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.ToDo => "#6c757d",        // Gray
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InProgress => "#fd7e14",  // Orange
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InReview => "#0d6efd",    // Blue
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.Done => "#198754",        // Green
+            _ => "#6c757d"
+        };
+    }
+
+    private string GetStatusDisplayName(string status)
+    {
+        return status switch
+        {
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.ToDo => "To Do",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InProgress => "In Progress",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InReview => "In Review",
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.Done => "Done",
+            _ => status
+        };
+    }
+
+    // Filter methods
+    private IEnumerable<TaskDto> GetFilteredTasks()
+    {
+        if (tasks?.Items == null) return Enumerable.Empty<TaskDto>();
+
+        var filteredTasks = tasks.Items.AsEnumerable();
+
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(searchFilter))
+        {
+            filteredTasks = filteredTasks.Where(t => 
+                t.Title.Contains(searchFilter, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(t.Description) && t.Description.Contains(searchFilter, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        // Apply status filter
+        if (!string.IsNullOrWhiteSpace(statusFilter))
+        {
+            filteredTasks = filteredTasks.Where(t => t.Status == statusFilter);
+        }
+
+        // Apply priority filter
+        if (!string.IsNullOrWhiteSpace(priorityFilter))
+        {
+            filteredTasks = filteredTasks.Where(t => t.Priority == priorityFilter);
+        }
+
+        // Apply due date filter
+        if (!string.IsNullOrWhiteSpace(dueDateFilter))
+        {
+            var now = DateTime.UtcNow;
+            filteredTasks = dueDateFilter switch
+            {
+                "overdue" => filteredTasks.Where(t => t.DueDate.HasValue && t.DueDate.Value < now && t.Status != ProjectManagementSystem.Shared.Common.Constants.TaskStatus.Done),
+                "today" => filteredTasks.Where(t => t.DueDate.HasValue && t.DueDate.Value.Date == now.Date),
+                "thisweek" => filteredTasks.Where(t => t.DueDate.HasValue && t.DueDate.Value <= now.AddDays(7)),
+                "nodate" => filteredTasks.Where(t => !t.DueDate.HasValue),
+                _ => filteredTasks
+            };
+        }
+
+        return filteredTasks;
+    }
+
+    private IEnumerable<TaskDto> GetFilteredTasksByStatus(string status)
+    {
+        return GetFilteredTasks().Where(t => t.Status == status);
+    }
+
+    private int GetFilteredTaskCountByStatus(string status)
+    {
+        return GetFilteredTasksByStatus(status).Count();
+    }
+
+    private int GetFilteredTaskCount()
+    {
+        return GetFilteredTasks().Count();
+    }
+
+    private bool HasActiveFilters()
+    {
+        return !string.IsNullOrWhiteSpace(searchFilter) ||
+               !string.IsNullOrWhiteSpace(statusFilter) ||
+               !string.IsNullOrWhiteSpace(priorityFilter) ||
+               !string.IsNullOrWhiteSpace(dueDateFilter);
+    }
+
+    private async Task OnFilterChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnSearchChanged()
+    {
+        searchTimer?.Dispose();
+        searchTimer = new System.Threading.Timer(async _ =>
+        {
+            await InvokeAsync(StateHasChanged);
+        }, null, 300, Timeout.Infinite);
+    }
+
+    private async Task ClearSearch()
+    {
+        searchFilter = string.Empty;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ClearAllFilters()
+    {
+        searchFilter = string.Empty;
+        statusFilter = string.Empty;
+        priorityFilter = string.Empty;
+        dueDateFilter = string.Empty;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // List view enhancements
+    private int GetTaskSortOrder(TaskDto task)
+    {
+        // Priority sorting: Critical, High, Medium, Low, then by due date
+        var priorityOrder = task.Priority switch
+        {
+            Priority.Critical => 1,
+            Priority.High => 2,
+            Priority.Medium => 3,
+            Priority.Low => 4,
+            _ => 5
+        };
+
+        // Status sorting: InProgress, InReview, ToDo, Done
+        var statusOrder = task.Status switch
+        {
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InProgress => 1,
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.InReview => 2,
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.ToDo => 3,
+            ProjectManagementSystem.Shared.Common.Constants.TaskStatus.Done => 4,
+            _ => 5
+        };
+
+        // Combine priority and status for sorting
+        return (statusOrder * 10) + priorityOrder;
+    }
+
+    private string GetTaskRowClass(TaskDto task)
+    {
+        var classes = new List<string> { "task-row" };
+
+        // Add overdue styling
+        if (task.DueDate.HasValue && task.DueDate < DateTime.UtcNow && task.Status != ProjectManagementSystem.Shared.Common.Constants.TaskStatus.Done)
+        {
+            classes.Add("task-overdue");
+        }
+
+        // Add priority styling
+        if (task.Priority == Priority.Critical || task.Priority == Priority.High)
+        {
+            classes.Add("task-high-priority");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    public void Dispose()
+    {
+        searchTimer?.Dispose();
     }
 }
