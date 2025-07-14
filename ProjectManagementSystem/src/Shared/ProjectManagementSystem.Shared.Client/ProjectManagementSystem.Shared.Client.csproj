@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.JSInterop" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.7" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../ProjectManagementSystem.Shared.Models/ProjectManagementSystem.Shared.Models.csproj" />
+  </ItemGroup>
+
+</Project>

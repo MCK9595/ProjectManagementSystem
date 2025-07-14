@@ -1,0 +1,35 @@
+@using ProjectManagementSystem.Shared.Client.Authentication
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IDisposable
+
+<CascadingValue Value="@currentAuthState">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
+
+    private AuthenticationState? currentAuthState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged += async (task) => await OnAuthenticationStateChanged(task);
+        await UpdateAuthenticationState();
+    }
+
+    private async Task OnAuthenticationStateChanged(Task<AuthenticationState> authStateTask)
+    {
+        await UpdateAuthenticationState();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateAuthenticationState()
+    {
+        currentAuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    }
+
+    public void Dispose()
+    {
+        // Note: Cannot unsubscribe lambda expressions
+    }
+}

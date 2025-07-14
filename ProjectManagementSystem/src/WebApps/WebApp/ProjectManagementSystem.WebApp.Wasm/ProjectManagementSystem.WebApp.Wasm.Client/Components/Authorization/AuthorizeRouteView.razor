@@ -1,0 +1,69 @@
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Routing
+@using ProjectManagementSystem.Shared.Client.Authentication
+@inherits ComponentBase
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@if (isAuthorized.HasValue)
+{
+    if (isAuthorized.Value)
+    {
+        <RouteView RouteData="@RouteData" DefaultLayout="@DefaultLayout" />
+    }
+    else
+    {
+        if (NotAuthorized != null)
+        {
+            @NotAuthorized(authenticationState!)
+        }
+        else
+        {
+            <p>Not authorized to access this resource.</p>
+        }
+    }
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    [Parameter] public RouteData RouteData { get; set; } = null!;
+    [Parameter] public Type? DefaultLayout { get; set; }
+    [Parameter] public RenderFragment<AuthenticationState>? NotAuthorized { get; set; }
+
+    private bool? isAuthorized;
+    private AuthenticationState? authenticationState;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        
+        // Check if the route requires authorization
+        var authorizeAttribute = RouteData.PageType.GetCustomAttributes(typeof(AuthorizeAttribute), true)
+                                                  .Cast<AuthorizeAttribute>()
+                                                  .FirstOrDefault();
+
+        if (authorizeAttribute != null)
+        {
+            isAuthorized = authenticationState.User.Identity?.IsAuthenticated == true;
+            
+            if (isAuthorized.Value && !string.IsNullOrEmpty(authorizeAttribute.Roles))
+            {
+                var roles = authorizeAttribute.Roles.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                   .Select(r => r.Trim());
+                isAuthorized = roles.Any(role => authenticationState.User.IsInRole(role));
+            }
+        }
+        else
+        {
+            isAuthorized = true; // No authorization required
+        }
+    }
+}
+
+public class AuthorizeAttribute : Attribute
+{
+    public string? Roles { get; set; }
+    public string? Policy { get; set; }
+}

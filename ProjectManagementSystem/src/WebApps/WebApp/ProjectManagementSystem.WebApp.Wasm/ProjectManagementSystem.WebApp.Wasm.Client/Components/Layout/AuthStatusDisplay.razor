@@ -1,0 +1,42 @@
+@using ProjectManagementSystem.Shared.Client.Services
+@inject ILogger<AuthStatusDisplay> Logger
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <span>Hello, @authContext.User.Identity?.Name!</span>
+        <button class="btn btn-link ms-3" @onclick="LogoutAsync">Logout</button>
+    </Authorized>
+    <NotAuthorized>
+        <a href="/login">Login</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation("=== AUTH STATUS DISPLAY INITIALIZED (WebAssembly) ===");
+        base.OnInitialized();
+    }
+
+    private async Task LogoutAsync()
+    {
+        try
+        {
+            Logger.LogInformation("User logout requested (WebAssembly)");
+            
+            // Logout through AuthService
+            await AuthService.LogoutAsync();
+            
+            Logger.LogInformation("User logged out successfully, redirecting to home");
+            
+            // Navigate to home page
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during logout (WebAssembly)");
+        }
+    }
+}

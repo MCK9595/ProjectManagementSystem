@@ -1,0 +1,337 @@
+@page "/projects/create"
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Models.Common
+@using ProjectManagementSystem.Shared.Client.Constants
+@using ProjectManagementSystem.Shared.Client.Authentication
+@using ProjectManagementSystem.WebApp.Wasm.Client.Constants
+
+@attribute [ProjectManagementSystem.WebApp.Wasm.Client.Components.Authentication.Authorize]
+@inject IProjectService ProjectService
+@inject IOrganizationService OrganizationService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILogger<ProjectCreate> Logger
+
+<PageTitle>Create Project - Project Management System</PageTitle>
+
+<div style="max-width: 100%; overflow: hidden;">
+    @if (!pageLoaded)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading page...</span>
+            </div>
+            <p class="mt-3">Initializing create project page...</p>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    @errorMessage
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 100%; overflow: hidden;">
+        <div>
+            <h2 class="mb-2" style="font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">Create New Project</h2>
+            <p class="text-muted mb-0" style="font-size: var(--font-size-sm);">Set up a new project to organize tasks and collaborate with your team</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary" @onclick="GoBack">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="card" style="width: 100%; max-width: 100%; overflow: hidden;">
+        <div class="card-body">
+            <EditForm Model="@createModel" OnValidSubmit="@HandleCreate">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success">
+                        @successMessage
+                    </div>
+                }
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Project Name <span class="text-danger">*</span></label>
+                            <InputText id="name" @bind-Value="createModel.Name" class="form-control" placeholder="Enter project name" />
+                            <ValidationMessage For="@(() => createModel.Name)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <InputTextArea id="description" @bind-Value="createModel.Description" class="form-control" rows="4" placeholder="Describe the project goals and objectives" />
+                            <ValidationMessage For="@(() => createModel.Description)" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="organization" class="form-label">Organization <span class="text-danger">*</span></label>
+                                    <InputSelect id="organization" @bind-Value="createModel.OrganizationId" class="form-select">
+                                        <option value="@Guid.Empty">Select an organization</option>
+                                        @if (organizations?.Items?.Any() == true)
+                                        {
+                                            @foreach (var org in organizations.Items)
+                                            {
+                                                <option value="@org.Id">@org.Name</option>
+                                            }
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => createModel.OrganizationId)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                    <InputSelect id="status" @bind-Value="createModel.Status" class="form-select">
+                                        @foreach (var status in ProjectStatus.AllStatuses)
+                                        {
+                                            <option value="@status">@status</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => createModel.Status)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
+                                    <InputSelect id="priority" @bind-Value="createModel.Priority" class="form-select">
+                                        @foreach (var priority in Priority.AllPriorities)
+                                        {
+                                            <option value="@priority">@priority</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => createModel.Priority)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="startDate" class="form-label">Start Date</label>
+                                    <InputDate id="startDate" @bind-Value="createModel.StartDate" class="form-control" />
+                                    <ValidationMessage For="@(() => createModel.StartDate)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="endDate" class="form-label">End Date</label>
+                                    <InputDate id="endDate" @bind-Value="createModel.EndDate" class="form-control" />
+                                    <ValidationMessage For="@(() => createModel.EndDate)" />
+                                    @if (createModel.StartDate.HasValue && createModel.EndDate.HasValue && createModel.EndDate < createModel.StartDate)
+                                    {
+                                        <div class="text-danger small">End date must be after start date</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0">Project Guidelines</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled small">
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Choose a clear, descriptive name</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Set realistic start and end dates</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Select appropriate priority level</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Start with "Planning" status</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="button" class="btn btn-outline-secondary me-md-2" @onclick="GoBack">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        Create Project
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+    }
+</div>
+
+@code {
+    [Parameter] [SupplyParameterFromQuery] public Guid? OrganizationId { get; set; }
+
+    private CreateProjectDto createModel = new()
+    {
+        Name = string.Empty,
+        Status = ProjectStatus.Planning,
+        Priority = Priority.Medium,
+        OrganizationId = Guid.Empty
+    };
+    private PagedResult<OrganizationDto>? organizations;
+    private bool isLoading = false;
+    private bool pageLoaded = false;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Logger.LogDebug("ProjectCreate page initializing");
+            await LoadOrganizations();
+            InitializeModel();
+            pageLoaded = true;
+            Logger.LogDebug("ProjectCreate page initialized successfully");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error initializing ProjectCreate page");
+            errorMessage = "Failed to initialize page. Please refresh and try again.";
+        }
+    }
+
+    private void InitializeModel()
+    {
+        createModel = new CreateProjectDto
+        {
+            Name = string.Empty,
+            Status = ProjectStatus.Planning,
+            Priority = Priority.Medium,
+            OrganizationId = OrganizationId ?? Guid.Empty
+        };
+    }
+
+    private async Task LoadOrganizations()
+    {
+        try
+        {
+            Logger.LogDebug("Loading organizations for project creation");
+            organizations = await OrganizationService.GetOrganizationsAsync(1, 100); // Load first 100 organizations
+            
+            if (organizations?.Items?.Any() == true)
+            {
+                Logger.LogDebug("Loaded {OrganizationCount} organizations successfully", organizations.Items.Count());
+            }
+            else
+            {
+                Logger.LogWarning("No organizations returned from service or empty result");
+                errorMessage = "No organizations available. Please create an organization first.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading organizations for project creation - Type: {ExceptionType}, Message: {Message}", 
+                ex.GetType().Name, ex.Message);
+            errorMessage = "Failed to load organizations. Please refresh the page.";
+        }
+    }
+
+    private async Task HandleCreate()
+    {
+        try
+        {
+            Logger.LogDebug("HandleCreate called for project creation");
+            isLoading = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+
+            // Validate dates
+            if (createModel.StartDate.HasValue && createModel.EndDate.HasValue && createModel.EndDate < createModel.StartDate)
+            {
+                Logger.LogWarning("Invalid date range: StartDate={StartDate}, EndDate={EndDate}", createModel.StartDate, createModel.EndDate);
+                errorMessage = "End date must be after start date.";
+                return;
+            }
+
+            // Validate organization selection
+            if (createModel.OrganizationId == Guid.Empty)
+            {
+                Logger.LogWarning("Invalid organization selection: OrganizationId={OrganizationId}", createModel.OrganizationId);
+                errorMessage = "Please select an organization.";
+                return;
+            }
+
+            Logger.LogDebug("Calling ProjectService.CreateProjectAsync with model: Name={Name}, OrganizationId={OrganizationId}, Status={Status}, Priority={Priority}", 
+                createModel.Name, createModel.OrganizationId, createModel.Status, createModel.Priority);
+
+            var result = await ProjectService.CreateProjectAsync(createModel);
+            
+            if (result != null)
+            {
+                Logger.LogDebug("Project created successfully with ID: {ProjectId}", result.Id);
+                successMessage = "Project created successfully!";
+                
+                // Navigate to the new project after a short delay
+                await Task.Delay(1500);
+                Navigation.NavigateTo($"/projects/{result.Id}");
+            }
+            else
+            {
+                Logger.LogWarning("CreateProjectAsync returned null result");
+                errorMessage = "Failed to create project. Please try again.";
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            // ビジネスルールエラーの場合
+            errorMessage = ex.Message;
+            Logger.LogWarning("Project creation failed due to business rule: {ErrorMessage}", ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            // バリデーションエラーの場合
+            errorMessage = $"Validation error: {ex.Message}";
+            Logger.LogWarning("Project creation failed due to validation error: {ValidationError}", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Exception in HandleCreate for project creation - Type: {ExceptionType}, Message: {Message}", 
+                ex.GetType().Name, ex.Message);
+            errorMessage = "An error occurred while creating the project. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+            Logger.LogDebug("HandleCreate completed, isLoading set to false");
+        }
+    }
+
+    private void GoBack()
+    {
+        if (OrganizationId.HasValue)
+        {
+            Navigation.NavigateTo($"/organizations/{OrganizationId}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/projects");
+        }
+    }
+}

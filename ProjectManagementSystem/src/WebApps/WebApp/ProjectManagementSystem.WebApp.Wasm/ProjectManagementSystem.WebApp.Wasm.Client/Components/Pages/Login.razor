@@ -1,0 +1,145 @@
+@page "/login"
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Client.Authentication
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.Shared.Client.Models
+@using System.Net.Http.Json
+@using System.Text.Json
+
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILogger<Login> Logger
+
+<PageTitle>Login - Project Management System</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="text-center">Login</h4>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@loginModel" OnValidSubmit="@HandleLogin">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @errorMessage
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(successMessage))
+                        {
+                            <div class="alert alert-success">
+                                @successMessage
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username or Email</label>
+                            <InputText id="username" @bind-Value="loginModel.Username" class="form-control" placeholder="Enter username or email" disabled="@isLoading" />
+                            <ValidationMessage For="@(() => loginModel.Username)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <InputText id="password" @bind-Value="loginModel.Password" type="password" class="form-control" placeholder="Enter password" disabled="@isLoading" />
+                            <ValidationMessage For="@(() => loginModel.Password)" />
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                Login
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginDto loginModel = new();
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("Login page initialized for WebAssembly");
+        
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                Logger.LogInformation("User already authenticated, redirecting to home");
+                Navigation.NavigateTo("/");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error checking authentication state on login page");
+        }
+    }
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            Logger.LogInformation("Attempting login for user: {Username}", loginModel.Username);
+            
+            isLoading = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+            StateHasChanged();
+
+            // Use the AuthService instead of direct HTTP calls
+            var loginResult = await AuthService.LoginAsync(loginModel);
+            
+            if (loginResult != null && !string.IsNullOrEmpty(loginResult.Token))
+            {
+                Logger.LogInformation("Login successful for user: {Username}", loginResult.User?.Username);
+                
+                // Store the token using the authentication state provider
+                if (AuthStateProvider is WebAssemblyAuthenticationStateProvider wasmAuthProvider)
+                {
+                    await wasmAuthProvider.MarkUserAsAuthenticatedAsync(loginResult.Token);
+                }
+                
+                successMessage = "Login successful! Redirecting...";
+                StateHasChanged();
+                
+                // Wait a moment for the UI to update, then navigate
+                await Task.Delay(1000);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                // Get error message from AuthService
+                errorMessage = AuthService.GetLastError() ?? "Login failed. Please try again.";
+                Logger.LogWarning("Login failed: {ErrorMessage}", errorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Exception during login for user: {Username}", loginModel.Username);
+            errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

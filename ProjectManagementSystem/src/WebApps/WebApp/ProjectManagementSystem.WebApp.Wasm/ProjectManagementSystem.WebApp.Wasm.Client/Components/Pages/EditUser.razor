@@ -1,0 +1,376 @@
+@page "/users/{id:int}/edit"
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Client.Constants
+@using ProjectManagementSystem.Shared.Client.Authentication
+
+@attribute [ProjectManagementSystem.WebApp.Wasm.Client.Components.Authentication.Authorize]
+@inject IUserService UserService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSInterop
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILogger<EditUser> Logger
+
+<PageTitle>Edit User - Project Management System</PageTitle>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Edit User</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a href="/users" class="text-decoration-none">Users</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+                        </ol>
+                    </nav>
+                </div>
+                <button class="btn btn-outline-secondary" @onclick="GoBack">
+                    <i class="bi bi-arrow-left"></i> Back to Users
+                </button>
+            </div>
+
+            <!-- Check if user is authenticated and SystemAdmin -->
+            @if (!isAuthenticated)
+            {
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Please Login:</strong> You need to be logged in to access this page.
+                </div>
+            }
+            else if (!isSystemAdmin)
+            {
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Access Denied:</strong> You don't have permission to edit users.
+                </div>
+            }
+            else if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading user information...</p>
+                </div>
+            }
+            else if (currentUser == null)
+            {
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>User Not Found:</strong> The requested user could not be found.
+                    <div class="mt-2">
+                        <button class="btn btn-primary" @onclick="GoBack">
+                            <i class="bi bi-arrow-left"></i> Back to Users
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- User Edit Form -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="bi bi-person-gear"></i> Edit User: @currentUser.Username
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <EditForm Model="@updateUserRequest" OnValidSubmit="@HandleUpdateUser" FormName="EditUserForm">
+                                    <DataAnnotationsValidator />
+                                    
+                                    @if (!string.IsNullOrEmpty(errorMessage))
+                                    {
+                                        <div class="alert alert-danger">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            @errorMessage
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(successMessage))
+                                    {
+                                        <div class="alert alert-success">
+                                            <i class="bi bi-check-circle"></i>
+                                            @successMessage
+                                        </div>
+                                    }
+
+                                    <!-- Display readonly information -->
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Username</label>
+                                            <input type="text" class="form-control" value="@currentUser.Username" readonly />
+                                            <div class="form-text">Username cannot be changed.</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Created</label>
+                                            <input type="text" class="form-control" value="@currentUser.CreatedAt.ToString("MMM dd, yyyy")" readonly />
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- First Name -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="firstName" class="form-label">First Name</label>
+                                            <InputText id="firstName" @bind-Value="updateUserRequest.FirstName" 
+                                                      class="form-control" placeholder="Enter first name" />
+                                            <ValidationMessage For="@(() => updateUserRequest.FirstName)" class="text-danger" />
+                                        </div>
+
+                                        <!-- Last Name -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="lastName" class="form-label">Last Name</label>
+                                            <InputText id="lastName" @bind-Value="updateUserRequest.LastName" 
+                                                      class="form-control" placeholder="Enter last name" />
+                                            <ValidationMessage For="@(() => updateUserRequest.LastName)" class="text-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- Email -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="email" class="form-label">Email Address</label>
+                                            <InputText id="email" @bind-Value="updateUserRequest.Email" 
+                                                      class="form-control" placeholder="Enter email address" type="email" />
+                                            <ValidationMessage For="@(() => updateUserRequest.Email)" class="text-danger" />
+                                        </div>
+
+                                        <!-- Role -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="role" class="form-label">Role</label>
+                                            <InputSelect id="role" @bind-Value="updateUserRequest.Role" class="form-select">
+                                                <option value="">Select a role...</option>
+                                                @if (availableRoles != null)
+                                                {
+                                                    @foreach (var role in availableRoles)
+                                                    {
+                                                        <option value="@role">@role</option>
+                                                    }
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="@(() => updateUserRequest.Role)" class="text-danger" />
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- Status -->
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Status</label>
+                                            <div class="form-check form-switch mt-2">
+                                                <InputCheckbox id="isActive" @bind-Value="isActiveLocal" class="form-check-input" />
+                                                <label class="form-check-label" for="isActive">
+                                                    User is active
+                                                </label>
+                                            </div>
+                                            <div class="form-text">Active users can log in to the system.</div>
+                                        </div>
+
+                                        <!-- Last Login -->
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Last Login</label>
+                                            <input type="text" class="form-control" 
+                                                   value="@(currentUser.LastLoginAt?.ToString("MMM dd, yyyy HH:mm") ?? "Never")" readonly />
+                                        </div>
+                                    </div>
+
+                                    <!-- Self-Edit Warning -->
+                                    @if (isSelfEdit)
+                                    {
+                                        <div class="alert alert-warning">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            <strong>Warning:</strong> You are editing your own account. Be careful when changing your role or status.
+                                        </div>
+                                    }
+
+                                    <!-- Form Actions -->
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-outline-secondary" @onclick="GoBack">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                        </button>
+                                        
+                                        <div>
+                                            <button type="button" class="btn btn-outline-info me-2" @onclick="ResetForm">
+                                                <i class="bi bi-arrow-clockwise"></i> Reset
+                                            </button>
+                                            <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                                                @if (isSubmitting)
+                                                {
+                                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                }
+                                                <i class="bi bi-check-circle"></i> Update User
+                                            </button>
+                                        </div>
+                                    </div>
+                                </EditForm>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    
+    [SupplyParameterFromForm]
+    private UpdateUserRequest updateUserRequest { get; set; } = new();
+    private UserDto? currentUser;
+    private List<string>? availableRoles;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isSubmitting = false;
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private bool isSystemAdmin = false;
+    private bool isSelfEdit = false;
+    private int currentUserId = 0;
+    private bool isActiveLocal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckUserPermissions();
+        if (isAuthenticated && isSystemAdmin)
+        {
+            await LoadUser();
+            await LoadAvailableRoles();
+        }
+        else
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CheckUserPermissions()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        
+        if (isAuthenticated)
+        {
+            var userRole = authState.User.FindFirst("Role")?.Value 
+                        ?? authState.User.FindFirst("role")?.Value
+                        ?? authState.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            isSystemAdmin = userRole == Roles.SystemAdmin;
+            
+            var userIdClaim = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out currentUserId))
+            {
+                isSelfEdit = currentUserId == Id;
+            }
+        }
+    }
+
+    private async Task LoadUser()
+    {
+        try
+        {
+            isLoading = true;
+            currentUser = await UserService.GetUserByIdAsync(Id);
+            
+            if (currentUser != null)
+            {
+                // Populate form with current user data
+                updateUserRequest.FirstName = currentUser.FirstName;
+                updateUserRequest.LastName = currentUser.LastName;
+                updateUserRequest.Email = currentUser.Email;
+                updateUserRequest.Role = currentUser.Role;
+                updateUserRequest.IsActive = currentUser.IsActive;
+                isActiveLocal = currentUser.IsActive; // Sync local bool
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading user: {ex.Message}";
+            Logger.LogError(ex, "Error loading user");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadAvailableRoles()
+    {
+        try
+        {
+            availableRoles = await UserService.GetAvailableRolesAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading roles");
+        }
+    }
+
+    private async Task HandleUpdateUser()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+            StateHasChanged();
+
+            // Sync the local bool with the request
+            updateUserRequest.IsActive = isActiveLocal;
+
+            var result = await UserService.UpdateUserAsync(Id, updateUserRequest);
+            if (result != null)
+            {
+                currentUser = result; // Update the current user data
+                successMessage = $"User '{result.Username}' has been updated successfully!";
+                
+                // Auto-hide success message after a few seconds
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(3000);
+                    successMessage = string.Empty;
+                    await InvokeAsync(StateHasChanged);
+                });
+            }
+            else
+            {
+                errorMessage = "Failed to update user. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An unexpected error occurred: {ex.Message}";
+            Logger.LogError(ex, "Error updating user");
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ResetForm()
+    {
+        if (currentUser != null)
+        {
+            updateUserRequest.FirstName = currentUser.FirstName;
+            updateUserRequest.LastName = currentUser.LastName;
+            updateUserRequest.Email = currentUser.Email;
+            updateUserRequest.Role = currentUser.Role;
+            updateUserRequest.IsActive = currentUser.IsActive;
+            isActiveLocal = currentUser.IsActive; // Sync local bool
+            
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+            StateHasChanged();
+        }
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/users", forceLoad: true);
+    }
+}
