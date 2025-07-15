@@ -58,23 +58,46 @@ if (builder.Environment.IsDevelopment())
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-// Add CORS - fix.mdの提案に従い動的設定を適用
-var allowedOrigin = builder.Configuration["AllowedOrigins"];
+// Add CORS - サービスディスカバリーベースの動的設定（環境分岐なし）
+var allowedOrigins = new List<string>();
+
+// サービスディスカバリーで取得されるWebApp URLを追加
+var azureWebAppUrl = builder.Configuration["AZURE_WEBAPP_URL"];
+var localWebAppUrl = builder.Configuration["LOCAL_WEBAPP_URL"];
+
+if (!string.IsNullOrEmpty(azureWebAppUrl))
+{
+    allowedOrigins.Add(azureWebAppUrl);
+}
+
+if (!string.IsNullOrEmpty(localWebAppUrl))
+{
+    allowedOrigins.Add(localWebAppUrl);
+}
+
+// 追加の設定されたオリジンがある場合
+var additionalOrigins = builder.Configuration["ADDITIONAL_ORIGINS"];
+if (!string.IsNullOrEmpty(additionalOrigins))
+{
+    allowedOrigins.AddRange(additionalOrigins.Split(',', ';')
+        .Select(origin => origin.Trim())
+        .Where(origin => !string.IsNullOrEmpty(origin)));
+}
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        if (!string.IsNullOrEmpty(allowedOrigin))
+        if (allowedOrigins.Any())
         {
-            policy.WithOrigins(allowedOrigin)
+            policy.WithOrigins(allowedOrigins.ToArray())
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials(); // JWT認証のためにCredentialsを許可
         }
         else
         {
-            // フォールバック: 開発環境用
+            // フォールバック: すべての環境で動作するよう設定
             policy.AllowAnyOrigin()
                   .AllowAnyMethod()
                   .AllowAnyHeader();

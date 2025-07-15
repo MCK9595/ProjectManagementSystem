@@ -31,10 +31,22 @@ app.UseHttpsRedirection();
 // API endpoint to provide configuration to WebAssembly client
 app.MapGet("/api/config", (IConfiguration configuration) =>
 {
-    var apiGatewayUrl = configuration["Services:api-gateway:http:0"] ?? 
-                       configuration.GetConnectionString("api-gateway") ?? 
-                       configuration["ApiGateway:BaseUrl"] ?? 
-                       "https://localhost:5001";
+    var apiGatewayUrl = 
+        // Azure Container Apps 環境での設定を優先
+        configuration["AZURE_API_GATEWAY_URL"] ??
+        // Aspire サービスディスカバリーの設定
+        configuration["Services:api-gateway:https:0"] ??
+        configuration["Services:api-gateway:http:0"] ?? 
+        configuration.GetConnectionString("api-gateway") ?? 
+        configuration["ApiGateway:BaseUrl"] ?? 
+        // 開発環境用フォールバック
+        (app.Environment.IsDevelopment() ? "https://localhost:5001" : null);
+    
+    // 本番環境では明示的な設定が必要
+    if (string.IsNullOrEmpty(apiGatewayUrl) && !app.Environment.IsDevelopment())
+    {
+        throw new InvalidOperationException("API Gateway URL is not configured for production environment");
+    }
                        
     return new { ApiGatewayBaseUrl = apiGatewayUrl };
 });

@@ -13,7 +13,13 @@ using var configHttpClient = new HttpClient { BaseAddress = new Uri(builder.Host
 try
 {
     var configResponse = await configHttpClient.GetFromJsonAsync<ProjectManagementSystem.WebApp.Wasm.Client.ConfigResponse>("/api/config");
-    var apiGatewayBaseUrl = configResponse?.ApiGatewayBaseUrl ?? "https://localhost:5001";
+    var apiGatewayBaseUrl = configResponse?.ApiGatewayBaseUrl;
+    
+    // Validate the API Gateway URL
+    if (string.IsNullOrEmpty(apiGatewayBaseUrl))
+    {
+        throw new InvalidOperationException("API Gateway URL is not configured");
+    }
     
     // Store in configuration for later use
     builder.Configuration["ApiGateway:BaseUrl"] = apiGatewayBaseUrl;
@@ -25,11 +31,19 @@ try
         client.Timeout = TimeSpan.FromSeconds(30);
     })
     .AddHttpMessageHandler<TokenHandler>();
+    
+    Console.WriteLine($"API Gateway configured: {apiGatewayBaseUrl}");
 }
 catch (Exception ex)
 {
-    // Fallback to default configuration if server config fails
-    var fallbackUrl = builder.Configuration["ApiGateway:BaseUrl"] ?? "https://localhost:5001";
+    // Fallback to configuration-based setup
+    var fallbackUrl = 
+        // Azure Container Apps 環境変数
+        builder.Configuration["AZURE_API_GATEWAY_URL"] ??
+        // 標準設定
+        builder.Configuration["ApiGateway:BaseUrl"] ??
+        // 開発環境用フォールバック
+        "https://localhost:5001";
     
     builder.Services.AddHttpClient("ApiGateway", client =>
     {
@@ -38,7 +52,7 @@ catch (Exception ex)
     })
     .AddHttpMessageHandler<TokenHandler>();
     
-    Console.WriteLine($"Failed to get config from server, using fallback: {ex.Message}");
+    Console.WriteLine($"Failed to get config from server, using fallback: {fallbackUrl}. Error: {ex.Message}");
 }
 
 // Register default HttpClient (for backward compatibility)

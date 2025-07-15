@@ -51,22 +51,48 @@ var taskService = builder.AddProject<Projects.ProjectManagementSystem_TaskServic
     .WaitFor(projectService);
 
 
+// 外部パラメータの定義
+var jwtSecretKey = builder.AddParameter("jwt-secret-key", secret: true);
+
 // API Gateway - カスタム実装を使用
 var apiGateway = builder.AddProject<Projects.ProjectManagementSystem_ApiServiceGateway>("api-gateway")
     .WithReference(identityService)
     .WithReference(organizationService)
     .WithReference(projectService)
     .WithReference(taskService)
+    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey)
     .WaitFor(identityService)
     .WaitFor(organizationService)
     .WaitFor(projectService)
     .WaitFor(taskService);
 
 // WebApp.Wasm - API Gatewayの起動を待機
-builder.AddProject<Projects.ProjectManagementSystem_WebApp_Wasm>("webapp-wasm")
+var webApp = builder.AddProject<Projects.ProjectManagementSystem_WebApp_Wasm>("webapp-wasm")
     .WithEnvironment("Services__api-gateway__http__0", apiGateway.GetEndpoint("http"))
+    .WithEnvironment("Services__api-gateway__https__0", apiGateway.GetEndpoint("https"))
     .WithExternalHttpEndpoints()
     .WaitFor(apiGateway);
+
+// サービスディスカバリーベースの統一設定（環境分岐なし）
+apiGateway
+    .WithEnvironment("AZURE_WEBAPP_URL", webApp.GetEndpoint("https"))
+    .WithEnvironment("LOCAL_WEBAPP_URL", webApp.GetEndpoint("http"));
+
+webApp
+    .WithEnvironment("AZURE_API_GATEWAY_URL", apiGateway.GetEndpoint("https"));
+
+// 各サービスの JWT 設定（統一）
+identityService
+    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey);
+
+organizationService
+    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey);
+
+projectService
+    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey);
+
+taskService
+    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey);
 
 
 builder.Build().Run();
