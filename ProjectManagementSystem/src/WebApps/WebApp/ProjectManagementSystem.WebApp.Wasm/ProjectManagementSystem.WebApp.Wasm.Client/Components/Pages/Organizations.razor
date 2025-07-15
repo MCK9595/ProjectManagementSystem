@@ -88,25 +88,30 @@
                         </div>
 
                         <!-- Pagination -->
-                        @if (organizations.TotalCount > organizations.PageSize)
+                        @if (organizations.TotalPages > 1)
                         {
                             <nav aria-label="Organizations pagination">
                                 <ul class="pagination justify-content-center">
                                     <li class="page-item @(organizations.PageNumber <= 1 ? "disabled" : "")">
-                                        <button class="page-link" @onclick="() => LoadPage(organizations.PageNumber - 1)" disabled="@(organizations.PageNumber <= 1)">
+                                        <button class="page-link" @onclick="@(async () => await HandlePageClick(organizations.PageNumber - 1))" disabled="@(organizations.PageNumber <= 1)">
                                             Previous
                                         </button>
                                     </li>
                                     
-                                    @for (int i = Math.Max(1, organizations.PageNumber - 2); i <= Math.Min(organizations.TotalPages, organizations.PageNumber + 2); i++)
+                                    @{
+                                        var startPage = Math.Max(1, organizations.PageNumber - 2);
+                                        var endPage = Math.Min(organizations.TotalPages, organizations.PageNumber + 2);
+                                    }
+                                    @for (int i = startPage; i <= endPage; i++)
                                     {
-                                        <li class="page-item @(i == organizations.PageNumber ? "active" : "")">
-                                            <button class="page-link" @onclick="() => LoadPage(i)">@i</button>
+                                        var pageNum = i;
+                                        <li class="page-item @(pageNum == organizations.PageNumber ? "active" : "")" @key="pageNum">
+                                            <button class="page-link" @onclick="@(async () => await HandlePageClick(pageNum))" disabled="@(pageNum > organizations.TotalPages)">@pageNum</button>
                                         </li>
                                     }
                                     
                                     <li class="page-item @(organizations.PageNumber >= organizations.TotalPages ? "disabled" : "")">
-                                        <button class="page-link" @onclick="() => LoadPage(organizations.PageNumber + 1)" disabled="@(organizations.PageNumber >= organizations.TotalPages)">
+                                        <button class="page-link" @onclick="@(async () => await HandlePageClick(organizations.PageNumber + 1))" disabled="@(organizations.PageNumber >= organizations.TotalPages)">
                                             Next
                                         </button>
                                     </li>
@@ -138,6 +143,8 @@
     private bool isLoading = true;
     private string? errorMessage;
     private bool hasError = false;
+    private int currentPage = 1;
+    private int currentPageSize = 10;
 
     protected override async Task OnInitializedAsync()
     {
@@ -154,17 +161,21 @@
         try
         {
             Logger.LogInformation("Loading organizations, page {PageNumber}", pageNumber);
-            organizations = await OrganizationService.GetOrganizationsAsync(pageNumber, 10);
+            currentPage = pageNumber;
+            var result = await OrganizationService.GetOrganizationsAsync(pageNumber, currentPageSize);
             
-            if (organizations == null)
+            if (result == null)
             {
                 hasError = true;
                 errorMessage = "Failed to load organizations. Please check your connection and try again.";
                 Logger.LogWarning("Organizations service returned null result");
+                organizations = null;
             }
             else
             {
-                Logger.LogInformation("Successfully loaded {Count} organizations", organizations.Items?.Count() ?? 0);
+                organizations = result;
+                Logger.LogInformation("Successfully loaded {Count} organizations. TotalCount: {TotalCount}, TotalPages: {TotalPages}, CurrentPage: {CurrentPage}", 
+                    organizations.Items?.Count() ?? 0, organizations.TotalCount, organizations.TotalPages, organizations.PageNumber);
             }
         }
         catch (Exception ex)
@@ -172,16 +183,36 @@
             hasError = true;
             errorMessage = $"An error occurred while loading organizations: {ex.Message}";
             Logger.LogError(ex, "Error loading organizations");
+            organizations = null;
         }
         finally
         {
             isLoading = false;
+            StateHasChanged();
         }
     }
 
     private async Task LoadPage(int pageNumber)
     {
+        if (organizations != null && pageNumber > organizations.TotalPages)
+        {
+            Logger.LogWarning("Attempted to load invalid page {PageNumber}. TotalPages: {TotalPages}", pageNumber, organizations.TotalPages);
+            return;
+        }
+        
+        if (pageNumber < 1)
+        {
+            Logger.LogWarning("Attempted to load invalid page {PageNumber}. Minimum page is 1", pageNumber);
+            return;
+        }
+        
         await LoadOrganizations(pageNumber);
+    }
+
+    private async Task HandlePageClick(int pageNumber)
+    {
+        Logger.LogInformation("Page click requested for page {PageNumber}", pageNumber);
+        await LoadPage(pageNumber);
     }
 
     private void NavigateToCreate()
@@ -210,7 +241,7 @@
                 if (success)
                 {
                     Logger.LogInformation("Successfully deleted organization {OrganizationId}", id);
-                    await LoadOrganizations(organizations?.PageNumber ?? 1);
+                    await LoadOrganizations(currentPage);
                 }
                 else
                 {

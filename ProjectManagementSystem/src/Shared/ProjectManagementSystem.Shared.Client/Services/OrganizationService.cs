@@ -40,7 +40,7 @@ public class OrganizationService : IOrganizationService
 
     public async Task<PagedResult<OrganizationDto>?> GetOrganizationsAsync(int pageNumber = 1, int pageSize = 10)
     {
-        var requestUrl = $"/api/organizations?pageNumber={pageNumber}&pageSize={pageSize}";
+        var requestUrl = $"/api/organizations?page={pageNumber}&pageSize={pageSize}";
         _logger.LogDebug("GetOrganizationsAsync called - requesting: {RequestUrl}", requestUrl);
         
         try
