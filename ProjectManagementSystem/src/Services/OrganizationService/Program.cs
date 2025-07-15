@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ProjectManagementSystem.OrganizationService.Data;
 using ProjectManagementSystem.OrganizationService.Services;
+using ProjectManagementSystem.Shared.Common.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,11 +16,16 @@ builder.AddSqlServerDbContext<OrganizationDbContext>("organizationdb");
 // Add services to the container
 builder.Services.AddControllers();
 
-// Add JWT Authentication (should match IdentityService configuration)
-var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? "ProjectManagementSystem-Super-Secret-Key-For-JWT-Token-Generation-2025";
-var issuer = jwtSettings["Issuer"] ?? "ProjectManagementSystem.IdentityService";
-var audience = jwtSettings["Audience"] ?? "ProjectManagementSystem.Users";
+// Configure JWT Settings (consistent with IdentityService)
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
+
+// Validate JWT settings at startup
+var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>();
+if (jwtSettings == null)
+{
+    throw new InvalidOperationException($"Missing {JwtSettings.SectionName} configuration section");
+}
+jwtSettings.Validate();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -30,9 +36,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = issuer,
-            ValidAudience = audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
             ClockSkew = TimeSpan.Zero
         };
     });

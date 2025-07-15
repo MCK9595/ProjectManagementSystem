@@ -60,7 +60,7 @@ var apiGateway = builder.AddProject<Projects.ProjectManagementSystem_ApiServiceG
     .WithReference(organizationService)
     .WithReference(projectService)
     .WithReference(taskService)
-    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey)
+    .WithEnvironment("JwtSettings__SecretKey", jwtSecretKey)
     .WithExternalHttpEndpoints()
     .WaitFor(identityService)
     .WaitFor(organizationService)
@@ -84,16 +84,16 @@ webApp
 
 // 各サービスの JWT 設定（統一）
 identityService
-    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey);
+    .WithEnvironment("JwtSettings__SecretKey", jwtSecretKey);
 
 organizationService
-    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey);
+    .WithEnvironment("JwtSettings__SecretKey", jwtSecretKey);
 
 projectService
-    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey);
+    .WithEnvironment("JwtSettings__SecretKey", jwtSecretKey);
 
 taskService
-    .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey);
+    .WithEnvironment("JwtSettings__SecretKey", jwtSecretKey);
 
 
 builder.Build().Run();
