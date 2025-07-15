@@ -1,0 +1,118 @@
+@page "/Error"
+@inject NavigationManager Navigation
+@inject ILogger<Error> Logger
+
+<PageTitle>Error - Project Management System</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center">
+                <!-- Error Icon -->
+                <div class="mb-4">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 4rem; color: #dc3545;"></i>
+                </div>
+                
+                <!-- Error Title -->
+                <h1 class="text-danger mb-3">Oops! Something went wrong</h1>
+                <h2 class="text-muted mb-4">We're sorry, but an unexpected error occurred while processing your request.</h2>
+                
+                <!-- Error Details Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-start">
+                            <i class="bi bi-info-circle text-info me-2"></i>
+                            What happened?
+                        </h5>
+                        <p class="card-text text-start">
+                            The application encountered an unexpected error. This could be due to a temporary issue with our servers 
+                            or a problem with your request. Our team has been automatically notified of this issue.
+                        </p>
+                        
+                        @if (ShowRequestId)
+                        {
+                            <div class="mt-3 p-3 bg-light border-start border-info border-4">
+                                <h6 class="text-start mb-2">Technical Information:</h6>
+                                <p class="text-start mb-0">
+                                    <strong>Request ID:</strong> <code>@RequestId</code><br>
+                                    <strong>Timestamp:</strong> @DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC")
+                                </p>
+                            </div>
+                        }
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <button class="btn btn-primary" @onclick="GoHome">
+                        <i class="bi bi-house me-1"></i>
+                        Go to Home
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="GoBack">
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Go Back
+                    </button>
+                    <button class="btn btn-outline-info" @onclick="RefreshPage">
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        Try Again
+                    </button>
+                </div>
+                
+                <!-- Help Section -->
+                <div class="mt-5 p-4 bg-light rounded">
+                    <h5 class="text-start mb-3">
+                        <i class="bi bi-question-circle text-primary me-2"></i>
+                        Need Help?
+                    </h5>
+                    <div class="row text-start">
+                        <div class="col-md-6">
+                            <h6>If this problem persists:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-check text-success me-2"></i>Try refreshing the page</li>
+                                <li><i class="bi bi-check text-success me-2"></i>Clear your browser cache</li>
+                                <li><i class="bi bi-check text-success me-2"></i>Check your internet connection</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Still having issues?</h6>
+                            <p class="mb-0">
+                                Contact our support team with the Request ID above for faster assistance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? RequestId { get; set; }
+    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+    protected override void OnInitialized()
+    {
+        Logger.LogInformation("Error component initialized (WebAssembly)");
+        
+        // Generate a request ID for WASM client (since we don't have HttpContext)
+        RequestId = Guid.NewGuid().ToString("N")[..8].ToUpperInvariant();
+        
+        // Log the error page access
+        Logger.LogWarning("User accessed error page with Request ID: {RequestId}", RequestId);
+    }
+
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+    
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/", replace: true);
+    }
+    
+    private void RefreshPage()
+    {
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+}

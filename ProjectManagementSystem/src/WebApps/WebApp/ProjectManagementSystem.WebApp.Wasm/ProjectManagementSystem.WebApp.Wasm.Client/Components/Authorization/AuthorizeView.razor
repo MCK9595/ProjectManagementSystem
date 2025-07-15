@@ -1,0 +1,77 @@
+@using Microsoft.AspNetCore.Components
+@using ProjectManagementSystem.Shared.Client.Authentication
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IDisposable
+
+@if (isAuthorized)
+{
+    if (Authorized != null)
+    {
+        @Authorized(context)
+    }
+    else
+    {
+        @ChildContent
+    }
+}
+else
+{
+    if (NotAuthorized != null)
+    {
+        @NotAuthorized(context)
+    }
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment<AuthenticationState>? Authorized { get; set; }
+    [Parameter] public RenderFragment<AuthenticationState>? NotAuthorized { get; set; }
+    [Parameter] public string? Roles { get; set; }
+    [Parameter] public string? Policy { get; set; }
+
+    private AuthenticationState? currentAuthState;
+    private bool isAuthorized = false;
+    private AuthenticationState context = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged += async (task) => await OnAuthenticationStateChanged(task);
+        await UpdateAuthorizationState();
+    }
+
+    private async Task OnAuthenticationStateChanged(Task<AuthenticationState> authStateTask)
+    {
+        await UpdateAuthorizationState();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateAuthorizationState()
+    {
+        currentAuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        context = currentAuthState;
+        
+        if (currentAuthState.User.Identity?.IsAuthenticated == true)
+        {
+            if (!string.IsNullOrEmpty(Roles))
+            {
+                var roles = Roles.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(r => r.Trim());
+                isAuthorized = roles.Any(role => currentAuthState.User.IsInRole(role));
+            }
+            else
+            {
+                isAuthorized = true;
+            }
+        }
+        else
+        {
+            isAuthorized = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        // Note: Cannot unsubscribe lambda expressions
+    }
+}

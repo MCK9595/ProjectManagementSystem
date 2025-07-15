@@ -137,7 +137,7 @@ public class ChangeStatusRequest
     public required bool IsActive { get; set; }
 }
 
-public class UserSearchRequest : ProjectManagementSystem.Shared.Common.Models.PagingParameters
+public class UserSearchRequest : ProjectManagementSystem.Shared.Models.Common.PagingParameters
 {
     public new string? SearchTerm { get; set; }
     public string? Role { get; set; }

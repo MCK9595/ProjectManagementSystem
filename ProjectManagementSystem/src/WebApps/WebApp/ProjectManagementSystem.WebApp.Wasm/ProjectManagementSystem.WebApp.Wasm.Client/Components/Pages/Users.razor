@@ -1,0 +1,399 @@
+@page "/users"
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Models.Common
+@using ProjectManagementSystem.Shared.Client.Constants
+@using ProjectManagementSystem.Shared.Client.Authentication
+
+@attribute [ProjectManagementSystem.WebApp.Wasm.Client.Components.Authentication.Authorize]
+@inject IUserService UserService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSInterop
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILogger<Users> Logger
+
+<PageTitle>User Management - Project Management System</PageTitle>
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 100%; overflow: hidden;">
+    <div>
+        <h2 class="mb-2" style="font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">User Management</h2>
+        <p class="text-muted mb-0" style="font-size: var(--font-size-sm);">Click on username or email to view details and manage users</p>
+    </div>
+    <button class="btn btn-primary" @onclick="NavigateToCreate" style="flex-shrink: 0;">
+        <i class="bi bi-person-plus"></i> Create User
+    </button>
+</div>
+
+<!-- Check if user is authenticated and SystemAdmin -->
+@if (!isAuthenticated)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-info-circle"></i>
+        <strong>Please Login:</strong> You need to be logged in to access this page.
+    </div>
+}
+else if (!isSystemAdmin)
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>Access Denied:</strong> You don't have permission to access user management.
+    </div>
+}
+else
+{
+
+    <!-- Search and Filter Controls -->
+    <div class="card mb-4" style="width: 100%; max-width: 100%; overflow: hidden;">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchTerm" class="form-label">Search Users</label>
+                    <input id="searchTerm" type="text" class="form-control" @bind="searchRequest.SearchTerm" 
+                           @onkeypress="@((e) => OnKeyPress(e))" placeholder="Search by name, username, or email..." />
+                </div>
+                <div class="col-md-3">
+                    <label for="roleFilter" class="form-label">Role</label>
+                    <select id="roleFilter" class="form-select" @bind="searchRequest.Role">
+                        <option value="">All Roles</option>
+                        @if (availableRoles != null)
+                        {
+                            @foreach (var role in availableRoles)
+                            {
+                                <option value="@role">@role</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">Status</label>
+                    <select id="statusFilter" class="form-select" @bind="searchRequest.IsActive">
+                        <option value="">All Status</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-outline-primary me-2" @onclick="SearchUsers">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" @onclick="ClearSearch">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    <!-- Users Table -->
+    else if (users?.Items?.Any() == true)
+    {
+        <div class="card" style="width: 100%; max-width: 100%; overflow: hidden;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0">Users (@users.TotalCount total)</h5>
+                </div>
+                
+                <div class="table-responsive" style="width: 100%; overflow-x: auto;">
+                    <table class="table table-hover table-striped table-sm" style="min-width: 700px; table-layout: fixed; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">
+                                    <button class="btn btn-link p-0 text-decoration-none text-start" @onclick="() => SortBy(nameof(UserListDto.Username))">
+                                        Username
+                                        @if (searchRequest.SortBy == nameof(UserListDto.Username))
+                                        {
+                                            <i class="bi bi-arrow-@(searchRequest.SortDirection == "desc" ? "down" : "up")"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th style="width: 25%;">
+                                    <button class="btn btn-link p-0 text-decoration-none text-start" @onclick="() => SortBy(nameof(UserListDto.Email))">
+                                        Email
+                                        @if (searchRequest.SortBy == nameof(UserListDto.Email))
+                                        {
+                                            <i class="bi bi-arrow-@(searchRequest.SortDirection == "desc" ? "down" : "up")"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th style="width: 20%;">Full Name</th>
+                                <th style="width: 12%;">
+                                    <button class="btn btn-link p-0 text-decoration-none text-start" @onclick="() => SortBy(nameof(UserListDto.Role))">
+                                        Role
+                                        @if (searchRequest.SortBy == nameof(UserListDto.Role))
+                                        {
+                                            <i class="bi bi-arrow-@(searchRequest.SortDirection == "desc" ? "down" : "up")"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th style="width: 10%;">Status</th>
+                                <th style="width: 18%;">
+                                    <button class="btn btn-link p-0 text-decoration-none text-start" @onclick="() => SortBy(nameof(UserListDto.LastLoginAt))">
+                                        Last Login
+                                        @if (searchRequest.SortBy == nameof(UserListDto.LastLoginAt))
+                                        {
+                                            <i class="bi bi-arrow-@(searchRequest.SortDirection == "desc" ? "down" : "up")"></i>
+                                        }
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in users.Items)
+                            {
+                                <tr>
+                                    <td class="text-truncate">
+                                        <a href="javascript:void(0)" 
+                                           @onclick="() => ViewUser(user.Id)"
+                                           @onclick:preventDefault="true"
+                                           class="text-decoration-none fw-bold text-primary text-truncate d-inline-block w-100"
+                                           style="cursor: pointer;"
+                                           title="@user.Username">
+                                            @user.Username
+                                        </a>
+                                    </td>
+                                    <td class="text-truncate">
+                                        <a href="javascript:void(0)" 
+                                           @onclick="() => ViewUser(user.Id)"
+                                           @onclick:preventDefault="true"
+                                           class="text-decoration-none text-primary text-truncate d-inline-block w-100"
+                                           style="cursor: pointer;"
+                                           title="@user.Email">
+                                            @user.Email
+                                        </a>
+                                    </td>
+                                    <td class="text-truncate" title="@user.FullName">@user.FullName</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-@GetRoleBadgeColor(user.Role)">@user.Role</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-@(user.IsActive ? "success" : "secondary")">
+                                            @(user.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </td>
+                                    <td class="text-truncate">
+                                        @if (user.LastLoginAt.HasValue)
+                                        {
+                                            <span class="text-nowrap" title="@user.LastLoginAt.Value.ToString("MMM dd, yyyy HH:mm")">@user.LastLoginAt.Value.ToString("MMM dd, yyyy")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Never</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (users.TotalCount > users.PageSize)
+                {
+                    <nav aria-label="Users pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(users.PageNumber <= 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => LoadPage(users.PageNumber - 1)" disabled="@(users.PageNumber <= 1)">
+                                    Previous
+                                </button>
+                            </li>
+                            
+                            @for (int i = Math.Max(1, users.PageNumber - 2); i <= Math.Min(users.TotalPages, users.PageNumber + 2); i++)
+                            {
+                                <li class="page-item @(i == users.PageNumber ? "active" : "")">
+                                    <button class="page-link" @onclick="() => LoadPage(i)">@i</button>
+                                </li>
+                            }
+                            
+                            <li class="page-item @(users.PageNumber >= users.TotalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => LoadPage(users.PageNumber + 1)" disabled="@(users.PageNumber >= users.TotalPages)">
+                                    Next
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+    }
+    <!-- Empty State -->
+    else
+    {
+        <div class="card" style="width: 100%; max-width: 100%; overflow: hidden;">
+            <div class="card-body text-center">
+                <i class="bi bi-people" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="mt-3">No users found</h5>
+                <p class="text-muted">
+                    @if (!string.IsNullOrWhiteSpace(searchRequest.SearchTerm) || !string.IsNullOrWhiteSpace(searchRequest.Role) || searchRequest.IsActive.HasValue)
+                    {
+                        <span>No users match your search criteria. Try adjusting your filters.</span>
+                    }
+                    else
+                    {
+                        <span>Get started by creating your first user.</span>
+                    }
+                </p>
+                @if (string.IsNullOrWhiteSpace(searchRequest.SearchTerm) && string.IsNullOrWhiteSpace(searchRequest.Role) && !searchRequest.IsActive.HasValue)
+                {
+                    <button class="btn btn-primary" @onclick="NavigateToCreate">
+                        <i class="bi bi-person-plus"></i> Create User
+                    </button>
+                }
+                else
+                {
+                    <button class="btn btn-outline-secondary" @onclick="ClearSearch">
+                        <i class="bi bi-x-circle"></i> Clear Filters
+                    </button>
+                }
+            </div>
+        </div>
+    }
+} <!-- End of authentication/authorization check -->
+
+@code {
+    private PagedResult<UserListDto>? users;
+    private List<string>? availableRoles;
+    private UserSearchRequest searchRequest = new();
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private bool isSystemAdmin = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckUserPermissions();
+        if (isAuthenticated && isSystemAdmin)
+        {
+            await LoadAvailableRoles();
+            await LoadUsers();
+        }
+        else
+        {
+            isLoading = false; // Stop loading if not authorized
+        }
+    }
+
+    private async Task CheckUserPermissions()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        
+        if (isAuthenticated)
+        {
+            // Log all claims for debugging
+            Logger.LogDebug("=== USER CLAIMS ===");
+            foreach (var claim in authState.User.Claims)
+            {
+                Logger.LogDebug("Claim Type: {ClaimType}, Value: {ClaimValue}", claim.Type, claim.Value);
+            }
+            
+            // Check multiple possible claim types for role
+            var userRole = authState.User.FindFirst("Role")?.Value 
+                        ?? authState.User.FindFirst("role")?.Value
+                        ?? authState.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+                
+            Logger.LogDebug("Found role: {UserRole}", userRole);
+            Logger.LogDebug("Expected SystemAdmin role: {SystemAdminRole}", Roles.SystemAdmin);
+            isSystemAdmin = userRole == Roles.SystemAdmin;
+            Logger.LogDebug("Is SystemAdmin: {IsSystemAdmin}, Comparison: '{UserRole}' == '{SystemAdminRole}' = {ComparisonResult}", 
+                isSystemAdmin, userRole, Roles.SystemAdmin, userRole == Roles.SystemAdmin);
+        }
+    }
+
+    private async Task LoadAvailableRoles()
+    {
+        try
+        {
+            availableRoles = await UserService.GetAvailableRolesAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading roles");
+        }
+    }
+
+    private async Task LoadUsers()
+    {
+        isLoading = true;
+        try
+        {
+            users = await UserService.GetUsersAsync(searchRequest);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading users");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadPage(int pageNumber)
+    {
+        searchRequest.PageNumber = pageNumber;
+        await LoadUsers();
+    }
+
+    private async Task SearchUsers()
+    {
+        searchRequest.PageNumber = 1; // Reset to first page when searching
+        await LoadUsers();
+    }
+
+    private async Task ClearSearch()
+    {
+        searchRequest = new UserSearchRequest();
+        await LoadUsers();
+    }
+
+    private async Task SortBy(string sortBy)
+    {
+        if (searchRequest.SortBy == sortBy)
+        {
+            searchRequest.SortDirection = searchRequest.SortDirection == "asc" ? "desc" : "asc";
+        }
+        else
+        {
+            searchRequest.SortBy = sortBy;
+            searchRequest.SortDirection = "asc";
+        }
+        searchRequest.PageNumber = 1; // Reset to first page when sorting
+        await LoadUsers();
+    }
+
+    private async Task OnKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchUsers();
+        }
+    }
+
+    private string GetRoleBadgeColor(string role)
+    {
+        return role switch
+        {
+            Roles.SystemAdmin => "danger",
+            _ => "success" // For other roles
+        };
+    }
+
+    private void NavigateToCreate()
+    {
+        Navigation.NavigateTo("/users/create", forceLoad: true);
+    }
+
+    private void ViewUser(int id)
+    {
+        Navigation.NavigateTo($"/users/{id}", forceLoad: true);
+    }
+}

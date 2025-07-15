@@ -23,7 +23,7 @@
     <ProjectReference Include="..\src\Services\ProjectService\ProjectManagementSystem.ProjectService.csproj" />
     <ProjectReference Include="..\src\Services\TaskService\ProjectManagementSystem.TaskService.csproj" />
     <ProjectReference Include="..\src\Gateways\ApiServiceGateway\ProjectManagementSystem.ApiServiceGateway.csproj" />
-    <ProjectReference Include="..\src\WebApps\WebApp\ProjectManagementSystem.WebApp\ProjectManagementSystem.WebApp.csproj" />
+    <ProjectReference Include="..\src\WebApps\WebApp\ProjectManagementSystem.WebApp.Wasm\ProjectManagementSystem.WebApp.Wasm\ProjectManagementSystem.WebApp.Wasm.csproj" />
   </ItemGroup>
 
 </Project>
