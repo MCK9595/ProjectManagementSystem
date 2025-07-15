@@ -61,6 +61,7 @@ var apiGateway = builder.AddProject<Projects.ProjectManagementSystem_ApiServiceG
     .WithReference(projectService)
     .WithReference(taskService)
     .WithEnvironment("JWT_SECRET_KEY", jwtSecretKey)
+    .WithExternalHttpEndpoints()
     .WaitFor(identityService)
     .WaitFor(organizationService)
     .WaitFor(projectService)
