@@ -1,0 +1,87 @@
+@page "/logout"
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.Shared.Client.Authentication
+
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILogger<Logout> Logger
+
+<PageTitle>Logging out...</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm mt-5">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-box-arrow-right" style="font-size: 3rem; color: #6c757d;"></i>
+                    </div>
+                    <h3 class="mb-3">Logging out...</h3>
+                    <p class="text-muted mb-4">Please wait while we securely log you out of the system.</p>
+                    
+                    <div class="d-flex justify-content-center align-items-center">
+                        <div class="spinner-border text-primary me-3" role="status">
+                            <span class="visually-hidden">Logging out...</span>
+                        </div>
+                        <span class="text-muted">Clearing your session...</span>
+                    </div>
+                    
+                    @if (showError)
+                    {
+                        <div class="alert alert-warning mt-4">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            There was an issue logging you out. You will be redirected to the login page.
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <!-- Additional logout info -->
+            <div class="text-center mt-4">
+                <p class="text-muted small">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Your session is being securely terminated
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool showError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("Logout component initialized (WebAssembly)");
+        
+        try
+        {
+            // Perform logout
+            await AuthService.LogoutAsync();
+            
+            // Notify authentication state provider for WASM
+            if (AuthStateProvider is WebAssemblyAuthenticationStateProvider wasmAuthStateProvider)
+            {
+                await wasmAuthStateProvider.MarkUserAsLoggedOutAsync();
+            }
+            
+            Logger.LogInformation("User logged out successfully");
+            
+            // Give time for logout state to propagate
+            await Task.Delay(500);
+            
+            Navigation.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error during logout process");
+            showError = true;
+            StateHasChanged();
+            
+            // Still redirect to login after showing error
+            await Task.Delay(2000);
+            Navigation.NavigateTo("/login");
+        }
+    }
+}

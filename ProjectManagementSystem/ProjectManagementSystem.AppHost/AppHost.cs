@@ -62,8 +62,8 @@ var apiGateway = builder.AddProject<Projects.ProjectManagementSystem_ApiServiceG
     .WaitFor(projectService)
     .WaitFor(taskService);
 
-// WebApp - API Gatewayの起動を待機
-builder.AddProject<Projects.ProjectManagementSystem_WebApp>("webapp")
+// WebApp.Wasm - API Gatewayの起動を待機
+builder.AddProject<Projects.ProjectManagementSystem_WebApp_Wasm>("webapp-wasm")
     .WithEnvironment("Services__api-gateway__http__0", apiGateway.GetEndpoint("http"))
     .WithExternalHttpEndpoints()
     .WaitFor(apiGateway);

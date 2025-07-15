@@ -1,0 +1,394 @@
+@page "/tasks/create"
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Models.Common
+@using ProjectManagementSystem.Shared.Client.Constants
+@using ProjectManagementSystem.Shared.Client.Authentication
+@using ProjectManagementSystem.WebApp.Wasm.Client.Constants
+@using TaskStatusConst = ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus
+
+@attribute [ProjectManagementSystem.WebApp.Wasm.Client.Components.Authentication.Authorize]
+@inject ITaskService TaskService
+@inject IProjectService ProjectService
+@inject IUserService UserService
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+@inject ILogger<TaskCreate> Logger
+
+<PageTitle>Create Task - Project Management System</PageTitle>
+
+<div style="max-width: 100%; overflow: hidden;">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4" style="max-width: 100%; overflow: hidden;">
+        <div>
+            <h2 class="mb-2" style="font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">Create New Task</h2>
+            <p class="text-muted mb-0" style="font-size: var(--font-size-sm);">Create a new task and assign it to a team member</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary" @onclick="GoBack">
+                <i class="bi bi-arrow-left"></i> Back
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="card" style="width: 100%; max-width: 100%; overflow: hidden;">
+        <div class="card-body">
+            <EditForm Model="@createModel" OnValidSubmit="@HandleCreate">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        @errorMessage
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success">
+                        @successMessage
+                    </div>
+                }
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Task Title <span class="text-danger">*</span></label>
+                            <InputText id="title" @bind-Value="createModel.Title" class="form-control" placeholder="Enter task title" />
+                            <ValidationMessage For="@(() => createModel.Title)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <InputTextArea id="description" @bind-Value="createModel.Description" class="form-control" rows="4" placeholder="Describe the task details and requirements" />
+                            <ValidationMessage For="@(() => createModel.Description)" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="project" class="form-label">Project <span class="text-danger">*</span></label>
+                                    <InputSelect id="project" @bind-Value="createModel.ProjectId" class="form-select" @onchange="OnProjectChanged">
+                                        <option value="@Guid.Empty">Select a project</option>
+                                        @if (projects?.Items?.Any() == true)
+                                        {
+                                            @foreach (var project in projects.Items)
+                                            {
+                                                <option value="@project.Id">@project.Name</option>
+                                            }
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => createModel.ProjectId)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="assignedTo" class="form-label">Assign To <span class="text-danger">*</span></label>
+                                    <InputSelect id="assignedTo" @bind-Value="createModel.AssignedToUserId" class="form-select" disabled="@(createModel.ProjectId == Guid.Empty || isLoadingMembers)">
+                                        <option value="0">Select a user</option>
+                                        @if (projectMembers?.Items?.Any() == true)
+                                        {
+                                            @foreach (var member in projectMembers.Items)
+                                            {
+                                                <option value="@member.UserId">@member.User?.Username (@member.User?.Email)</option>
+                                            }
+                                        }
+                                        else if (createModel.ProjectId != Guid.Empty && !isLoadingMembers)
+                                        {
+                                            <option disabled>No members found</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => createModel.AssignedToUserId)" />
+                                    @if (isLoadingMembers)
+                                    {
+                                        <div class="small text-muted mt-1">
+                                            <i class="spinner-border spinner-border-sm me-1"></i>Loading project members...
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                    <InputSelect id="status" @bind-Value="createModel.Status" class="form-select">
+                                        @foreach (var status in TaskStatusConst.AllStatuses)
+                                        {
+                                            <option value="@status">@status</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => createModel.Status)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="priority" class="form-label">Priority <span class="text-danger">*</span></label>
+                                    <InputSelect id="priority" @bind-Value="createModel.Priority" class="form-select">
+                                        @foreach (var priority in Priority.AllPriorities)
+                                        {
+                                            <option value="@priority">@priority</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => createModel.Priority)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="startDate" class="form-label">Start Date</label>
+                                    <InputDate id="startDate" @bind-Value="createModel.StartDate" class="form-control" />
+                                    <ValidationMessage For="@(() => createModel.StartDate)" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dueDate" class="form-label">Due Date</label>
+                                    <InputDate id="dueDate" @bind-Value="createModel.DueDate" class="form-control" />
+                                    <ValidationMessage For="@(() => createModel.DueDate)" />
+                                    @if (createModel.StartDate.HasValue && createModel.DueDate.HasValue && createModel.DueDate < createModel.StartDate)
+                                    {
+                                        <div class="text-danger small">Due date must be after start date</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="estimatedHours" class="form-label">Estimated Hours</label>
+                                    <InputNumber id="estimatedHours" @bind-Value="createModel.EstimatedHours" class="form-control" min="0" step="0.5" placeholder="e.g., 8.5" />
+                                    <ValidationMessage For="@(() => createModel.EstimatedHours)" />
+                                    <div class="form-text">Enter estimated hours for this task</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-header">
+                                <h6 class="mb-0">Task Guidelines</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-unstyled small">
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Choose a clear, specific title</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Select the correct project first</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Assign to a project member</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Set appropriate priority level</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Include realistic time estimates</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i>Start with "ToDo" status</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        @if (createModel.ProjectId != Guid.Empty && selectedProject != null)
+                        {
+                            <div class="card bg-info bg-opacity-10 mt-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Selected Project</h6>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title">@selectedProject.Name</h6>
+                                    <p class="card-text small">@(selectedProject.Description ?? "No description")</p>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Status: @selectedProject.Status</small>
+                                        <small class="text-muted">Priority: @selectedProject.Priority</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="button" class="btn btn-outline-secondary me-md-2" @onclick="GoBack">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        Create Task
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] [SupplyParameterFromQuery] public Guid? ProjectId { get; set; }
+
+    private CreateTaskDto createModel = new()
+    {
+        Title = string.Empty,
+        Status = TaskStatusConst.ToDo,
+        Priority = Priority.Medium,
+        ProjectId = Guid.Empty,
+        AssignedToUserId = 0
+    };
+    
+    private PagedResult<ProjectDto>? projects;
+    private PagedResult<ProjectMemberDto>? projectMembers;
+    private ProjectDto? selectedProject;
+    private bool isLoading = false;
+    private bool isLoadingMembers = false;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjects();
+        
+        if (ProjectId.HasValue && ProjectId.Value != Guid.Empty)
+        {
+            createModel.ProjectId = ProjectId.Value;
+            await LoadProjectMembers();
+            await LoadSelectedProject();
+        }
+    }
+
+    private async Task LoadProjects()
+    {
+        try
+        {
+            projects = await ProjectService.GetProjectsAsync(1, 100); // Load first 100 projects
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading projects");
+            errorMessage = "Failed to load projects. Please refresh the page.";
+        }
+    }
+
+    private async Task LoadSelectedProject()
+    {
+        if (createModel.ProjectId != Guid.Empty)
+        {
+            try
+            {
+                selectedProject = await ProjectService.GetProjectAsync(createModel.ProjectId);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Error loading selected project");
+            }
+        }
+    }
+
+    private async Task OnProjectChanged(ChangeEventArgs e)
+    {
+        if (Guid.TryParse(e.Value?.ToString(), out Guid projectId))
+        {
+            createModel.ProjectId = projectId;
+            createModel.AssignedToUserId = 0; // Reset assignee when project changes
+            
+            if (projectId != Guid.Empty)
+            {
+                await LoadProjectMembers();
+                await LoadSelectedProject();
+            }
+            else
+            {
+                projectMembers = null;
+                selectedProject = null;
+            }
+        }
+    }
+
+    private async Task LoadProjectMembers()
+    {
+        if (createModel.ProjectId == Guid.Empty) return;
+        
+        isLoadingMembers = true;
+        try
+        {
+            projectMembers = await ProjectService.GetProjectMembersAsync(createModel.ProjectId, 1, 100);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading project members");
+            errorMessage = "Failed to load project members.";
+        }
+        finally
+        {
+            isLoadingMembers = false;
+        }
+    }
+
+    private async Task HandleCreate()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = string.Empty;
+            successMessage = string.Empty;
+
+            // Validate dates
+            if (createModel.StartDate.HasValue && createModel.DueDate.HasValue && createModel.DueDate < createModel.StartDate)
+            {
+                errorMessage = "Due date must be after start date.";
+                return;
+            }
+
+            // Validate project selection
+            if (createModel.ProjectId == Guid.Empty)
+            {
+                errorMessage = "Please select a project.";
+                return;
+            }
+
+            // Validate assignee selection
+            if (createModel.AssignedToUserId <= 0)
+            {
+                errorMessage = "Please select a user to assign this task to.";
+                return;
+            }
+
+            var result = await TaskService.CreateTaskAsync(createModel);
+            
+            if (result != null)
+            {
+                successMessage = "Task created successfully!";
+                
+                // Navigate to the new task after a short delay
+                await Task.Delay(1500);
+                Navigation.NavigateTo($"/tasks/{result.Id}");
+            }
+            else
+            {
+                errorMessage = "Failed to create task. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred while creating the task. Please try again.";
+            Logger.LogError(ex, "Create task error");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        if (ProjectId.HasValue)
+        {
+            Navigation.NavigateTo($"/projects/{ProjectId}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/tasks");
+        }
+    }
+}
