@@ -112,13 +112,17 @@
                                                      style="@GetTaskBarStyle(task)"
                                                      title="@GetTaskTooltip(task)"
                                                      @onclick="@(() => OnTaskClick.InvokeAsync(task))">
+                                                    <!-- Progress-based segments -->
+                                                    @{
+                                                        var progressSegments = GetProgressSegments(task);
+                                                    }
+                                                    @foreach (var segment in progressSegments)
+                                                    {
+                                                        <div class="task-progress-segment" style="@segment.Style"></div>
+                                                    }
                                                     <div class="task-bar-content">
                                                         <span class="task-bar-name">@GetTaskBarLabel(task)</span>
                                                     </div>
-                                                    @if (task.Progress > 0)
-                                                    {
-                                                        <div class="task-progress-overlay" style="width: @(task.Progress)%;"></div>
-                                                    }
                                                 </div>
                                             </div>
                                         </div>
@@ -149,6 +153,13 @@
     [Parameter] public List<DateTime> ProjectHolidays { get; set; } = new();
 
     public enum ViewMode { Day, Week, Month }
+
+    public class ProgressSegment
+    {
+        public string Style { get; set; } = "";
+        public double Width { get; set; }
+        public string Color { get; set; } = "";
+    }
 
     private ViewMode currentViewMode = ViewMode.Day;
     private List<DateTime> DateRange = new();
@@ -481,6 +492,119 @@
         return index * GetDateCellWidth();
     }
 
+    private List<ProgressSegment> GetProgressSegments(GanttTask task)
+    {
+        var segments = new List<ProgressSegment>();
+        
+        // Calculate expected progress based on current date
+        var today = DateTime.Today;
+        var taskStart = task.Start.Date;
+        var taskEnd = task.End.Date;
+        var totalDays = (taskEnd - taskStart).TotalDays + 1;
+        
+        if (totalDays <= 0) 
+        {
+            // Invalid task duration, show as gray
+            segments.Add(new ProgressSegment
+            {
+                Width = 100,
+                Color = "#6c757d",
+                Style = "position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #6c757d; z-index: 1; border-radius: 4px;"
+            });
+            return segments;
+        }
+        
+        // Calculate expected progress percentage based on today's date
+        double expectedProgress = 0;
+        if (today >= taskEnd)
+        {
+            expectedProgress = 100; // Task should be completed
+        }
+        else if (today >= taskStart)
+        {
+            var daysElapsed = (today - taskStart).TotalDays + 1;
+            expectedProgress = Math.Min(100, (daysElapsed / totalDays) * 100);
+        }
+        
+        var actualProgress = task.Progress;
+        var leftPosition = 0.0;
+        
+        // Segment 1: All completed progress (green) - includes ahead of schedule
+        if (actualProgress > 0)
+        {
+            var isFirst = leftPosition == 0;
+            var isLast = leftPosition + actualProgress >= 100;
+            var borderRadius = GetSegmentBorderRadius(isFirst, isLast);
+            
+            segments.Add(new ProgressSegment
+            {
+                Width = actualProgress,
+                Color = "#28a745",
+                Style = $"position: absolute; top: 0; left: {leftPosition}%; width: {actualProgress}%; height: 100%; background-color: #28a745; z-index: 1; {borderRadius}"
+            });
+            leftPosition += actualProgress;
+        }
+        
+        // Segment 2: Behind schedule (red) - should be completed but isn't
+        if (expectedProgress > actualProgress)
+        {
+            var behindWidth = expectedProgress - actualProgress;
+            var isFirst = leftPosition == 0;
+            var isLast = leftPosition + behindWidth >= 100;
+            var borderRadius = GetSegmentBorderRadius(isFirst, isLast);
+            
+            segments.Add(new ProgressSegment
+            {
+                Width = behindWidth,
+                Color = "#dc3545",
+                Style = $"position: absolute; top: 0; left: {leftPosition}%; width: {behindWidth}%; height: 100%; background-color: #dc3545; z-index: 1; {borderRadius}"
+            });
+            leftPosition += behindWidth;
+        }
+        
+        // Segment 3: Future/Remaining work (gray)
+        if (leftPosition < 100)
+        {
+            var remainingWidth = 100 - leftPosition;
+            var isFirst = leftPosition == 0;
+            var isLast = true; // Always last segment
+            var borderRadius = GetSegmentBorderRadius(isFirst, isLast);
+            
+            segments.Add(new ProgressSegment
+            {
+                Width = remainingWidth,
+                Color = "#6c757d",
+                Style = $"position: absolute; top: 0; left: {leftPosition}%; width: {remainingWidth}%; height: 100%; background-color: #6c757d; z-index: 1; {borderRadius}"
+            });
+        }
+        
+        return segments;
+    }
+
+    private string GetSegmentBorderRadius(bool isFirst, bool isLast)
+    {
+        if (isFirst && isLast)
+        {
+            // Only segment - full border radius
+            return "border-radius: 4px;";
+        }
+        else if (isFirst)
+        {
+            // First segment - left border radius only
+            return "border-radius: 4px 0 0 4px;";
+        }
+        else if (isLast)
+        {
+            // Last segment - right border radius only
+            return "border-radius: 0 4px 4px 0;";
+        }
+        else
+        {
+            // Middle segment - no border radius
+            return "border-radius: 0;";
+        }
+    }
+
     private bool IsToday(DateTime date)
     {
         var today = DateTime.Today;
@@ -565,9 +689,8 @@
                 break;
         }
         
-        var backgroundColor = GetTaskColor(task.Priority);
-        
-        return $"left: {leftPixels}px; width: {widthPixels}px; background-color: {backgroundColor}; position: absolute; top: 8px; height: 24px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); min-width: 60px;";
+        // No background color - segments will handle coloring
+        return $"left: {leftPixels}px; width: {widthPixels}px; position: absolute; top: 8px; height: 24px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); min-width: 60px; overflow: hidden;";
     }
     
     private double GetMonthDifference(DateTime startDate, DateTime endDate)
@@ -600,17 +723,6 @@
         return $"{task.Name}\n開始: {task.Start:yyyy/MM/dd}\n終了: {task.End:yyyy/MM/dd}\n進捗: {task.Progress}%\n担当者: {task.AssignedTo ?? "未割り当て"}";
     }
 
-    private string GetTaskColor(string priority)
-    {
-        return priority?.ToLower() switch
-        {
-            "low" => "#28a745",     // Green
-            "medium" => "#ffc107",  // Yellow
-            "high" => "#fd7e14",    // Orange
-            "critical" => "#dc3545", // Red
-            _ => "#6c757d"          // Gray
-        };
-    }
 
     private string GetStatusBadgeColor(string status)
     {
@@ -805,7 +917,7 @@
     }
 
     .date-header-cell.today {
-        background-color: #007bff;
+        background-color: #28a745;
         color: white;
     }
 
@@ -867,7 +979,7 @@
     }
 
     .timeline-column.today-column {
-        background-color: rgba(0, 123, 255, 0.1);
+        background-color: rgba(40, 167, 69, 0.1);
     }
 
     .timeline-column.saturday-column {
@@ -896,15 +1008,21 @@
         position: relative;
     }
 
-    .task-progress-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
+    .task-progress-segment {
+        /* Border radius handled individually by each segment */
+    }
+
+    .task-bar-content {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
         height: 100%;
-        background-color: rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
         pointer-events: none;
     }
+
 
     .progress {
         background-color: #e9ecef;
