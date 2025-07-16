@@ -82,11 +82,7 @@
                                             <span class="badge bg-@GetStatusBadgeColor(task.Status)">@task.Status</span>
                                         </div>
                                         <div class="gantt-cell" style="width: 80px;">
-                                            <div class="progress" style="height: 20px;">
-                                                <div class="progress-bar" style="width: @(task.Progress)%; background-color: @GetTaskColor(task.Priority);">
-                                                    @(task.Progress)%
-                                                </div>
-                                            </div>
+                                            @(task.Progress)%
                                         </div>
                                     </div>
                                 }
@@ -146,7 +142,7 @@
 
     public enum ViewMode { Day, Week, Month }
 
-    private ViewMode currentViewMode = ViewMode.Week;
+    private ViewMode currentViewMode = ViewMode.Day;
     private List<DateTime> DateRange = new();
     private List<GanttTask> SortedTasks = new();
     private Dictionary<string, bool> expandedTasks = new();
