@@ -1,0 +1,585 @@
+@using ProjectManagementSystem.WebApp.Wasm.Client.Models
+@using Microsoft.AspNetCore.Components
+@inject IJSRuntime JSRuntime
+
+<div class="blazor-gantt-container">
+    <!-- Controls -->
+    <div class="gantt-controls mb-3">
+        <div class="btn-group" role="group">
+            <button type="button" class="btn @(currentViewMode == ViewMode.Day ? "btn-primary" : "btn-outline-primary")" 
+                    @onclick="@(() => ChangeViewMode(ViewMode.Day))">
+                日
+            </button>
+            <button type="button" class="btn @(currentViewMode == ViewMode.Week ? "btn-primary" : "btn-outline-primary")" 
+                    @onclick="@(() => ChangeViewMode(ViewMode.Week))">
+                週
+            </button>
+            <button type="button" class="btn @(currentViewMode == ViewMode.Month ? "btn-primary" : "btn-outline-primary")" 
+                    @onclick="@(() => ChangeViewMode(ViewMode.Month))">
+                月
+            </button>
+        </div>
+        
+        @if (ShowRefreshButton)
+        {
+            <button type="button" class="btn btn-outline-secondary ms-2" @onclick="RefreshChart">
+                <i class="bi bi-arrow-clockwise"></i> 更新
+            </button>
+        }
+    </div>
+
+    <!-- Chart Container -->
+    @if (Tasks.Any())
+    {
+        <div class="gantt-chart-wrapper">
+            <!-- Task List Panel -->
+            <div class="gantt-task-list">
+                <div class="gantt-task-header">
+                    <div class="task-header-cell task-name-header">タスク名</div>
+                    <div class="task-header-cell task-assignee-header">担当者</div>
+                    <div class="task-header-cell task-status-header">ステータス</div>
+                    <div class="task-header-cell task-progress-header">進捗</div>
+                </div>
+                
+                @foreach (var task in SortedTasks)
+                {
+                    <div class="gantt-task-item @(GetTaskCssClass(task))">
+                        <div class="task-cell task-name-cell" style="padding-left: @(GetIndentLevel(task) * 20)px;">
+                            @if (HasChildren(task))
+                            {
+                                <i class="bi @(IsExpanded(task) ? "bi-chevron-down" : "bi-chevron-right") me-1 expand-icon" 
+                                   @onclick="@(() => ToggleExpand(task))"></i>
+                            }
+                            else
+                            {
+                                <span class="me-3"></span>
+                            }
+                            <span class="task-name" title="@task.Name">@task.Name</span>
+                        </div>
+                        <div class="task-cell task-assignee-cell">
+                            @task.AssignedTo
+                        </div>
+                        <div class="task-cell task-status-cell">
+                            <span class="badge bg-@GetStatusBadgeColor(task.Status)">@task.Status</span>
+                        </div>
+                        <div class="task-cell task-progress-cell">
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar" style="width: @(task.Progress)%; background-color: @GetTaskColor(task.Priority);">
+                                    @(task.Progress)%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Timeline Panel -->
+            <div class="gantt-timeline">
+                <!-- Date Header -->
+                <div class="gantt-date-header">
+                    @foreach (var date in DateRange)
+                    {
+                        <div class="date-header-cell @(IsToday(date) ? "today" : "")" 
+                             style="width: @(GetDateCellWidth())px;">
+                            @FormatDateHeader(date)
+                        </div>
+                    }
+                </div>
+
+                <!-- Task Bars -->
+                @foreach (var task in SortedTasks)
+                {
+                    <div class="gantt-timeline-row @(GetTaskCssClass(task))">
+                        <div class="task-bar-container" style="position: relative; height: @TaskRowHeight px;">
+                            @if (IsTaskVisible(task))
+                            {
+                                <div class="task-bar @GetTaskBarClass(task)" 
+                                     style="@GetTaskBarStyle(task)"
+                                     title="@GetTaskTooltip(task)"
+                                     @onclick="@(() => OnTaskClick.InvokeAsync(task))">
+                                    <div class="task-bar-content">
+                                        <span class="task-bar-name">@GetTaskBarLabel(task)</span>
+                                    </div>
+                                    @if (task.Progress > 0)
+                                    {
+                                        <div class="task-progress-overlay" style="width: @(task.Progress)%;"></div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-4">
+            <i class="bi bi-bar-chart" style="font-size: 2rem; color: #6c757d;"></i>
+            <h6 class="mt-2">タスクがありません</h6>
+            <p class="text-muted small">タスクを作成してガントチャートを表示してください。</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<GanttTask> Tasks { get; set; } = new();
+    [Parameter] public EventCallback<GanttTask> OnTaskClick { get; set; }
+    [Parameter] public bool ShowRefreshButton { get; set; } = true;
+    [Parameter] public bool ReadOnly { get; set; } = false;
+
+    public enum ViewMode { Day, Week, Month }
+
+    private ViewMode currentViewMode = ViewMode.Week;
+    private List<DateTime> DateRange = new();
+    private List<GanttTask> SortedTasks = new();
+    private Dictionary<string, bool> expandedTasks = new();
+    private const int TaskRowHeight = 40;
+    private const int DateCellWidth = 50;
+
+    protected override void OnParametersSet()
+    {
+        CalculateDateRange();
+        SortTasks();
+        StateHasChanged();
+    }
+
+    private void ChangeViewMode(ViewMode mode)
+    {
+        currentViewMode = mode;
+        CalculateDateRange();
+        StateHasChanged();
+    }
+
+    public void RefreshChart()
+    {
+        CalculateDateRange();
+        SortTasks();
+        StateHasChanged();
+    }
+
+    private void CalculateDateRange()
+    {
+        if (!Tasks.Any()) return;
+
+        var minDate = Tasks.Min(t => t.Start).Date;
+        var maxDate = Tasks.Max(t => t.End).Date;
+
+        // Add some padding
+        minDate = minDate.AddDays(-3);
+        maxDate = maxDate.AddDays(3);
+
+        DateRange.Clear();
+        var current = minDate;
+
+        switch (currentViewMode)
+        {
+            case ViewMode.Day:
+                while (current <= maxDate)
+                {
+                    DateRange.Add(current);
+                    current = current.AddDays(1);
+                }
+                break;
+            case ViewMode.Week:
+                // Start from Monday
+                var startOfWeek = minDate.AddDays(-(int)minDate.DayOfWeek + 1);
+                current = startOfWeek;
+                while (current <= maxDate)
+                {
+                    DateRange.Add(current);
+                    current = current.AddDays(7);
+                }
+                break;
+            case ViewMode.Month:
+                var startOfMonth = new DateTime(minDate.Year, minDate.Month, 1);
+                current = startOfMonth;
+                while (current <= maxDate)
+                {
+                    DateRange.Add(current);
+                    current = current.AddMonths(1);
+                }
+                break;
+        }
+    }
+
+    private void SortTasks()
+    {
+        var taskDict = Tasks.ToDictionary(t => t.TaskId);
+        var processed = new HashSet<Guid>();
+        SortedTasks.Clear();
+
+        // Process parent tasks first
+        foreach (var task in Tasks.Where(t => t.ParentTaskId == null))
+        {
+            AddTaskWithChildren(task, taskDict, processed);
+        }
+
+        // Add remaining orphaned tasks
+        foreach (var task in Tasks.Where(t => !processed.Contains(t.TaskId)))
+        {
+            SortedTasks.Add(task);
+        }
+    }
+
+    private void AddTaskWithChildren(GanttTask task, Dictionary<Guid, GanttTask> taskDict, HashSet<Guid> processed)
+    {
+        if (processed.Contains(task.TaskId)) return;
+
+        SortedTasks.Add(task);
+        processed.Add(task.TaskId);
+
+        // Add children if parent is expanded
+        if (IsExpanded(task))
+        {
+            var children = Tasks.Where(t => t.ParentTaskId == task.TaskId).ToList();
+            foreach (var child in children)
+            {
+                AddTaskWithChildren(child, taskDict, processed);
+            }
+        }
+    }
+
+    private int GetIndentLevel(GanttTask task)
+    {
+        var level = 0;
+        var current = task;
+        
+        while (current.ParentTaskId.HasValue)
+        {
+            level++;
+            current = Tasks.FirstOrDefault(t => t.TaskId == current.ParentTaskId.Value);
+            if (current == null) break;
+        }
+        
+        return level;
+    }
+
+    private bool HasChildren(GanttTask task)
+    {
+        return Tasks.Any(t => t.ParentTaskId == task.TaskId);
+    }
+
+    private bool IsExpanded(GanttTask task)
+    {
+        return expandedTasks.GetValueOrDefault(task.Id, true);
+    }
+
+    private void ToggleExpand(GanttTask task)
+    {
+        expandedTasks[task.Id] = !IsExpanded(task);
+        SortTasks();
+        StateHasChanged();
+    }
+
+    private string GetTaskCssClass(GanttTask task)
+    {
+        var classes = new List<string>();
+        
+        if (task.ParentTaskId.HasValue)
+        {
+            classes.Add("child-task");
+        }
+        else
+        {
+            classes.Add("parent-task");
+        }
+
+        classes.Add($"priority-{task.Priority?.ToLower()}");
+        classes.Add($"status-{task.Status?.ToLower().Replace(" ", "-")}");
+
+        return string.Join(" ", classes);
+    }
+
+    private string FormatDateHeader(DateTime date)
+    {
+        return currentViewMode switch
+        {
+            ViewMode.Day => date.ToString("M/d"),
+            ViewMode.Week => $"Week {GetWeekNumber(date)}",
+            ViewMode.Month => date.ToString("MMM yyyy"),
+            _ => date.ToString("M/d")
+        };
+    }
+
+    private bool IsToday(DateTime date)
+    {
+        var today = DateTime.Today;
+        return currentViewMode switch
+        {
+            ViewMode.Day => date.Date == today,
+            ViewMode.Week => GetWeekNumber(date) == GetWeekNumber(today) && date.Year == today.Year,
+            ViewMode.Month => date.Month == today.Month && date.Year == today.Year,
+            _ => false
+        };
+    }
+
+    private int GetWeekNumber(DateTime date)
+    {
+        var jan1 = new DateTime(date.Year, 1, 1);
+        var daysOffset = (int)jan1.DayOfWeek;
+        var firstWeekDay = jan1.AddDays(-daysOffset + 1);
+        var weekDay = ((date - firstWeekDay).Days / 7) + 1;
+        return weekDay;
+    }
+
+    private double GetDateCellWidth()
+    {
+        return currentViewMode switch
+        {
+            ViewMode.Day => 50,
+            ViewMode.Week => 80,
+            ViewMode.Month => 120,
+            _ => 50
+        };
+    }
+
+    private bool IsTaskVisible(GanttTask task)
+    {
+        // Check if task is visible (parent expanded, etc.)
+        if (task.ParentTaskId.HasValue)
+        {
+            var parent = Tasks.FirstOrDefault(t => t.TaskId == task.ParentTaskId.Value);
+            if (parent != null && !IsExpanded(parent))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private string GetTaskBarStyle(GanttTask task)
+    {
+        if (!DateRange.Any()) return "";
+
+        var startDate = DateRange.First();
+        var totalWidth = DateRange.Count * GetDateCellWidth();
+        
+        var taskStart = task.Start.Date;
+        var taskEnd = task.End.Date;
+        
+        // Calculate position and width
+        var daysFromStart = (taskStart - startDate).TotalDays;
+        var taskDuration = (taskEnd - taskStart).TotalDays + 1;
+        
+        var leftPercent = (daysFromStart / DateRange.Count) * 100;
+        var widthPercent = (taskDuration / DateRange.Count) * 100;
+        
+        // Ensure bounds
+        leftPercent = Math.Max(0, Math.Min(100, leftPercent));
+        widthPercent = Math.Max(0.5, Math.Min(100 - leftPercent, widthPercent));
+        
+        var backgroundColor = GetTaskColor(task.Priority);
+        
+        return $"left: {leftPercent:F1}%; width: {widthPercent:F1}%; background-color: {backgroundColor}; position: absolute; top: 8px; height: 24px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);";
+    }
+
+    private string GetTaskBarClass(GanttTask task)
+    {
+        return $"task-bar-{task.Priority?.ToLower()} task-bar-{task.Status?.ToLower().Replace(" ", "-")}";
+    }
+
+    private string GetTaskBarLabel(GanttTask task)
+    {
+        var label = task.Name;
+        if (label.Length > 20)
+        {
+            label = label.Substring(0, 17) + "...";
+        }
+        return label;
+    }
+
+    private string GetTaskTooltip(GanttTask task)
+    {
+        return $"{task.Name}\n開始: {task.Start:yyyy/MM/dd}\n終了: {task.End:yyyy/MM/dd}\n進捗: {task.Progress}%\n担当者: {task.AssignedTo ?? "未割り当て"}";
+    }
+
+    private string GetTaskColor(string priority)
+    {
+        return priority?.ToLower() switch
+        {
+            "low" => "#28a745",     // Green
+            "medium" => "#ffc107",  // Yellow
+            "high" => "#fd7e14",    // Orange
+            "critical" => "#dc3545", // Red
+            _ => "#6c757d"          // Gray
+        };
+    }
+
+    private string GetStatusBadgeColor(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "todo" => "secondary",
+            "inprogress" => "primary",
+            "inreview" => "warning",
+            "done" => "success",
+            _ => "secondary"
+        };
+    }
+}
+
+<style>
+    .blazor-gantt-container {
+        width: 100%;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background: white;
+    }
+
+    .gantt-controls {
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        background-color: #f8f9fa;
+    }
+
+    .gantt-chart-wrapper {
+        display: flex;
+        min-height: 400px;
+    }
+
+    .gantt-task-list {
+        min-width: 400px;
+        border-right: 1px solid #dee2e6;
+        background-color: #fafafa;
+    }
+
+    .gantt-task-header {
+        display: flex;
+        background-color: #e9ecef;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .task-header-cell {
+        padding: 12px 8px;
+        border-right: 1px solid #dee2e6;
+    }
+
+    .task-name-header { width: 200px; }
+    .task-assignee-header { width: 100px; }
+    .task-status-header { width: 100px; }
+    .task-progress-header { width: 100px; }
+
+    .gantt-task-item {
+        display: flex;
+        border-bottom: 1px solid #dee2e6;
+        min-height: 40px;
+        align-items: center;
+    }
+
+    .gantt-task-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .task-cell {
+        padding: 8px;
+        border-right: 1px solid #dee2e6;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .task-name-cell { 
+        width: 200px; 
+        display: flex;
+        align-items: center;
+    }
+    
+    .task-assignee-cell { width: 100px; }
+    .task-status-cell { width: 100px; }
+    .task-progress-cell { width: 100px; }
+
+    .expand-icon {
+        cursor: pointer;
+        color: #6c757d;
+        font-size: 12px;
+    }
+
+    .expand-icon:hover {
+        color: #007bff;
+    }
+
+    .task-name {
+        font-weight: 500;
+    }
+
+    .child-task .task-name {
+        font-weight: 400;
+        color: #6c757d;
+    }
+
+    .gantt-timeline {
+        flex: 1;
+        overflow-x: auto;
+        background-color: white;
+    }
+
+    .gantt-date-header {
+        display: flex;
+        background-color: #e9ecef;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        font-size: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .date-header-cell {
+        padding: 12px 4px;
+        border-right: 1px solid #dee2e6;
+        text-align: center;
+        min-width: 50px;
+    }
+
+    .date-header-cell.today {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .gantt-timeline-row {
+        min-height: 40px;
+        border-bottom: 1px solid #dee2e6;
+        position: relative;
+    }
+
+    .task-bar-container {
+        width: 100%;
+        position: relative;
+    }
+
+    .task-progress-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        pointer-events: none;
+    }
+
+    .progress {
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+        height: 20px !important;
+    }
+
+    .progress-bar {
+        transition: width 0.3s ease;
+        color: white;
+        text-align: center;
+        line-height: 20px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    /* Priority-based styling */
+    .priority-critical .task-name { color: #dc3545; }
+    .priority-high .task-name { color: #fd7e14; }
+    .priority-medium .task-name { color: #ffc107; }
+    .priority-low .task-name { color: #28a745; }
+</style>

@@ -76,6 +76,9 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
+// Register Gantt chart service
+builder.Services.AddScoped<ProjectManagementSystem.WebApp.Wasm.Client.Services.GanttTaskService>();
+
 await builder.Build().RunAsync();
 
 namespace ProjectManagementSystem.WebApp.Wasm.Client

@@ -1,0 +1,446 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Client.Services
+@inject ITaskService TaskService
+@inject ILogger<TaskDependencySelector> Logger
+
+<div class="task-dependency-selector">
+    <label class="form-label">依存タスク</label>
+    <div class="dependency-input-container">
+        <div class="input-group">
+            <select class="form-select" 
+                    @bind="SelectedDependencyId" 
+                    @bind:after="OnDependencyAddClick"
+                    disabled="@IsLoading">
+                <option value="">-- 依存タスクを選択 --</option>
+                @if (AvailableDependencies != null)
+                {
+                    @foreach (var task in AvailableDependencies)
+                    {
+                        <option value="@task.Id">
+                            @GetTaskDisplay(task)
+                        </option>
+                    }
+                }
+            </select>
+            <button type="button" 
+                    class="btn btn-outline-primary" 
+                    @onclick="AddDependency"
+                    disabled="@(IsLoading || string.IsNullOrEmpty(SelectedDependencyId))">
+                <i class="bi bi-plus"></i> 追加
+            </button>
+        </div>
+        
+        @if (HasError)
+        {
+            <div class="invalid-feedback d-block">
+                @ErrorMessage
+            </div>
+        }
+        
+        @if (IsLoading)
+        {
+            <div class="form-text">
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                利用可能な依存タスクを読み込み中...
+            </div>
+        }
+    </div>
+
+    <!-- Selected Dependencies List -->
+    <div class="selected-dependencies mt-3">
+        @if (SelectedDependencies.Any())
+        {
+            <h6 class="mb-2">選択された依存タスク:</h6>
+            <div class="dependency-list">
+                @foreach (var dependency in SelectedDependencies)
+                {
+                    <div class="dependency-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="dependency-info">
+                                <span class="dependency-status">@GetTaskStatusIcon(dependency.Status)</span>
+                                <span class="dependency-title">@dependency.Title</span>
+                                <small class="text-muted ms-2">(@dependency.Status)</small>
+                            </div>
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-danger" 
+                                    @onclick="() => RemoveDependency(dependency.Id)"
+                                    title="Remove dependency">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                        @if (dependency.DueDate.HasValue)
+                        {
+                            <div class="dependency-date">
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar3"></i> 
+                                    期限: @dependency.DueDate.Value.ToString("yyyy/MM/dd")
+                                </small>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="no-dependencies">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    依存タスクが選択されていません
+                </small>
+            </div>
+        }
+    </div>
+    
+    <!-- Dependency Validation Info -->
+    @if (ValidationMessages.Any())
+    {
+        <div class="validation-messages mt-2">
+            @foreach (var message in ValidationMessages)
+            {
+                <div class="alert alert-warning alert-sm">
+                    <i class="bi bi-exclamation-triangle"></i> @message
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    [Parameter] public Guid? CurrentTaskId { get; set; }
+    [Parameter] public List<Guid> InitialDependencies { get; set; } = new();
+    [Parameter] public EventCallback<List<Guid>> OnDependenciesChanged { get; set; }
+    [Parameter] public bool IsRequired { get; set; } = false;
+
+    private List<TaskDto>? AvailableDependencies;
+    private List<TaskDto> SelectedDependencies = new();
+    private List<Guid> SelectedDependencyIds = new();
+    private string SelectedDependencyId = string.Empty;
+    private bool IsLoading = false;
+    private bool HasError = false;
+    private string ErrorMessage = string.Empty;
+    private List<string> ValidationMessages = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (InitialDependencies.Any())
+        {
+            SelectedDependencyIds = InitialDependencies.ToList();
+        }
+        await LoadAvailableDependencies();
+        await LoadSelectedDependencies();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (InitialDependencies.Any() && !SelectedDependencyIds.SequenceEqual(InitialDependencies))
+        {
+            SelectedDependencyIds = InitialDependencies.ToList();
+            await LoadSelectedDependencies();
+        }
+    }
+
+    private async Task LoadAvailableDependencies()
+    {
+        IsLoading = true;
+        HasError = false;
+        ErrorMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            var allTasks = await TaskService.GetTasksAsync(ProjectId, 1, 100);
+            if (allTasks?.Items != null)
+            {
+                // 現在のタスクを除外し、循環参照を防ぐ
+                AvailableDependencies = allTasks.Items
+                    .Where(t => t.Id != CurrentTaskId && !WouldCreateCircularDependency(t.Id))
+                    .Where(t => !SelectedDependencyIds.Contains(t.Id))
+                    .OrderBy(t => t.Title)
+                    .ToList();
+            }
+            else
+            {
+                AvailableDependencies = new List<TaskDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = "依存タスクの読み込み中にエラーが発生しました。";
+            Logger.LogError(ex, "Error loading available dependencies for project {ProjectId}", ProjectId);
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadSelectedDependencies()
+    {
+        if (!SelectedDependencyIds.Any())
+        {
+            SelectedDependencies.Clear();
+            return;
+        }
+
+        try
+        {
+            var tasks = new List<TaskDto>();
+            foreach (var id in SelectedDependencyIds)
+            {
+                var task = await TaskService.GetTaskAsync(id);
+                if (task != null)
+                {
+                    tasks.Add(task);
+                }
+            }
+            SelectedDependencies = tasks.OrderBy(t => t.Title).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading selected dependencies");
+        }
+    }
+
+    private async Task AddDependency()
+    {
+        if (string.IsNullOrEmpty(SelectedDependencyId) || !Guid.TryParse(SelectedDependencyId, out var dependencyId))
+            return;
+
+        if (SelectedDependencyIds.Contains(dependencyId))
+        {
+            ErrorMessage = "このタスクは既に依存タスクとして追加されています。";
+            HasError = true;
+            StateHasChanged();
+            return;
+        }
+
+        if (WouldCreateCircularDependency(dependencyId))
+        {
+            ErrorMessage = "循環参照が発生するため、このタスクを依存タスクとして追加できません。";
+            HasError = true;
+            StateHasChanged();
+            return;
+        }
+
+        SelectedDependencyIds.Add(dependencyId);
+        await LoadSelectedDependencies();
+        await LoadAvailableDependencies(); // Refresh available list
+        
+        SelectedDependencyId = string.Empty;
+        HasError = false;
+        ErrorMessage = string.Empty;
+        
+        await OnDependenciesChanged.InvokeAsync(SelectedDependencyIds);
+        await ValidateDependencies();
+        StateHasChanged();
+    }
+
+    private async Task RemoveDependency(Guid dependencyId)
+    {
+        SelectedDependencyIds.Remove(dependencyId);
+        await LoadSelectedDependencies();
+        await LoadAvailableDependencies(); // Refresh available list
+        
+        await OnDependenciesChanged.InvokeAsync(SelectedDependencyIds);
+        await ValidateDependencies();
+        StateHasChanged();
+    }
+
+    private async Task OnDependencyAddClick()
+    {
+        // This method is triggered when the select value changes
+        // We don't automatically add here, user must click the add button
+    }
+
+    private bool WouldCreateCircularDependency(Guid potentialDependencyId)
+    {
+        if (!CurrentTaskId.HasValue)
+            return false;
+
+        // Check if the potential dependency already depends on current task
+        return CheckCircularDependency(potentialDependencyId, CurrentTaskId.Value, new HashSet<Guid>());
+    }
+
+    private bool CheckCircularDependency(Guid taskId, Guid targetTaskId, HashSet<Guid> visited)
+    {
+        if (visited.Contains(taskId))
+            return false;
+
+        visited.Add(taskId);
+
+        // Get task's dependencies
+        var task = AvailableDependencies?.FirstOrDefault(t => t.Id == taskId);
+        if (task?.DependsOnTaskIds != null)
+        {
+            foreach (var depId in task.DependsOnTaskIds)
+            {
+                if (depId == targetTaskId)
+                    return true;
+
+                if (CheckCircularDependency(depId, targetTaskId, visited))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task ValidateDependencies()
+    {
+        ValidationMessages.Clear();
+
+        foreach (var dependency in SelectedDependencies)
+        {
+            // Check if dependency has a due date later than current task's start date
+            if (dependency.DueDate.HasValue && dependency.DueDate.Value > DateTime.Now.AddDays(30))
+            {
+                ValidationMessages.Add($"依存タスク '{dependency.Title}' の期限が遠い将来に設定されています。");
+            }
+
+            // Check if dependency is not completed
+            if (dependency.Status == ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.Done)
+            {
+                // This is actually good - completed dependencies are ideal
+            }
+            else if (dependency.Status == ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.ToDo)
+            {
+                ValidationMessages.Add($"依存タスク '{dependency.Title}' がまだ開始されていません。");
+            }
+        }
+    }
+
+    private string GetTaskDisplay(TaskDto task)
+    {
+        var statusIcon = GetTaskStatusIcon(task.Status);
+        var dateInfo = task.DueDate.HasValue ? $" (期限: {task.DueDate.Value:MM/dd})" : "";
+        return $"{statusIcon} {task.Title}{dateInfo}";
+    }
+
+    private string GetTaskStatusIcon(string status)
+    {
+        return status switch
+        {
+            ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.ToDo => "⚪",
+            ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.InProgress => "🔄",
+            ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.InReview => "👀",
+            ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.Done => "✅",
+            _ => "⚪"
+        };
+    }
+
+    public async Task RefreshAsync()
+    {
+        await LoadAvailableDependencies();
+        await LoadSelectedDependencies();
+    }
+
+    public bool Validate()
+    {
+        if (IsRequired && !SelectedDependencyIds.Any())
+        {
+            HasError = true;
+            ErrorMessage = "依存タスクの選択は必須です。";
+            StateHasChanged();
+            return false;
+        }
+
+        HasError = false;
+        ErrorMessage = string.Empty;
+        StateHasChanged();
+        return true;
+    }
+
+    public List<Guid> GetSelectedDependencies()
+    {
+        return SelectedDependencyIds.ToList();
+    }
+}
+
+<style>
+    .task-dependency-selector {
+        width: 100%;
+    }
+
+    .dependency-input-container {
+        margin-bottom: 1rem;
+    }
+
+    .dependency-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+    }
+
+    .dependency-item {
+        background-color: white;
+        border: 1px solid #e9ecef;
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .dependency-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .dependency-info {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+    }
+
+    .dependency-status {
+        margin-right: 0.5rem;
+    }
+
+    .dependency-title {
+        font-weight: 500;
+    }
+
+    .dependency-date {
+        margin-top: 0.25rem;
+    }
+
+    .no-dependencies {
+        text-align: center;
+        padding: 1rem;
+        color: #6c757d;
+    }
+
+    .validation-messages .alert-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .validation-messages .alert-sm:last-child {
+        margin-bottom: 0;
+    }
+
+    .invalid-feedback {
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+    .form-text {
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .input-group .form-select {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .input-group .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+</style>

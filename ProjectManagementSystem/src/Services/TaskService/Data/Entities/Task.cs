@@ -52,6 +52,9 @@ public class Task
     [Column("assigned_to_user_id")]
     public int? AssignedToUserId { get; set; }
 
+    [Column("parent_task_id")]
+    public Guid? ParentTaskId { get; set; }
+
     [Required]
     [Column("created_by_user_id")]
     public int CreatedByUserId { get; set; }
@@ -73,4 +76,12 @@ public class Task
 
     // Navigation properties
     public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+    
+    // Task hierarchy navigation properties
+    public Task? ParentTask { get; set; }
+    public ICollection<Task> SubTasks { get; set; } = new List<Task>();
+    
+    // Task dependency navigation properties
+    public ICollection<TaskDependency> Dependencies { get; set; } = new List<TaskDependency>();
+    public ICollection<TaskDependency> DependentTasks { get; set; } = new List<TaskDependency>();
 }

@@ -11,6 +11,7 @@ public class TaskDbContext : DbContext
 
     public DbSet<Entities.Task> Tasks { get; set; }
     public DbSet<Comment> Comments { get; set; }
+    public DbSet<TaskDependency> TaskDependencies { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +46,9 @@ public class TaskDbContext : DbContext
             entity.HasIndex(e => e.Priority)
                 .HasDatabaseName("IX_Tasks_Priority");
             
+            entity.HasIndex(e => e.ParentTaskId)
+                .HasDatabaseName("IX_Tasks_ParentTaskId");
+            
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("GETUTCDATE()");
                 
@@ -56,6 +60,23 @@ public class TaskDbContext : DbContext
                 .WithOne(c => c.Task)
                 .HasForeignKey(c => c.TaskId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure task hierarchy relationship
+            entity.HasOne(t => t.ParentTask)
+                .WithMany(t => t.SubTasks)
+                .HasForeignKey(t => t.ParentTaskId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure task dependency relationships
+            entity.HasMany(t => t.Dependencies)
+                .WithOne(d => d.Task)
+                .HasForeignKey(d => d.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(t => t.DependentTasks)
+                .WithOne(d => d.DependentOnTask)
+                .HasForeignKey(d => d.DependentOnTaskId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Configure Comment entity
@@ -71,6 +92,24 @@ public class TaskDbContext : DbContext
                 .HasDefaultValueSql("GETUTCDATE()");
                 
             entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+        });
+
+        // Configure TaskDependency entity
+        modelBuilder.Entity<TaskDependency>(entity =>
+        {
+            entity.HasIndex(e => e.TaskId)
+                .HasDatabaseName("IX_TaskDependencies_TaskId");
+
+            entity.HasIndex(e => e.DependentOnTaskId)
+                .HasDatabaseName("IX_TaskDependencies_DependentOnTaskId");
+
+            // Ensure a task cannot depend on itself and no duplicate dependencies
+            entity.HasIndex(e => new { e.TaskId, e.DependentOnTaskId })
+                .IsUnique()
+                .HasDatabaseName("IX_TaskDependencies_TaskId_DependentOnTaskId");
+
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("GETUTCDATE()");
         });
     }

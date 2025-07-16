@@ -258,6 +258,193 @@ public class TasksController : ControllerBase
         }
     }
 
+    // Task hierarchy endpoints
+    [HttpGet("{id}/subtasks")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
+    public async Task<ActionResult<ApiResponse<IEnumerable<TaskDto>>>> GetSubTasks(Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            if (!await _taskService.HasTaskAccessAsync(id, userId) && !IsSystemAdmin())
+            {
+                return Forbid();
+            }
+
+            var subTasks = await _taskService.GetSubTasksAsync(id);
+            return Ok(ApiResponse<IEnumerable<TaskDto>>.SuccessResult(subTasks));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting subtasks for task {TaskId}", id);
+            return StatusCode(500, ApiResponse<IEnumerable<TaskDto>>.ErrorResult("Internal server error"));
+        }
+    }
+
+    [HttpGet("{id}/parent")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
+    public async Task<ActionResult<ApiResponse<TaskDto>>> GetParentTask(Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            if (!await _taskService.HasTaskAccessAsync(id, userId) && !IsSystemAdmin())
+            {
+                return Forbid();
+            }
+
+            var parentTask = await _taskService.GetParentTaskAsync(id);
+            if (parentTask == null)
+            {
+                return NotFound(ApiResponse<TaskDto>.ErrorResult("Parent task not found"));
+            }
+
+            return Ok(ApiResponse<TaskDto>.SuccessResult(parentTask));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting parent task for task {TaskId}", id);
+            return StatusCode(500, ApiResponse<TaskDto>.ErrorResult("Internal server error"));
+        }
+    }
+
+    [HttpPut("{id}/parent")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
+    public async Task<ActionResult<ApiResponse<object>>> SetParentTask(Guid id, [FromBody] SetParentTaskDto parentDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResponse<object>.ErrorResult("Invalid parent task data"));
+        }
+
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            if (!await _taskService.CanEditTaskAsync(id, userId) && !IsSystemAdmin())
+            {
+                return Forbid();
+            }
+
+            var success = await _taskService.SetParentTaskAsync(id, parentDto.ParentTaskId);
+            if (!success)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResult("Failed to set parent task. Check for circular hierarchy."));
+            }
+
+            return Ok(ApiResponse<object>.SuccessResult(null, "Parent task set successfully"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting parent task for task {TaskId}", id);
+            return StatusCode(500, ApiResponse<object>.ErrorResult("Internal server error"));
+        }
+    }
+
+    // Task dependency endpoints
+    [HttpGet("{id}/dependencies")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
+    public async Task<ActionResult<ApiResponse<IEnumerable<TaskDependencyDto>>>> GetTaskDependencies(Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            if (!await _taskService.HasTaskAccessAsync(id, userId) && !IsSystemAdmin())
+            {
+                return Forbid();
+            }
+
+            var dependencies = await _taskService.GetTaskDependenciesAsync(id);
+            return Ok(ApiResponse<IEnumerable<TaskDependencyDto>>.SuccessResult(dependencies));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting dependencies for task {TaskId}", id);
+            return StatusCode(500, ApiResponse<IEnumerable<TaskDependencyDto>>.ErrorResult("Internal server error"));
+        }
+    }
+
+    [HttpGet("{id}/dependents")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
+    public async Task<ActionResult<ApiResponse<IEnumerable<TaskDependencyDto>>>> GetTaskDependents(Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            if (!await _taskService.HasTaskAccessAsync(id, userId) && !IsSystemAdmin())
+            {
+                return Forbid();
+            }
+
+            var dependents = await _taskService.GetTaskDependentsAsync(id);
+            return Ok(ApiResponse<IEnumerable<TaskDependencyDto>>.SuccessResult(dependents));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting dependents for task {TaskId}", id);
+            return StatusCode(500, ApiResponse<IEnumerable<TaskDependencyDto>>.ErrorResult("Internal server error"));
+        }
+    }
+
+    [HttpPost("dependencies")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
+    public async Task<ActionResult<ApiResponse<TaskDependencyDto>>> CreateTaskDependency([FromBody] CreateTaskDependencyDto createDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ApiResponse<TaskDependencyDto>.ErrorResult("Invalid dependency data"));
+        }
+
+        try
+        {
+            var userId = GetCurrentUserId();
+            
+            if (!await _taskService.CanEditTaskAsync(createDto.TaskId, userId) && !IsSystemAdmin())
+            {
+                return Forbid();
+            }
+
+            var dependency = await _taskService.CreateTaskDependencyAsync(createDto);
+            return CreatedAtAction(nameof(GetTaskDependencies), new { id = createDto.TaskId }, 
+                ApiResponse<TaskDependencyDto>.SuccessResult(dependency));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Invalid task dependency creation attempt");
+            return BadRequest(ApiResponse<TaskDependencyDto>.ErrorResult(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating task dependency");
+            return StatusCode(500, ApiResponse<TaskDependencyDto>.ErrorResult("Internal server error"));
+        }
+    }
+
+    [HttpDelete("dependencies/{dependencyId}")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.ProjectManager}")]
+    public async Task<ActionResult<ApiResponse<object>>> DeleteTaskDependency(Guid dependencyId)
+    {
+        try
+        {
+            var success = await _taskService.DeleteTaskDependencyAsync(dependencyId);
+            if (!success)
+            {
+                return NotFound(ApiResponse<object>.ErrorResult("Dependency not found"));
+            }
+
+            return Ok(ApiResponse<object>.SuccessResult(null, "Dependency deleted successfully"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting task dependency {DependencyId}", dependencyId);
+            return StatusCode(500, ApiResponse<object>.ErrorResult("Internal server error"));
+        }
+    }
+
     /// <summary>
     /// Clean up all task dependencies for a user (for deletion process)
     /// Note: TaskService doesn't have admin roles that would block deletion like organization/project admins
@@ -308,4 +495,9 @@ public class UpdateTaskStatusDto
 public class AssignTaskDto
 {
     public int AssignedToUserId { get; set; }
+}
+
+public class SetParentTaskDto
+{
+    public Guid? ParentTaskId { get; set; }
 }

@@ -6,12 +6,16 @@
 @using ProjectManagementSystem.Shared.Client.Constants
 @using ProjectManagementSystem.Shared.Client.Authentication
 @using TaskStatusConst = ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components
+@using ProjectManagementSystem.WebApp.Wasm.Client.Models
+@using ProjectManagementSystem.WebApp.Wasm.Client.Services
 
 @attribute [ProjectManagementSystem.WebApp.Wasm.Client.Components.Authentication.Authorize]
 @inject IProjectService ProjectService
 @inject IOrganizationService OrganizationService
 @inject IUserService UserService
 @inject ITaskService TaskService
+@inject GanttTaskService GanttService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @inject AuthenticationStateProvider AuthStateProvider
@@ -235,8 +239,455 @@
 
     @if (!IsEditMode)
     {
-        <!-- Project Members Section -->
+        <!-- Project Tabs -->
         <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
+            <div class="card-header p-0">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link @(activeTab == "overview" ? "active" : "")" 
+                                @onclick="@(() => SetActiveTab("overview"))" 
+                                type="button" role="tab">
+                            <i class="bi bi-info-circle me-1"></i>Overview
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @(activeTab == "members" ? "active" : "")" 
+                                @onclick="@(() => SetActiveTab("members"))" 
+                                type="button" role="tab">
+                            <i class="bi bi-people me-1"></i>Members
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @(activeTab == "tasks" ? "active" : "")" 
+                                @onclick="@(() => SetActiveTab("tasks"))" 
+                                type="button" role="tab">
+                            <i class="bi bi-list-task me-1"></i>Tasks
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link @(activeTab == "gantt" ? "active" : "")" 
+                                @onclick="@(() => SetActiveTab("gantt"))" 
+                                type="button" role="tab">
+                            <i class="bi bi-bar-chart me-1"></i>Gantt Chart
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                @if (activeTab == "overview")
+                {
+                    <!-- Overview Tab Content -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>Project Details</h5>
+                            <dl class="row">
+                                <dt class="col-sm-3">Name:</dt>
+                                <dd class="col-sm-9">@project.Name</dd>
+                                
+                                <dt class="col-sm-3">Description:</dt>
+                                <dd class="col-sm-9">@(project.Description ?? "No description provided")</dd>
+                                
+                                <dt class="col-sm-3">Organization:</dt>
+                                <dd class="col-sm-9">
+                                    @if (project.Organization != null)
+                                    {
+                                        <a href="/organizations/@project.Organization.Id" class="text-decoration-none">@project.Organization.Name</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Loading...</span>
+                                    }
+                                </dd>
+                                
+                                <dt class="col-sm-3">Created By:</dt>
+                                <dd class="col-sm-9">
+                                    @if (isLoadingCreator)
+                                    {
+                                        <span class="text-muted">Loading...</span>
+                                    }
+                                    else if (creatorUser != null)
+                                    {
+                                        <span>@creatorUser.Username</span>
+                                        @if (!string.IsNullOrEmpty(creatorUser.Email))
+                                        {
+                                            <br /><small class="text-muted">@creatorUser.Email</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Unknown User</span>
+                                    }
+                                </dd>
+                                
+                                <dt class="col-sm-3">Status:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-@GetStatusBadgeColor(project.Status)">@project.Status</span>
+                                </dd>
+                                
+                                <dt class="col-sm-3">Priority:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-@GetPriorityBadgeColor(project.Priority)">@project.Priority</span>
+                                </dd>
+                                
+                                <dt class="col-sm-3">Start Date:</dt>
+                                <dd class="col-sm-9">@(project.StartDate?.ToString("MMMM dd, yyyy") ?? "Not set")</dd>
+                                
+                                <dt class="col-sm-3">End Date:</dt>
+                                <dd class="col-sm-9">@(project.EndDate?.ToString("MMMM dd, yyyy") ?? "Not set")</dd>
+                                
+                                <dt class="col-sm-3">Created:</dt>
+                                <dd class="col-sm-9">@project.CreatedAt.ToString("MMMM dd, yyyy 'at' h:mm tt")</dd>
+                                
+                                <dt class="col-sm-3">Last Updated:</dt>
+                                <dd class="col-sm-9">@project.UpdatedAt.ToString("MMMM dd, yyyy 'at' h:mm tt")</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Project Statistics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="h4 mb-1">@(members?.TotalCount ?? 0)</div>
+                                            <div class="small text-muted">Members</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="h4 mb-1">@(projectTasks?.TotalCount ?? 0)</div>
+                                            <div class="small text-muted">Tasks</div>
+                                        </div>
+                                    </div>
+                                    @if (project.StartDate.HasValue && project.EndDate.HasValue)
+                                    {
+                                        <hr class="my-3">
+                                        <div class="text-center">
+                                            <small class="text-muted">Project Duration</small>
+                                            <div class="fw-bold">@GetProjectDuration() days</div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (activeTab == "members")
+                {
+                    <!-- Members Tab Content -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Project Members</h5>
+                        @if (CanManageMembers())
+                        {
+                            <button class="btn btn-sm btn-outline-primary" @onclick="@(async () => await OpenAddMemberModal())">
+                                <i class="bi bi-person-plus"></i> Add Member
+                            </button>
+                        }
+                    </div>
+                    <!-- Members List Content -->
+                    @if (isLoadingMembers)
+                    {
+                        <div class="text-center py-4">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading members...</span>
+                            </div>
+                            <p class="mt-2">Loading members...</p>
+                        </div>
+                    }
+                    else if (members?.Items?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Joined</th>
+                                        @if (CanManageMembers())
+                                        {
+                                            <th>Actions</th>
+                                        }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var member in members.Items)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-circle me-2">
+                                                        @if (!string.IsNullOrEmpty(member.User?.FirstName))
+                                                        {
+                                                            <span>@member.User.FirstName.Substring(0, 1).ToUpper()@member.User.LastName?.Substring(0, 1).ToUpper()</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span>@member.User?.Username?.Substring(0, 1).ToUpper()</span>
+                                                        }
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-medium">@member.User?.FirstName @member.User?.LastName</div>
+                                                        <small class="text-muted">@member.User?.Username</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <small>@member.User?.Email</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@GetRoleBadgeColor(member.Role)">
+                                                    @GetRoleDisplayName(member.Role)
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">@member.JoinedAt.ToString("MMM dd, yyyy")</small>
+                                            </td>
+                                            @if (CanManageMembers())
+                                            {
+                                                <td>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" disabled="@isProcessing">
+                                                            <i class="bi bi-three-dots"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            @if (member.Role == Roles.ProjectMember)
+                                                            {
+                                                                <li>
+                                                                    <button class="dropdown-item" @onclick="@(() => UpdateMemberRole(member.UserId, Roles.ProjectManager))">
+                                                                        <i class="bi bi-arrow-up text-success"></i> Promote to Manager
+                                                                    </button>
+                                                                </li>
+                                                            }
+                                                            else if (member.Role == Roles.ProjectManager)
+                                                            {
+                                                                <li>
+                                                                    <button class="dropdown-item" @onclick="@(() => UpdateMemberRole(member.UserId, Roles.ProjectMember))">
+                                                                        <i class="bi bi-arrow-down text-warning"></i> Demote to Member
+                                                                    </button>
+                                                                </li>
+                                                            }
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <button class="dropdown-item text-danger" @onclick="@(() => RemoveMember(member.UserId))">
+                                                                    <i class="bi bi-person-dash"></i> Remove Member
+                                                                </button>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </td>
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        @if (members.TotalCount > 10)
+                        {
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">Showing @members.Items.Count() of @members.TotalCount members</small>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-people" style="font-size: 2rem; color: #6c757d;"></i>
+                            <h6 class="mt-2">No members yet</h6>
+                            <p class="text-muted small">Add members to collaborate on this project.</p>
+                            @if (CanManageMembers())
+                            {
+                                <button class="btn btn-sm btn-primary" @onclick="@(async () => await OpenAddMemberModal())">
+                                    <i class="bi bi-person-plus"></i> Add First Member
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+                else if (activeTab == "tasks")
+                {
+                    <!-- Tasks Tab Content -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Tasks</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" @onclick="ToggleTaskView">
+                                <i class="bi @(isTaskKanbanView ? "bi-list" : "bi-kanban")"></i> 
+                                @(isTaskKanbanView ? "List" : "Kanban")
+                            </button>
+                            @if (CanCreateTask())
+                            {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="CreateTask">
+                                    <i class="bi bi-plus-circle"></i> Add Task
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    <!-- Tasks List Content -->
+                    @if (isLoadingTasks)
+                    {
+                        <div class="text-center py-4">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading tasks...</p>
+                        </div>
+                    }
+                    else if (projectTasks?.Items?.Any() == true)
+                    {
+                        @if (isTaskKanbanView)
+                        {
+                            <!-- Kanban View -->
+                            <div class="row">
+                                @foreach (var status in taskStatuses)
+                                {
+                                    <div class="col-md-3">
+                                        <div class="card bg-light mb-3">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">@status</h6>
+                                                <span class="badge bg-secondary float-end">@GetTaskCountByStatus(status)</span>
+                                            </div>
+                                            <div class="card-body p-2" style="min-height: 200px; max-height: 300px; overflow-y: auto;">
+                                                @foreach (var task in GetTasksByStatus(status))
+                                                {
+                                                    <div class="card mb-2 shadow-sm" style="cursor: pointer;" @onclick="() => ViewTask(task.Id)">
+                                                        <div class="card-body p-2">
+                                                            <h6 class="card-title small mb-1">
+                                                                <a href="/tasks/@task.Id" class="text-decoration-none">@task.Title</a>
+                                                            </h6>
+                                                            <p class="card-text small text-muted mb-1">@task.Description</p>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <span class="badge bg-@GetTaskPriorityBadgeColor(task.Priority) small">@task.Priority</span>
+                                                                @if (task.DueDate.HasValue)
+                                                                {
+                                                                    <small class="text-muted">@task.DueDate.Value.ToString("MM/dd")</small>
+                                                                }
+                                                            </div>
+                                                            @if (task.AssignedTo != null)
+                                                            {
+                                                                <div class="mt-1">
+                                                                    <small class="text-muted">@task.AssignedTo.Username</small>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- List View -->
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                            <th>Assigned To</th>
+                                            <th>Due Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var task in projectTasks.Items)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <a href="/tasks/@task.Id" class="text-decoration-none">@task.Title</a>
+                                                    @if (task.ParentTaskId.HasValue)
+                                                    {
+                                                        <small class="text-muted d-block">Child task</small>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-@(GetTaskStatusBadgeColor(task.Status))">@task.Status</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-@(GetTaskPriorityBadgeColor(task.Priority))">@task.Priority</span>
+                                                </td>
+                                                <td>
+                                                    @if (task.AssignedTo != null)
+                                                    {
+                                                        <span>@task.AssignedTo.Username</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">Unassigned</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (task.DueDate.HasValue)
+                                                    {
+                                                        <span>@task.DueDate.Value.ToString("yyyy/MM/dd")</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">No due date</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="/tasks/@task.Id" class="btn btn-sm btn-outline-primary">View</a>
+                                                        @if (CanEditTasks())
+                                                        {
+                                                            <a href="/tasks/@task.Id/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                                        }
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-list-task" style="font-size: 2rem; color: #6c757d;"></i>
+                            <h6 class="mt-2">No tasks found</h6>
+                            <p class="text-muted small">Create your first task to get started.</p>
+                            @if (CanCreateTask())
+                            {
+                                <button class="btn btn-primary" @onclick="CreateTask">
+                                    <i class="bi bi-plus-circle"></i> Create First Task
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+                else if (activeTab == "gantt")
+                {
+                    <!-- Gantt Chart Tab Content -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5>Project Timeline</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-2" @onclick="RefreshGanttChart">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                            @if (CanCreateTask())
+                            {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="CreateTask">
+                                    <i class="bi bi-plus-circle"></i> Add Task
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    
+                    <BlazorGanttChart Tasks="ganttTasks" 
+                                     OnTaskClick="HandleTaskClick"
+                                     ReadOnly="@(!CanEditTasks())"
+                                     @ref="blazorGanttChartRef" />
+                }
+            </div>
+        </div>
+
+        <!-- Project Members Section (move content to members tab) -->
+        <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden; display: @(activeTab == "members" ? "block" : "none");">
             <div class="card-header">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5>Project Members</h5>
@@ -426,171 +877,6 @@
                 </div>
             </div>
         }
-
-        <!-- Project Tasks Section -->
-        <div class="card mt-4" style="width: 100%; max-width: 100%; overflow: hidden;">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5>Tasks</h5>
-                    <div>
-                        <button class="btn btn-sm btn-outline-secondary me-2" @onclick="ToggleTaskView">
-                            <i class="bi @(isTaskKanbanView ? "bi-list" : "bi-kanban")"></i> 
-                            @(isTaskKanbanView ? "List" : "Kanban")
-                        </button>
-                        @if (CanCreateTask())
-                        {
-                            <button class="btn btn-sm btn-outline-primary" @onclick="CreateTask">
-                                <i class="bi bi-plus-circle"></i> Add Task
-                            </button>
-                        }
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                @if (isLoadingTasks)
-                {
-                    <div class="text-center">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Loading tasks...</span>
-                        </div>
-                    </div>
-                }
-                else if (projectTasks?.Items?.Any() == true)
-                {
-                    @if (isTaskKanbanView)
-                    {
-                        <!-- Mini Kanban View -->
-                        <div class="row">
-                            @foreach (var status in taskStatuses)
-                            {
-                                <div class="col-md-3 mb-3">
-                                    <div class="card bg-light">
-                                        <div class="card-header p-2">
-                                            <small class="text-muted fw-bold">@status</small>
-                                            <span class="badge bg-secondary float-end">@GetTaskCountByStatus(status)</span>
-                                        </div>
-                                        <div class="card-body p-2" style="min-height: 200px; max-height: 300px; overflow-y: auto;">
-                                            @foreach (var task in GetTasksByStatus(status))
-                                            {
-                                                <div class="card mb-2 shadow-sm" style="cursor: pointer;" @onclick="() => ViewTask(task.Id)">
-                                                    <div class="card-body p-2">
-                                                        <h6 class="card-title mb-1 small">@task.Title</h6>
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <span class="badge bg-@GetTaskPriorityBadgeColor(task.Priority) small">@task.Priority</span>
-                                                            @if (task.DueDate.HasValue)
-                                                            {
-                                                                <small class="text-muted">@task.DueDate.Value.ToString("MMM dd")</small>
-                                                            }
-                                                        </div>
-                                                        @if (task.AssignedTo != null)
-                                                        {
-                                                            <div class="mt-1">
-                                                                <small class="text-muted">@task.AssignedTo.Username</small>
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                </div>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <!-- List View -->
-                        <div class="table-responsive">
-                            <table class="table table-hover table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Title</th>
-                                        <th>Status</th>
-                                        <th>Priority</th>
-                                        <th>Assigned To</th>
-                                        <th>Due Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var task in projectTasks.Items)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <div>
-                                                    <strong class="small">@task.Title</strong>
-                                                    @if (!string.IsNullOrEmpty(task.Description))
-                                                    {
-                                                        <br />
-                                                        <small class="text-muted">@(task.Description.Length > 40 ? task.Description.Substring(0, 40) + "..." : task.Description)</small>
-                                                    }
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-@GetTaskStatusBadgeColor(task.Status) small">@task.Status</span>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-@GetTaskPriorityBadgeColor(task.Priority) small">@task.Priority</span>
-                                            </td>
-                                            <td>
-                                                @if (task.AssignedTo != null)
-                                                {
-                                                    <small>@task.AssignedTo.Username</small>
-                                                }
-                                                else
-                                                {
-                                                    <small class="text-muted">Unassigned</small>
-                                                }
-                                            </td>
-                                            <td>
-                                                @if (task.DueDate.HasValue)
-                                                {
-                                                    <small class="@(task.DueDate < DateTime.UtcNow && task.Status != TaskStatusConst.Done ? "text-danger" : "")">
-                                                        @task.DueDate.Value.ToString("MMM dd")
-                                                    </small>
-                                                }
-                                                else
-                                                {
-                                                    <small class="text-muted">No due</small>
-                                                }
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary" @onclick="() => ViewTask(task.Id)">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    
-                    @if (projectTasks.TotalCount > 10)
-                    {
-                        <div class="mt-3 text-center">
-                            <a href="/tasks?projectId=@Id" class="btn btn-sm btn-outline-primary">
-                                View All Tasks (@projectTasks.TotalCount)
-                            </a>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-4">
-                        <i class="bi bi-list-check" style="font-size: 2rem; color: #6c757d;"></i>
-                        <h6 class="mt-2">No tasks yet</h6>
-                        <p class="text-muted small">Create your first task to get started.</p>
-                        @if (CanCreateTask())
-                        {
-                            <button class="btn btn-sm btn-primary" @onclick="CreateTask">
-                                <i class="bi bi-plus-circle"></i> Create First Task
-                            </button>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
     }
 }
 else if (isLoading)
@@ -638,6 +924,13 @@ else
     private string selectedRole = Roles.ProjectMember;
     private bool isLoadingOrganizationMembers = false;
     private bool isAddingMember = false;
+    
+    // Tab management
+    private string activeTab = "overview";
+    
+    // Gantt chart variables
+    private List<GanttTask> ganttTasks = new();
+    private BlazorGanttChart? blazorGanttChartRef;
 
     protected override async Task OnInitializedAsync()
     {
@@ -648,6 +941,8 @@ else
         {
             await LoadMembers();
             await LoadProjectTasks();
+            // Ensure LoadGanttTasks is called after LoadProjectTasks completes
+            await LoadGanttTasks();
         }
     }
 
@@ -659,6 +954,8 @@ else
         {
             await LoadMembers();
             await LoadProjectTasks();
+            // Ensure LoadGanttTasks is called after LoadProjectTasks completes
+            await LoadGanttTasks();
         }
     }
 
@@ -1050,6 +1347,26 @@ else
         };
     }
 
+    private string GetRoleBadgeColor(string role)
+    {
+        return role switch
+        {
+            Roles.ProjectManager => "primary",
+            Roles.ProjectMember => "secondary",
+            _ => "secondary"
+        };
+    }
+
+    private string GetRoleDisplayName(string role)
+    {
+        return role switch
+        {
+            Roles.ProjectManager => "Manager",
+            Roles.ProjectMember => "Member",
+            _ => "Member"
+        };
+    }
+
     private string GetProjectRoleBadgeColor(string role)
     {
         return role switch
@@ -1094,7 +1411,9 @@ else
         isLoadingTasks = true;
         try
         {
+            Logger.LogInformation("Loading tasks for project {ProjectId}", Id);
             projectTasks = await TaskService.GetTasksAsync(Id, 1, 20); // Load first 20 tasks
+            Logger.LogInformation("Loaded {TaskCount} tasks for project {ProjectId}", projectTasks?.TotalCount ?? 0, Id);
         }
         catch (Exception ex)
         {
@@ -1178,4 +1497,222 @@ else
             Navigation.NavigateTo("/projects");
         }
     }
+
+    // Tab management methods
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+        StateHasChanged();
+    }
+
+    // Gantt chart methods
+    private async Task LoadGanttTasks()
+    {
+        Logger.LogInformation("LoadGanttTasks called. projectTasks is null: {IsNull}, Items count: {Count}", 
+            projectTasks == null, projectTasks?.Items?.Count() ?? 0);
+        
+        if (projectTasks?.Items != null && projectTasks.Items.Any())
+        {
+            var taskList = projectTasks.Items.ToList();
+            ganttTasks = GanttService.CalculateTaskSchedule(taskList);
+            Logger.LogInformation("Generated {GanttTaskCount} gantt tasks from {TaskCount} project tasks", 
+                ganttTasks?.Count() ?? 0, taskList.Count);
+            
+            // Log some details about the generated tasks
+            if (ganttTasks != null && ganttTasks.Any())
+            {
+                foreach (var task in ganttTasks.Take(3))
+                {
+                    Logger.LogInformation("Gantt task: {Name}, Start: {Start}, End: {End}", 
+                        task.Name, task.Start, task.End);
+                }
+            }
+            StateHasChanged();
+        }
+        else
+        {
+            Logger.LogWarning("Cannot load gantt tasks: projectTasks is null or empty");
+            ganttTasks = new List<GanttTask>();
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshGanttChart()
+    {
+        await LoadProjectTasks();
+        await LoadGanttTasks();
+        
+        if (blazorGanttChartRef != null)
+        {
+            blazorGanttChartRef.RefreshChart();
+        }
+    }
+
+
+    private async Task HandleTaskClick(GanttTask task)
+    {
+        try
+        {
+            // Navigate to task details
+            Navigation.NavigateTo($"/tasks/{task.TaskId}");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error handling task click");
+        }
+    }
+
+    private bool CanEditTasks()
+    {
+        if (currentUser == null || project == null) return false;
+        
+        // System admin can edit tasks in any project
+        if (currentUser.Role == Roles.SystemAdmin) return true;
+        
+        // Project members and above can edit tasks
+        var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
+        return userMembership != null;
+    }
 }
+
+<style>
+    /* Tab styling fixes */
+    .nav-tabs {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        align-items: stretch;
+    }
+    
+    .nav-tabs .nav-item {
+        margin-bottom: 0;
+        display: flex;
+        align-items: stretch;
+    }
+    
+    .nav-tabs .nav-item:last-child {
+        margin-right: 0;
+    }
+    
+    .nav-tabs .nav-link {
+        color: #495057 !important;
+        background-color: transparent;
+        border: 1px solid transparent;
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        margin-right: 2px;
+        font-weight: 500;
+        transition: all 0.15s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1.5;
+        vertical-align: middle;
+        min-height: 44px;
+        height: 44px;
+        position: relative;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: #007bff !important;
+        background-color: #e9ecef;
+        border-color: #dee2e6 #dee2e6 #f8f9fa;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #007bff !important;
+        background-color: #fff;
+        border-color: #dee2e6 #dee2e6 #fff;
+        border-bottom: 1px solid #fff;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .nav-tabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #007bff;
+    }
+    
+    /* Card header styling for tabs */
+    .card-header-tabs {
+        margin-bottom: 0;
+    }
+    
+    .card-header-tabs .nav-link {
+        border-bottom: none;
+    }
+    
+    .card-header-tabs .nav-link.active {
+        border-bottom: 2px solid #007bff;
+    }
+    
+    /* Ensure proper contrast */
+    .nav-tabs .nav-item .nav-link {
+        color: #495057 !important;
+        text-decoration: none;
+    }
+    
+    .nav-tabs .nav-item .nav-link:focus,
+    .nav-tabs .nav-item .nav-link:active {
+        color: #007bff !important;
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    /* Icon styling in tabs */
+    .nav-tabs .nav-link i {
+        margin-right: 0.5rem;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
+    }
+    
+    /* Tab content styling */
+    .tab-content {
+        background-color: #fff;
+        padding: 1rem;
+    }
+    
+    /* Button styling consistency */
+    .nav-tabs .nav-link {
+        border: none;
+        background: none;
+        cursor: pointer;
+    }
+    
+    .nav-tabs .nav-link:disabled {
+        color: #6c757d !important;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    /* Avatar styling */
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #007bff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        flex-shrink: 0;
+    }
+    
+    .avatar-circle span {
+        line-height: 1;
+    }
+</style>

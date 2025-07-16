@@ -20,8 +20,13 @@ public class TaskDto
     public Guid ProjectId { get; set; }
     public int CreatedByUserId { get; set; }
     public int? AssignedToUserId { get; set; }
+    public Guid? ParentTaskId { get; set; }
     public ProjectDto? Project { get; set; }
     public UserDto? AssignedTo { get; set; }
+    public TaskDto? ParentTask { get; set; }
+    public ICollection<TaskDto> SubTasks { get; set; } = new List<TaskDto>();
+    public ICollection<Guid> DependentTaskIds { get; set; } = new List<Guid>();
+    public ICollection<Guid> DependsOnTaskIds { get; set; } = new List<Guid>();
 }
 
 public class CreateTaskDto
@@ -48,6 +53,9 @@ public class CreateTaskDto
     
     [Required]
     public int AssignedToUserId { get; set; }
+    
+    public Guid? ParentTaskId { get; set; }
+    public ICollection<Guid> DependsOnTaskIds { get; set; } = new List<Guid>();
 }
 
 public class UpdateTaskDto
@@ -65,6 +73,8 @@ public class UpdateTaskDto
     public decimal? EstimatedHours { get; set; }
     public decimal? ActualHours { get; set; }
     public int? AssignedToUserId { get; set; }
+    public Guid? ParentTaskId { get; set; }
+    public ICollection<Guid>? DependsOnTaskIds { get; set; }
 }
 
 public class TaskCommentDto
@@ -89,4 +99,23 @@ public class UpdateTaskCommentDto
     [Required]
     [StringLength(2000, MinimumLength = 1)]
     public required string Content { get; set; }
+}
+
+public class TaskDependencyDto
+{
+    public Guid Id { get; set; }
+    public Guid TaskId { get; set; }
+    public Guid DependentOnTaskId { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public TaskDto? Task { get; set; }
+    public TaskDto? DependentOnTask { get; set; }
+}
+
+public class CreateTaskDependencyDto
+{
+    [Required]
+    public Guid TaskId { get; set; }
+    
+    [Required]
+    public Guid DependentOnTaskId { get; set; }
 }

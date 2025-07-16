@@ -40,7 +40,7 @@ public class TaskService : ITaskService
 
     public async Task<PagedResult<TaskDto>?> GetTasksAsync(Guid projectId, int pageNumber = 1, int pageSize = 10)
     {
-        var requestUrl = $"/api/tasks?projectId={projectId}&pageNumber={pageNumber}&pageSize={pageSize}";
+        var requestUrl = $"/api/tasks/project/{projectId}?pageNumber={pageNumber}&pageSize={pageSize}";
         _logger.LogDebug("GetTasksAsync called - requesting: {RequestUrl}", requestUrl);
         
         try

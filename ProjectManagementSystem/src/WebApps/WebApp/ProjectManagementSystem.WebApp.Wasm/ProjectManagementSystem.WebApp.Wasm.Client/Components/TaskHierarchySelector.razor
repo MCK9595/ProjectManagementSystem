@@ -1,0 +1,245 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Client.Services
+@inject ITaskService TaskService
+@inject ILogger<TaskHierarchySelector> Logger
+
+<div class="task-hierarchy-selector">
+    <label for="parent-task-select" class="form-label">親タスク</label>
+    <select id="parent-task-select" 
+            class="form-select @(HasError ? "is-invalid" : "")" 
+            @bind="SelectedParentTaskId" 
+            @bind:after="OnParentTaskChanged"
+            disabled="@IsLoading">
+        <option value="">-- 親タスクを選択 --</option>
+        @if (AvailableParentTasks != null)
+        {
+            @foreach (var task in AvailableParentTasks)
+            {
+                <option value="@task.Id">
+                    @GetTaskHierarchyDisplay(task)
+                </option>
+            }
+        }
+    </select>
+    
+    @if (HasError)
+    {
+        <div class="invalid-feedback">
+            @ErrorMessage
+        </div>
+    }
+    
+    @if (IsLoading)
+    {
+        <div class="form-text">
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            利用可能な親タスクを読み込み中...
+        </div>
+    }
+    else if (SelectedParentTask != null)
+    {
+        <div class="form-text text-success">
+            <i class="bi bi-check-circle me-1"></i>
+            選択された親タスク: @SelectedParentTask.Title
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(SelectedParentTaskId))
+    {
+        <div class="form-text text-muted">
+            このタスクは独立したタスクになります
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    [Parameter] public Guid? CurrentTaskId { get; set; }
+    [Parameter] public Guid? InitialParentTaskId { get; set; }
+    [Parameter] public EventCallback<Guid?> OnParentTaskSelectionChanged { get; set; }
+    [Parameter] public bool IsRequired { get; set; } = false;
+
+    private List<TaskDto>? AvailableParentTasks;
+    private TaskDto? SelectedParentTask;
+    private string SelectedParentTaskId = string.Empty;
+    private bool IsLoading = false;
+    private bool HasError = false;
+    private string ErrorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (InitialParentTaskId.HasValue)
+        {
+            SelectedParentTaskId = InitialParentTaskId.Value.ToString();
+        }
+        await LoadAvailableParentTasks();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (InitialParentTaskId.HasValue && SelectedParentTaskId != InitialParentTaskId.Value.ToString())
+        {
+            SelectedParentTaskId = InitialParentTaskId.Value.ToString();
+            await OnParentTaskChanged();
+        }
+    }
+
+    private async Task LoadAvailableParentTasks()
+    {
+        IsLoading = true;
+        HasError = false;
+        ErrorMessage = string.Empty;
+        StateHasChanged();
+
+        try
+        {
+            var allTasks = await TaskService.GetTasksAsync(ProjectId, 1, 100);
+            if (allTasks?.Items != null)
+            {
+                // 現在のタスクを除外し、循環参照を防ぐ
+                AvailableParentTasks = allTasks.Items
+                    .Where(t => t.Id != CurrentTaskId && !IsDescendantOf(t.Id, CurrentTaskId))
+                    .OrderBy(t => t.Title)
+                    .ToList();
+            }
+            else
+            {
+                AvailableParentTasks = new List<TaskDto>();
+            }
+        }
+        catch (Exception ex)
+        {
+            HasError = true;
+            ErrorMessage = "親タスクの読み込み中にエラーが発生しました。";
+            Logger.LogError(ex, "Error loading available parent tasks for project {ProjectId}", ProjectId);
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnParentTaskChanged()
+    {
+        if (string.IsNullOrEmpty(SelectedParentTaskId))
+        {
+            SelectedParentTask = null;
+            await OnParentTaskSelectionChanged.InvokeAsync(null);
+        }
+        else if (Guid.TryParse(SelectedParentTaskId, out var parentTaskId))
+        {
+            SelectedParentTask = AvailableParentTasks?.FirstOrDefault(t => t.Id == parentTaskId);
+            await OnParentTaskSelectionChanged.InvokeAsync(parentTaskId);
+        }
+    }
+
+    private bool IsDescendantOf(Guid potentialParentId, Guid? currentTaskId)
+    {
+        if (!currentTaskId.HasValue || AvailableParentTasks == null)
+            return false;
+
+        // 現在のタスクの子孫であるかチェック
+        var visited = new HashSet<Guid>();
+        var queue = new Queue<Guid>();
+        queue.Enqueue(currentTaskId.Value);
+
+        while (queue.Count > 0)
+        {
+            var currentId = queue.Dequeue();
+            if (visited.Contains(currentId))
+                continue;
+
+            visited.Add(currentId);
+
+            // 子タスクを検索
+            var childTasks = AvailableParentTasks.Where(t => t.ParentTaskId == currentId);
+            foreach (var child in childTasks)
+            {
+                if (child.Id == potentialParentId)
+                    return true;
+                queue.Enqueue(child.Id);
+            }
+        }
+
+        return false;
+    }
+
+    private string GetTaskHierarchyDisplay(TaskDto task)
+    {
+        var indent = GetTaskIndentLevel(task.Id);
+        var prefix = new string(' ', indent * 2);
+        var statusIcon = GetTaskStatusIcon(task.Status);
+        return $"{prefix}{statusIcon} {task.Title}";
+    }
+
+    private int GetTaskIndentLevel(Guid taskId)
+    {
+        if (AvailableParentTasks == null)
+            return 0;
+
+        var level = 0;
+        var currentTask = AvailableParentTasks.FirstOrDefault(t => t.Id == taskId);
+        
+        while (currentTask?.ParentTaskId != null)
+        {
+            level++;
+            currentTask = AvailableParentTasks.FirstOrDefault(t => t.Id == currentTask.ParentTaskId);
+            if (level > 10) // 無限ループ防止
+                break;
+        }
+
+        return level;
+    }
+
+    private string GetTaskStatusIcon(string status)
+    {
+        return status switch
+        {
+            ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.ToDo => "⚪",
+            ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.InProgress => "🔄",
+            ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.InReview => "👀",
+            ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus.Done => "✅",
+            _ => "⚪"
+        };
+    }
+
+    public async Task RefreshAsync()
+    {
+        await LoadAvailableParentTasks();
+    }
+
+    public bool Validate()
+    {
+        if (IsRequired && string.IsNullOrEmpty(SelectedParentTaskId))
+        {
+            HasError = true;
+            ErrorMessage = "親タスクの選択は必須です。";
+            StateHasChanged();
+            return false;
+        }
+
+        HasError = false;
+        ErrorMessage = string.Empty;
+        StateHasChanged();
+        return true;
+    }
+}
+
+<style>
+    .task-hierarchy-selector {
+        width: 100%;
+    }
+
+    .task-hierarchy-selector select {
+        font-family: 'Consolas', 'Monaco', monospace;
+    }
+
+    .task-hierarchy-selector .form-text {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .task-hierarchy-selector .invalid-feedback {
+        display: block;
+    }
+</style>

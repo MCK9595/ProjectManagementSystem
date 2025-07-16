@@ -120,6 +120,7 @@ public class TaskService : ITaskService
                     EstimatedHours = createTaskDto.EstimatedHours,
                     ProjectId = createTaskDto.ProjectId,
                     AssignedToUserId = createTaskDto.AssignedToUserId,
+                    ParentTaskId = createTaskDto.ParentTaskId,
                     CreatedByUserId = createdByUserId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -127,6 +128,22 @@ public class TaskService : ITaskService
 
                 _context.Tasks.Add(task);
                 await _context.SaveChangesAsync();
+
+                // Create task dependencies if specified
+                if (createTaskDto.DependsOnTaskIds.Any())
+                {
+                    var dependencies = createTaskDto.DependsOnTaskIds.Select(dependsOnTaskId => 
+                        new Data.Entities.TaskDependency
+                        {
+                            TaskId = task.Id,
+                            DependentOnTaskId = dependsOnTaskId,
+                            CreatedAt = DateTime.UtcNow
+                        });
+
+                    _context.TaskDependencies.AddRange(dependencies);
+                    await _context.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();
 
                 _logger.LogInformation("Task {TaskTitle} (#{TaskNumber}) created by user {UserId}", 
@@ -184,6 +201,29 @@ public class TaskService : ITaskService
 
         if (updateTaskDto.AssignedToUserId.HasValue)
             task.AssignedToUserId = updateTaskDto.AssignedToUserId.Value;
+
+        if (updateTaskDto.ParentTaskId.HasValue)
+            task.ParentTaskId = updateTaskDto.ParentTaskId.Value;
+
+        // Update dependencies if specified
+        if (updateTaskDto.DependsOnTaskIds != null)
+        {
+            // Remove existing dependencies
+            var existingDependencies = _context.TaskDependencies
+                .Where(d => d.TaskId == taskId);
+            _context.TaskDependencies.RemoveRange(existingDependencies);
+
+            // Add new dependencies
+            var newDependencies = updateTaskDto.DependsOnTaskIds.Select(dependsOnTaskId => 
+                new Data.Entities.TaskDependency
+                {
+                    TaskId = taskId,
+                    DependentOnTaskId = dependsOnTaskId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            
+            _context.TaskDependencies.AddRange(newDependencies);
+        }
 
         await _context.SaveChangesAsync();
 
@@ -347,6 +387,7 @@ public class TaskService : ITaskService
                 ProjectId = task.ProjectId,
                 CreatedByUserId = task.CreatedByUserId,
                 AssignedToUserId = task.AssignedToUserId,
+                ParentTaskId = task.ParentTaskId,
                 Project = project,
                 AssignedTo = assignedUser
             };
@@ -373,8 +414,248 @@ public class TaskService : ITaskService
                 UpdatedAt = task.UpdatedAt,
                 ProjectId = task.ProjectId,
                 CreatedByUserId = task.CreatedByUserId,
-                AssignedToUserId = task.AssignedToUserId
+                AssignedToUserId = task.AssignedToUserId,
+                ParentTaskId = task.ParentTaskId
             };
         }
+    }
+
+    // Task hierarchy methods
+    public async Task<IEnumerable<TaskDto>> GetSubTasksAsync(Guid parentTaskId)
+    {
+        var subTasks = await _context.Tasks
+            .Where(t => t.ParentTaskId == parentTaskId && t.IsActive)
+            .ToListAsync();
+
+        var subTaskDtos = new List<TaskDto>();
+        foreach (var subTask in subTasks)
+        {
+            subTaskDtos.Add(await MapTaskToDtoAsync(subTask));
+        }
+
+        return subTaskDtos;
+    }
+
+    public async Task<TaskDto?> GetParentTaskAsync(Guid taskId)
+    {
+        var task = await _context.Tasks
+            .Where(t => t.Id == taskId && t.IsActive)
+            .FirstOrDefaultAsync();
+
+        if (task?.ParentTaskId == null)
+            return null;
+
+        var parentTask = await _context.Tasks
+            .Where(t => t.Id == task.ParentTaskId && t.IsActive)
+            .FirstOrDefaultAsync();
+
+        return parentTask != null ? await MapTaskToDtoAsync(parentTask) : null;
+    }
+
+    public async Task<bool> SetParentTaskAsync(Guid taskId, Guid? parentTaskId)
+    {
+        var task = await _context.Tasks
+            .Where(t => t.Id == taskId && t.IsActive)
+            .FirstOrDefaultAsync();
+
+        if (task == null)
+            return false;
+
+        // Check for circular hierarchy
+        if (parentTaskId.HasValue && await HasCircularHierarchyAsync(taskId, parentTaskId.Value))
+        {
+            _logger.LogWarning("Circular hierarchy detected for task {TaskId} with parent {ParentTaskId}", 
+                taskId, parentTaskId.Value);
+            return false;
+        }
+
+        task.ParentTaskId = parentTaskId;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Task {TaskId} parent set to {ParentTaskId}", taskId, parentTaskId);
+        return true;
+    }
+
+    // Task dependency methods
+    public async Task<IEnumerable<TaskDependencyDto>> GetTaskDependenciesAsync(Guid taskId)
+    {
+        var dependencies = await _context.TaskDependencies
+            .Where(d => d.TaskId == taskId)
+            .ToListAsync();
+
+        var dependencyDtos = new List<TaskDependencyDto>();
+        foreach (var dependency in dependencies)
+        {
+            var dependentOnTask = await _context.Tasks
+                .Where(t => t.Id == dependency.DependentOnTaskId && t.IsActive)
+                .FirstOrDefaultAsync();
+
+            if (dependentOnTask != null)
+            {
+                dependencyDtos.Add(new TaskDependencyDto
+                {
+                    Id = dependency.Id,
+                    TaskId = dependency.TaskId,
+                    DependentOnTaskId = dependency.DependentOnTaskId,
+                    CreatedAt = dependency.CreatedAt,
+                    DependentOnTask = await MapTaskToDtoAsync(dependentOnTask)
+                });
+            }
+        }
+
+        return dependencyDtos;
+    }
+
+    public async Task<IEnumerable<TaskDependencyDto>> GetTaskDependentsAsync(Guid taskId)
+    {
+        var dependents = await _context.TaskDependencies
+            .Where(d => d.DependentOnTaskId == taskId)
+            .ToListAsync();
+
+        var dependentDtos = new List<TaskDependencyDto>();
+        foreach (var dependent in dependents)
+        {
+            var task = await _context.Tasks
+                .Where(t => t.Id == dependent.TaskId && t.IsActive)
+                .FirstOrDefaultAsync();
+
+            if (task != null)
+            {
+                dependentDtos.Add(new TaskDependencyDto
+                {
+                    Id = dependent.Id,
+                    TaskId = dependent.TaskId,
+                    DependentOnTaskId = dependent.DependentOnTaskId,
+                    CreatedAt = dependent.CreatedAt,
+                    Task = await MapTaskToDtoAsync(task)
+                });
+            }
+        }
+
+        return dependentDtos;
+    }
+
+    public async Task<TaskDependencyDto> CreateTaskDependencyAsync(CreateTaskDependencyDto createDto)
+    {
+        // Check for circular dependency
+        if (await HasCircularDependencyAsync(createDto.TaskId, createDto.DependentOnTaskId))
+        {
+            throw new InvalidOperationException("Creating this dependency would create a circular dependency");
+        }
+
+        var dependency = new Data.Entities.TaskDependency
+        {
+            TaskId = createDto.TaskId,
+            DependentOnTaskId = createDto.DependentOnTaskId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.TaskDependencies.Add(dependency);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Task dependency created: Task {TaskId} depends on {DependentOnTaskId}", 
+            createDto.TaskId, createDto.DependentOnTaskId);
+
+        return new TaskDependencyDto
+        {
+            Id = dependency.Id,
+            TaskId = dependency.TaskId,
+            DependentOnTaskId = dependency.DependentOnTaskId,
+            CreatedAt = dependency.CreatedAt
+        };
+    }
+
+    public async Task<bool> DeleteTaskDependencyAsync(Guid dependencyId)
+    {
+        var dependency = await _context.TaskDependencies
+            .Where(d => d.Id == dependencyId)
+            .FirstOrDefaultAsync();
+
+        if (dependency == null)
+            return false;
+
+        _context.TaskDependencies.Remove(dependency);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Task dependency {DependencyId} deleted", dependencyId);
+        return true;
+    }
+
+    public async Task<bool> HasCircularDependencyAsync(Guid taskId, Guid dependentOnTaskId)
+    {
+        // A task cannot depend on itself
+        if (taskId == dependentOnTaskId)
+            return true;
+
+        // Check if dependentOnTaskId already depends on taskId (directly or indirectly)
+        var visited = new HashSet<Guid>();
+        var toVisit = new Stack<Guid>();
+        toVisit.Push(dependentOnTaskId);
+
+        while (toVisit.Count > 0)
+        {
+            var currentTaskId = toVisit.Pop();
+            
+            if (visited.Contains(currentTaskId))
+                continue;
+                
+            visited.Add(currentTaskId);
+
+            var dependencies = await _context.TaskDependencies
+                .Where(d => d.TaskId == currentTaskId)
+                .Select(d => d.DependentOnTaskId)
+                .ToListAsync();
+
+            foreach (var depId in dependencies)
+            {
+                if (depId == taskId)
+                    return true;
+                    
+                if (!visited.Contains(depId))
+                    toVisit.Push(depId);
+            }
+        }
+
+        return false;
+    }
+
+    public async Task<bool> HasCircularHierarchyAsync(Guid taskId, Guid? parentTaskId)
+    {
+        if (!parentTaskId.HasValue)
+            return false;
+
+        // A task cannot be its own parent
+        if (taskId == parentTaskId.Value)
+            return true;
+
+        // Check if parentTaskId is already a child of taskId (directly or indirectly)
+        var visited = new HashSet<Guid>();
+        var toVisit = new Stack<Guid>();
+        toVisit.Push(parentTaskId.Value);
+
+        while (toVisit.Count > 0)
+        {
+            var currentTaskId = toVisit.Pop();
+            
+            if (visited.Contains(currentTaskId))
+                continue;
+                
+            visited.Add(currentTaskId);
+
+            var parentTask = await _context.Tasks
+                .Where(t => t.Id == currentTaskId && t.IsActive)
+                .FirstOrDefaultAsync();
+
+            if (parentTask?.ParentTaskId.HasValue == true)
+            {
+                if (parentTask.ParentTaskId.Value == taskId)
+                    return true;
+                    
+                if (!visited.Contains(parentTask.ParentTaskId.Value))
+                    toVisit.Push(parentTask.ParentTaskId.Value);
+            }
+        }
+
+        return false;
     }
 }

@@ -6,6 +6,7 @@
 @using ProjectManagementSystem.Shared.Client.Authentication
 @using ProjectManagementSystem.WebApp.Wasm.Client.Constants
 @using TaskStatusConst = ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components
 
 @attribute [ProjectManagementSystem.WebApp.Wasm.Client.Components.Authentication.Authorize]
 @inject ITaskService TaskService
@@ -170,6 +171,35 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Task Hierarchy Section -->
+                        @if (createModel.ProjectId != Guid.Empty)
+                        {
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <TaskHierarchySelector ProjectId="@createModel.ProjectId" 
+                                                               CurrentTaskId="null" 
+                                                               InitialParentTaskId="@selectedParentTaskId" 
+                                                               OnParentTaskSelectionChanged="OnParentTaskChanged" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <TaskDependencySelector ProjectId="@createModel.ProjectId" 
+                                                                CurrentTaskId="null" 
+                                                                InitialDependencies="@selectedDependencies" 
+                                                                OnDependenciesChanged="OnDependenciesChanged" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> プロジェクトを選択すると、親タスクと依存関係を設定できます。
+                            </div>
+                        }
                     </div>
 
                     <div class="col-md-4">
@@ -237,6 +267,11 @@
         AssignedToUserId = 0
     };
     
+    private Guid? selectedParentTaskId;
+    private List<Guid> selectedDependencies = new();
+    private TaskHierarchySelector? hierarchySelector;
+    private TaskDependencySelector? dependencySelector;
+    
     private PagedResult<ProjectDto>? projects;
     private PagedResult<ProjectMemberDto>? projectMembers;
     private ProjectDto? selectedProject;
@@ -301,6 +336,8 @@
             {
                 projectMembers = null;
                 selectedProject = null;
+                selectedParentTaskId = null;
+                selectedDependencies.Clear();
             }
         }
     }
@@ -354,6 +391,10 @@
                 return;
             }
 
+            // Set parent task and dependencies
+            createModel.ParentTaskId = selectedParentTaskId;
+            createModel.DependsOnTaskIds = selectedDependencies.ToArray();
+            
             var result = await TaskService.CreateTaskAsync(createModel);
             
             if (result != null)
@@ -380,6 +421,18 @@
         }
     }
 
+    private async Task OnParentTaskChanged(Guid? parentTaskId)
+    {
+        selectedParentTaskId = parentTaskId;
+        StateHasChanged();
+    }
+    
+    private async Task OnDependenciesChanged(List<Guid> dependencies)
+    {
+        selectedDependencies = dependencies;
+        StateHasChanged();
+    }
+    
     private void GoBack()
     {
         if (ProjectId.HasValue)
