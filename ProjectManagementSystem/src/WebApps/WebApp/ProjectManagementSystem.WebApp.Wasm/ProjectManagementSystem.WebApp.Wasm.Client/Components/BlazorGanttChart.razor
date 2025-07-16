@@ -31,84 +31,100 @@
     <!-- Chart Container -->
     @if (Tasks.Any())
     {
-        <div class="gantt-chart-wrapper">
-            <!-- Task List Panel -->
-            <div class="gantt-task-list">
-                <div class="gantt-task-header">
-                    <div class="task-header-cell task-name-header">タスク名</div>
-                    <div class="task-header-cell task-assignee-header">担当者</div>
-                    <div class="task-header-cell task-status-header">ステータス</div>
-                    <div class="task-header-cell task-progress-header">進捗</div>
+        <div class="gantt-wrapper">
+            <div class="gantt-chart-container">
+                <!-- Fixed Header Row -->
+                <div class="gantt-header-row">
+                    <div class="gantt-fixed-header">
+                        <div class="gantt-header-cell" style="width: 200px;">タスク名</div>
+                        <div class="gantt-header-cell" style="width: 100px;">担当者</div>
+                        <div class="gantt-header-cell" style="width: 80px;">ステータス</div>
+                        <div class="gantt-header-cell" style="width: 80px;">進捗</div>
+                    </div>
+                    <div class="gantt-scrollable-header">
+                        <div class="gantt-date-header">
+                            @foreach (var date in DateRange)
+                            {
+                                <div class="date-header-cell @(IsToday(date) ? "today" : "")" 
+                                     style="width: @(GetDateCellWidth())px;">
+                                    @FormatDateHeader(date)
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
                 
-                @foreach (var task in SortedTasks)
-                {
-                    <div class="gantt-task-item @(GetTaskCssClass(task))">
-                        <div class="task-cell task-name-cell" style="padding-left: @(GetIndentLevel(task) * 20)px;">
-                            @if (HasChildren(task))
+                <!-- Scrollable Content Row -->
+                <div class="gantt-content-row">
+                    <div class="gantt-fixed-panel">
+                        <div class="gantt-task-list">
+                            @foreach (var task in SortedTasks)
                             {
-                                <i class="bi @(IsExpanded(task) ? "bi-chevron-down" : "bi-chevron-right") me-1 expand-icon" 
-                                   @onclick="@(() => ToggleExpand(task))"></i>
+                                @if (IsTaskVisible(task))
+                                {
+                                    <div class="gantt-task-row @(GetTaskCssClass(task))">
+                                        <div class="gantt-cell" style="width: 200px; padding-left: @(GetIndentLevel(task) * 20 + 12)px;">
+                                            @if (HasChildren(task))
+                                            {
+                                                <i class="bi @(IsExpanded(task) ? "bi-chevron-down" : "bi-chevron-right") me-1 expand-icon" 
+                                                   @onclick="@(() => ToggleExpand(task))"></i>
+                                            }
+                                            else
+                                            {
+                                                <span class="me-3"></span>
+                                            }
+                                            <span class="task-name" title="@task.Name">@task.Name</span>
+                                        </div>
+                                        <div class="gantt-cell" style="width: 100px;">
+                                            @task.AssignedTo
+                                        </div>
+                                        <div class="gantt-cell" style="width: 80px;">
+                                            <span class="badge bg-@GetStatusBadgeColor(task.Status)">@task.Status</span>
+                                        </div>
+                                        <div class="gantt-cell" style="width: 80px;">
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar" style="width: @(task.Progress)%; background-color: @GetTaskColor(task.Priority);">
+                                                    @(task.Progress)%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             }
-                            else
-                            {
-                                <span class="me-3"></span>
-                            }
-                            <span class="task-name" title="@task.Name">@task.Name</span>
                         </div>
-                        <div class="task-cell task-assignee-cell">
-                            @task.AssignedTo
-                        </div>
-                        <div class="task-cell task-status-cell">
-                            <span class="badge bg-@GetStatusBadgeColor(task.Status)">@task.Status</span>
-                        </div>
-                        <div class="task-cell task-progress-cell">
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar" style="width: @(task.Progress)%; background-color: @GetTaskColor(task.Priority);">
-                                    @(task.Progress)%
-                                </div>
+                    </div>
+                    
+                    <!-- Scrollable Timeline Panel -->
+                    <div class="gantt-scrollable-panel">
+                        <div class="gantt-timeline-container">
+                            <!-- Task Bars -->
+                            <div class="gantt-timeline-content">
+                                @foreach (var task in SortedTasks)
+                                {
+                                    @if (IsTaskVisible(task))
+                                    {
+                                        <div class="gantt-timeline-row">
+                                            <div class="task-bar-container" style="width: @(GetTotalTimelineWidth())px;">
+                                                <div class="task-bar @GetTaskBarClass(task)" 
+                                                     style="@GetTaskBarStyle(task)"
+                                                     title="@GetTaskTooltip(task)"
+                                                     @onclick="@(() => OnTaskClick.InvokeAsync(task))">
+                                                    <div class="task-bar-content">
+                                                        <span class="task-bar-name">@GetTaskBarLabel(task)</span>
+                                                    </div>
+                                                    @if (task.Progress > 0)
+                                                    {
+                                                        <div class="task-progress-overlay" style="width: @(task.Progress)%;"></div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
                             </div>
                         </div>
                     </div>
-                }
-            </div>
-
-            <!-- Timeline Panel -->
-            <div class="gantt-timeline">
-                <!-- Date Header -->
-                <div class="gantt-date-header">
-                    @foreach (var date in DateRange)
-                    {
-                        <div class="date-header-cell @(IsToday(date) ? "today" : "")" 
-                             style="width: @(GetDateCellWidth())px;">
-                            @FormatDateHeader(date)
-                        </div>
-                    }
                 </div>
-
-                <!-- Task Bars -->
-                @foreach (var task in SortedTasks)
-                {
-                    <div class="gantt-timeline-row @(GetTaskCssClass(task))">
-                        <div class="task-bar-container" style="position: relative; height: @TaskRowHeight px;">
-                            @if (IsTaskVisible(task))
-                            {
-                                <div class="task-bar @GetTaskBarClass(task)" 
-                                     style="@GetTaskBarStyle(task)"
-                                     title="@GetTaskTooltip(task)"
-                                     @onclick="@(() => OnTaskClick.InvokeAsync(task))">
-                                    <div class="task-bar-content">
-                                        <span class="task-bar-name">@GetTaskBarLabel(task)</span>
-                                    </div>
-                                    @if (task.Progress > 0)
-                                    {
-                                        <div class="task-progress-overlay" style="width: @(task.Progress)%;"></div>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
             </div>
         </div>
     }
@@ -144,6 +160,19 @@
         StateHasChanged();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await SyncScrollPositions();
+        }
+    }
+
+    private async Task SyncScrollPositions()
+    {
+        await JSRuntime.InvokeVoidAsync("syncGanttScrollPositions");
+    }
+
     private void ChangeViewMode(ViewMode mode)
     {
         currentViewMode = mode;
@@ -160,14 +189,40 @@
 
     private void CalculateDateRange()
     {
-        if (!Tasks.Any()) return;
+        if (!Tasks.Any()) 
+        {
+            // If no tasks, create a default range for current month
+            var today = DateTime.Today;
+            DateRange.Clear();
+            
+            switch (currentViewMode)
+            {
+                case ViewMode.Day:
+                    for (int i = -15; i <= 15; i++)
+                    {
+                        DateRange.Add(today.AddDays(i));
+                    }
+                    break;
+                case ViewMode.Week:
+                    var startOfWeek = today.AddDays(-(int)today.DayOfWeek + 1);
+                    for (int i = -4; i <= 8; i++)
+                    {
+                        DateRange.Add(startOfWeek.AddDays(i * 7));
+                    }
+                    break;
+                case ViewMode.Month:
+                    var startOfMonth = new DateTime(today.Year, today.Month, 1);
+                    for (int i = -3; i <= 9; i++)
+                    {
+                        DateRange.Add(startOfMonth.AddMonths(i));
+                    }
+                    break;
+            }
+            return;
+        }
 
         var minDate = Tasks.Min(t => t.Start).Date;
         var maxDate = Tasks.Max(t => t.End).Date;
-
-        // Add some padding
-        minDate = minDate.AddDays(-3);
-        maxDate = maxDate.AddDays(3);
 
         DateRange.Clear();
         var current = minDate;
@@ -175,6 +230,10 @@
         switch (currentViewMode)
         {
             case ViewMode.Day:
+                // Add more padding for day view to ensure scrolling
+                minDate = minDate.AddDays(-10);
+                maxDate = maxDate.AddDays(10);
+                current = minDate;
                 while (current <= maxDate)
                 {
                     DateRange.Add(current);
@@ -182,7 +241,9 @@
                 }
                 break;
             case ViewMode.Week:
-                // Start from Monday
+                // Add more padding for week view
+                minDate = minDate.AddDays(-21); // 3 weeks before
+                maxDate = maxDate.AddDays(21);  // 3 weeks after
                 var startOfWeek = minDate.AddDays(-(int)minDate.DayOfWeek + 1);
                 current = startOfWeek;
                 while (current <= maxDate)
@@ -192,6 +253,9 @@
                 }
                 break;
             case ViewMode.Month:
+                // Add padding for month view
+                minDate = minDate.AddMonths(-2);
+                maxDate = maxDate.AddMonths(2);
                 var startOfMonth = new DateTime(minDate.Year, minDate.Month, 1);
                 current = startOfMonth;
                 while (current <= maxDate)
@@ -327,10 +391,10 @@
     {
         return currentViewMode switch
         {
-            ViewMode.Day => 50,
-            ViewMode.Week => 80,
-            ViewMode.Month => 120,
-            _ => 50
+            ViewMode.Day => 80,     // Increased for better scroll visibility
+            ViewMode.Week => 120,   // Increased for better scroll visibility  
+            ViewMode.Month => 150,  // Increased for better scroll visibility
+            _ => 80
         };
     }
 
@@ -353,25 +417,52 @@
         if (!DateRange.Any()) return "";
 
         var startDate = DateRange.First();
-        var totalWidth = DateRange.Count * GetDateCellWidth();
+        var cellWidth = GetDateCellWidth();
         
         var taskStart = task.Start.Date;
         var taskEnd = task.End.Date;
         
-        // Calculate position and width
-        var daysFromStart = (taskStart - startDate).TotalDays;
-        var taskDuration = (taskEnd - taskStart).TotalDays + 1;
+        // Calculate position and width based on view mode
+        double leftPixels = 0;
+        double widthPixels = 60; // minimum width
         
-        var leftPercent = (daysFromStart / DateRange.Count) * 100;
-        var widthPercent = (taskDuration / DateRange.Count) * 100;
-        
-        // Ensure bounds
-        leftPercent = Math.Max(0, Math.Min(100, leftPercent));
-        widthPercent = Math.Max(0.5, Math.Min(100 - leftPercent, widthPercent));
+        switch (currentViewMode)
+        {
+            case ViewMode.Day:
+                var daysFromStart = (taskStart - startDate).TotalDays;
+                var taskDurationDays = (taskEnd - taskStart).TotalDays + 1;
+                leftPixels = daysFromStart * cellWidth;
+                widthPixels = Math.Max(60, taskDurationDays * cellWidth);
+                break;
+                
+            case ViewMode.Week:
+                var weeksFromStart = ((taskStart - startDate).TotalDays / 7);
+                var taskDurationWeeks = ((taskEnd - taskStart).TotalDays + 1) / 7;
+                leftPixels = weeksFromStart * cellWidth;
+                widthPixels = Math.Max(60, taskDurationWeeks * cellWidth);
+                break;
+                
+            case ViewMode.Month:
+                var monthsFromStart = GetMonthDifference(startDate, taskStart);
+                var taskDurationMonths = GetMonthDifference(taskStart, taskEnd) + 0.1; // Small addition to ensure visibility
+                leftPixels = monthsFromStart * cellWidth;
+                widthPixels = Math.Max(60, taskDurationMonths * cellWidth);
+                break;
+        }
         
         var backgroundColor = GetTaskColor(task.Priority);
         
-        return $"left: {leftPercent:F1}%; width: {widthPercent:F1}%; background-color: {backgroundColor}; position: absolute; top: 8px; height: 24px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);";
+        return $"left: {leftPixels}px; width: {widthPixels}px; background-color: {backgroundColor}; position: absolute; top: 8px; height: 24px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; color: white; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); min-width: 60px;";
+    }
+    
+    private double GetMonthDifference(DateTime startDate, DateTime endDate)
+    {
+        return (endDate.Year - startDate.Year) * 12 + endDate.Month - startDate.Month + (endDate.Day - startDate.Day) / 30.0;
+    }
+
+    private double GetTotalTimelineWidth()
+    {
+        return DateRange.Count * GetDateCellWidth();
     }
 
     private string GetTaskBarClass(GanttTask task)
@@ -422,75 +513,141 @@
 <style>
     .blazor-gantt-container {
         width: 100%;
-        overflow: hidden;
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
+        max-width: 100%;
         background: white;
+        box-sizing: border-box;
+        overflow: hidden;
+        position: relative;
     }
 
     .gantt-controls {
         padding: 1rem;
         border-bottom: 1px solid #dee2e6;
         background-color: #f8f9fa;
+        width: 100%;
+        box-sizing: border-box;
     }
 
-    .gantt-chart-wrapper {
+    .gantt-wrapper {
+        width: 100%;
+        max-width: calc(100vw - 300px);
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .gantt-chart-container {
         display: flex;
+        flex-direction: column;
         min-height: 400px;
+        max-height: 600px;
+        width: 100%;
+        max-width: 100%;
+        position: relative;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
-    .gantt-task-list {
-        min-width: 400px;
-        border-right: 1px solid #dee2e6;
-        background-color: #fafafa;
-    }
-
-    .gantt-task-header {
+    .gantt-header-row {
         display: flex;
         background-color: #e9ecef;
         border-bottom: 2px solid #dee2e6;
-        font-weight: 600;
-        font-size: 14px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        height: 44px;
+        width: 100%;
     }
 
-    .task-header-cell {
-        padding: 12px 8px;
+    .gantt-fixed-header {
+        width: 460px;
+        min-width: 460px;
+        max-width: 460px;
+        flex-shrink: 0;
+        display: flex;
+        background-color: #e9ecef;
         border-right: 1px solid #dee2e6;
     }
 
-    .task-name-header { width: 200px; }
-    .task-assignee-header { width: 100px; }
-    .task-status-header { width: 100px; }
-    .task-progress-header { width: 100px; }
+    .gantt-scrollable-header {
+        flex: 1;
+        overflow-x: auto;
+        overflow-y: hidden;
+        min-width: 0;
+        max-width: calc(100vw - 800px);
+    }
 
-    .gantt-task-item {
+    .gantt-content-row {
         display: flex;
-        border-bottom: 1px solid #dee2e6;
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gantt-fixed-panel {
+        width: 460px;
+        min-width: 460px;
+        max-width: 460px;
+        flex-shrink: 0;
+        background-color: #fafafa;
+        border-right: 1px solid #dee2e6;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .gantt-scrollable-panel {
+        flex: 1;
+        overflow-x: auto;
+        overflow-y: auto;
+        min-width: 0;
+        max-width: calc(100vw - 800px);
+    }
+
+    .gantt-header-cell {
+        padding: 12px 8px;
+        font-weight: 600;
+        font-size: 14px;
+        border-right: 1px solid #dee2e6;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .gantt-task-list {
+        overflow-y: visible;
+    }
+
+    .gantt-task-row {
+        display: flex;
+        height: 40px;
         min-height: 40px;
+        max-height: 40px;
+        border-bottom: 1px solid #dee2e6;
         align-items: center;
     }
 
-    .gantt-task-item:hover {
+    .gantt-task-row:hover {
         background-color: #f8f9fa;
     }
 
-    .task-cell {
+    .gantt-task-row.child-task {
+        background-color: #f8f9fa;
+    }
+
+    .gantt-cell {
         padding: 8px;
         border-right: 1px solid #dee2e6;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-    }
-
-    .task-name-cell { 
-        width: 200px; 
         display: flex;
         align-items: center;
+        box-sizing: border-box;
+        height: 40px;
     }
-    
-    .task-assignee-cell { width: 100px; }
-    .task-status-cell { width: 100px; }
-    .task-progress-cell { width: 100px; }
 
     .expand-icon {
         cursor: pointer;
@@ -504,35 +661,32 @@
 
     .task-name {
         font-weight: 500;
-    }
-
-    .child-task .task-name {
-        font-weight: 400;
-        color: #6c757d;
-    }
-
-    .gantt-timeline {
-        flex: 1;
-        overflow-x: auto;
-        background-color: white;
+        color: #495057;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
     }
 
     .gantt-date-header {
         display: flex;
         background-color: #e9ecef;
-        border-bottom: 2px solid #dee2e6;
         font-weight: 600;
         font-size: 12px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        height: 44px;
+        flex-shrink: 0;
+        width: max-content;
+        min-width: 100%;
     }
 
     .date-header-cell {
         padding: 12px 4px;
         border-right: 1px solid #dee2e6;
         text-align: center;
-        min-width: 50px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .date-header-cell.today {
@@ -540,15 +694,39 @@
         color: white;
     }
 
+    .gantt-timeline-container {
+        overflow: visible;
+        min-height: 100%;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: max-content;
+        min-width: 100%;
+    }
+
+    .gantt-timeline-content {
+        overflow: visible;
+        position: relative;
+        width: max-content;
+        min-width: 100%;
+        flex: 1;
+    }
+
     .gantt-timeline-row {
-        min-height: 40px;
+        height: 40px;
         border-bottom: 1px solid #dee2e6;
         position: relative;
+        display: flex;
+        align-items: center;
     }
 
     .task-bar-container {
-        width: 100%;
         position: relative;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        width: max-content;
+        min-width: 100%;
     }
 
     .task-progress-overlay {
@@ -583,3 +761,51 @@
     .priority-medium .task-name { color: #ffc107; }
     .priority-low .task-name { color: #28a745; }
 </style>
+
+<script>
+    window.syncGanttScrollPositions = function() {
+        const fixedPanel = document.querySelector('.gantt-fixed-panel');
+        const scrollablePanel = document.querySelector('.gantt-scrollable-panel');
+        const scrollableHeader = document.querySelector('.gantt-scrollable-header');
+        
+        if (fixedPanel && scrollablePanel) {
+            // Remove existing event listeners to prevent duplicates
+            fixedPanel.removeEventListener('scroll', syncVerticalScroll);
+            scrollablePanel.removeEventListener('scroll', syncVerticalScroll);
+            
+            // Sync vertical scrolling between fixed panel and scrollable panel
+            function syncVerticalScroll(e) {
+                const target = e.target;
+                if (target === fixedPanel && scrollablePanel.scrollTop !== target.scrollTop) {
+                    scrollablePanel.scrollTop = target.scrollTop;
+                } else if (target === scrollablePanel && fixedPanel.scrollTop !== target.scrollTop) {
+                    fixedPanel.scrollTop = target.scrollTop;
+                }
+            }
+            
+            fixedPanel.addEventListener('scroll', syncVerticalScroll);
+            scrollablePanel.addEventListener('scroll', syncVerticalScroll);
+            
+            // Sync horizontal scrolling between scrollable header and scrollable panel
+            if (scrollableHeader) {
+                scrollablePanel.removeEventListener('scroll', syncHorizontalScrollFromPanel);
+                scrollableHeader.removeEventListener('scroll', syncHorizontalScrollFromHeader);
+                
+                function syncHorizontalScrollFromPanel(e) {
+                    if (scrollableHeader.scrollLeft !== e.target.scrollLeft) {
+                        scrollableHeader.scrollLeft = e.target.scrollLeft;
+                    }
+                }
+                
+                function syncHorizontalScrollFromHeader(e) {
+                    if (scrollablePanel.scrollLeft !== e.target.scrollLeft) {
+                        scrollablePanel.scrollLeft = e.target.scrollLeft;
+                    }
+                }
+                
+                scrollablePanel.addEventListener('scroll', syncHorizontalScrollFromPanel);
+                scrollableHeader.addEventListener('scroll', syncHorizontalScrollFromHeader);
+            }
+        }
+    };
+</script>
