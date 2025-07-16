@@ -121,6 +121,37 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Holiday Management Section -->
+                            <div class="mb-3">
+                                <label class="form-label">Project Holidays</label>
+                                <div class="border rounded p-3 bg-light">
+                                    @if (holidayDates.Any())
+                                    {
+                                        @for (int i = 0; i < holidayDates.Count; i++)
+                                        {
+                                            var index = i; // Capture the index for the lambda
+                                            <div class="row mb-2 align-items-center">
+                                                <div class="col-md-8">
+                                                    <InputDate @bind-Value="holidayDates[index]" class="form-control" />
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm" @onclick="() => RemoveHoliday(index)">
+                                                        <i class="bi bi-trash"></i> Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-2">No holidays configured for this project.</p>
+                                    }
+                                    <button type="button" class="btn btn-outline-primary btn-sm" @onclick="AddHoliday">
+                                        <i class="bi bi-plus-circle"></i> Add Holiday
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -681,6 +712,7 @@
                     <BlazorGanttChart Tasks="ganttTasks" 
                                      OnTaskClick="HandleTaskClick"
                                      ReadOnly="@(!CanEditTasks())"
+                                     ProjectHolidays="@(project?.HolidayDates ?? new List<DateTime>())"
                                      @ref="blazorGanttChartRef" />
                 }
             </div>
@@ -904,6 +936,7 @@ else
     private PagedResult<ProjectMemberDto>? members;
     private PagedResult<TaskDto>? projectTasks;
     private UpdateProjectDto updateModel = new();
+    private List<DateTime> holidayDates = new();
     private bool isLoading = true;
     private bool isLoadingMembers = false;
     private bool isLoadingTasks = false;
@@ -993,6 +1026,7 @@ else
                 updateModel.Priority = project.Priority;
                 updateModel.StartDate = project.StartDate;
                 updateModel.EndDate = project.EndDate;
+                holidayDates = project.HolidayDates?.ToList() ?? new List<DateTime>();
                 
                 // Load creator information
                 await LoadCreator();
@@ -1073,6 +1107,7 @@ else
                 return;
             }
 
+            updateModel.HolidayDates = holidayDates;
             var result = await ProjectService.UpdateProjectAsync(Id, updateModel);
             
             if (result != null)
@@ -1572,6 +1607,19 @@ else
         // Project members and above can edit tasks
         var userMembership = members?.Items?.FirstOrDefault(m => m.UserId == currentUser.Id);
         return userMembership != null;
+    }
+
+    private void AddHoliday()
+    {
+        holidayDates.Add(DateTime.Today);
+    }
+
+    private void RemoveHoliday(int index)
+    {
+        if (index >= 0 && index < holidayDates.Count)
+        {
+            holidayDates.RemoveAt(index);
+        }
     }
 }
 

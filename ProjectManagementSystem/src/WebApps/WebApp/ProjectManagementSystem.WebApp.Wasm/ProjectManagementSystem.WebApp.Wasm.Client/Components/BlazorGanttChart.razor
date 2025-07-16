@@ -45,8 +45,8 @@
                         <div class="gantt-date-header">
                             @foreach (var date in DateRange)
                             {
-                                <div class="date-header-cell @(IsToday(date) ? "today" : "")" 
-                                     style="width: @(GetDateCellWidth())px;">
+                                <div class="date-header-cell @GetDateHeaderClass(date)" 
+                                     style="width: @(GetDateCellWidth())px; @GetDateHeaderStyles(date)">
                                     @FormatDateHeader(date)
                                 </div>
                             }
@@ -99,8 +99,15 @@
                                 {
                                     @if (IsTaskVisible(task))
                                     {
-                                        <div class="gantt-timeline-row">
+                                        <div class="gantt-timeline-row @GetTimelineRowClass()">
                                             <div class="task-bar-container" style="width: @(GetTotalTimelineWidth())px;">
+                                                <!-- Column background styling -->
+                                                @foreach (var date in DateRange)
+                                                {
+                                                    <div class="timeline-column @GetTimelineColumnClass(date)" 
+                                                         style="width: @(GetDateCellWidth())px; left: @(GetColumnPosition(date))px;"></div>
+                                                }
+                                                <!-- Task bar -->
                                                 <div class="task-bar @GetTaskBarClass(task)" 
                                                      style="@GetTaskBarStyle(task)"
                                                      title="@GetTaskTooltip(task)"
@@ -139,6 +146,7 @@
     [Parameter] public EventCallback<GanttTask> OnTaskClick { get; set; }
     [Parameter] public bool ShowRefreshButton { get; set; } = true;
     [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public List<DateTime> ProjectHolidays { get; set; } = new();
 
     public enum ViewMode { Day, Week, Month }
 
@@ -355,11 +363,122 @@
     {
         return currentViewMode switch
         {
-            ViewMode.Day => date.ToString("M/d"),
+            ViewMode.Day => $"{date.ToString("M/d")}\n({GetJapaneseDayOfWeek(date)})",
             ViewMode.Week => $"Week {GetWeekNumber(date)}",
             ViewMode.Month => date.ToString("MMM yyyy"),
             _ => date.ToString("M/d")
         };
+    }
+
+    private string GetJapaneseDayOfWeek(DateTime date)
+    {
+        return date.DayOfWeek switch
+        {
+            DayOfWeek.Sunday => "日",
+            DayOfWeek.Monday => "月",
+            DayOfWeek.Tuesday => "火",
+            DayOfWeek.Wednesday => "水",
+            DayOfWeek.Thursday => "木",
+            DayOfWeek.Friday => "金",
+            DayOfWeek.Saturday => "土",
+            _ => ""
+        };
+    }
+
+    private bool IsWeekend(DateTime date)
+    {
+        return date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
+    }
+
+    private bool IsProjectHoliday(DateTime date)
+    {
+        return ProjectHolidays.Any(holiday => holiday.Date == date.Date);
+    }
+
+    private bool IsHoliday(DateTime date)
+    {
+        return IsWeekend(date) || IsProjectHoliday(date);
+    }
+
+    private string GetDateHeaderClass(DateTime date)
+    {
+        var classes = new List<string>();
+        
+        if (IsToday(date))
+        {
+            classes.Add("today");
+        }
+        else if (IsProjectHoliday(date))
+        {
+            classes.Add("project-holiday");
+        }
+        else if (date.DayOfWeek == DayOfWeek.Saturday)
+        {
+            classes.Add("saturday");
+        }
+        else if (date.DayOfWeek == DayOfWeek.Sunday)
+        {
+            classes.Add("sunday");
+        }
+        else if (IsWeekend(date))
+        {
+            classes.Add("weekend");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private string GetTimelineRowClass()
+    {
+        return "";
+    }
+    
+    private string GetTimelineColumnClass(DateTime date)
+    {
+        var classes = new List<string>();
+        
+        if (IsToday(date))
+        {
+            classes.Add("today-column");
+        }
+        else if (IsProjectHoliday(date))
+        {
+            classes.Add("project-holiday-column");
+        }
+        else if (date.DayOfWeek == DayOfWeek.Saturday)
+        {
+            classes.Add("saturday-column");
+        }
+        else if (date.DayOfWeek == DayOfWeek.Sunday)
+        {
+            classes.Add("sunday-column");
+        }
+
+        return string.Join(" ", classes);
+    }
+    
+    private string GetDateHeaderStyles(DateTime date)
+    {
+        if (IsProjectHoliday(date))
+        {
+            return "color: #dc3545; font-weight: bold;";
+        }
+        else if (date.DayOfWeek == DayOfWeek.Saturday)
+        {
+            return "color: #007bff; font-weight: bold;";
+        }
+        else if (date.DayOfWeek == DayOfWeek.Sunday)
+        {
+            return "color: #dc3545; font-weight: bold;";
+        }
+        
+        return "";
+    }
+    
+    private double GetColumnPosition(DateTime date)
+    {
+        var index = DateRange.IndexOf(date);
+        return index * GetDateCellWidth();
     }
 
     private bool IsToday(DateTime date)
@@ -387,10 +506,10 @@
     {
         return currentViewMode switch
         {
-            ViewMode.Day => 80,     // Increased for better scroll visibility
+            ViewMode.Day => 90,     // Increased for dayOfWeek display
             ViewMode.Week => 120,   // Increased for better scroll visibility  
             ViewMode.Month => 150,  // Increased for better scroll visibility
-            _ => 80
+            _ => 90
         };
     }
 
@@ -690,6 +809,29 @@
         color: white;
     }
 
+    .date-header-cell.saturday {
+        background-color: #e3f2fd;
+        color: #007bff;
+        font-weight: bold;
+    }
+
+    .date-header-cell.sunday {
+        background-color: #ffeaea;
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .date-header-cell.project-holiday {
+        background-color: #ffeaea;
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .date-header-cell.weekend {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
     .gantt-timeline-container {
         overflow: visible;
         min-height: 100%;
@@ -716,6 +858,30 @@
         align-items: center;
     }
 
+    .timeline-column {
+        position: absolute;
+        top: 0;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .timeline-column.today-column {
+        background-color: rgba(0, 123, 255, 0.1);
+    }
+
+    .timeline-column.saturday-column {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .timeline-column.sunday-column {
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+
+    .timeline-column.project-holiday-column {
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+
     .task-bar-container {
         position: relative;
         height: 40px;
@@ -723,6 +889,11 @@
         align-items: center;
         width: max-content;
         min-width: 100%;
+    }
+    
+    .task-bar {
+        z-index: 2;
+        position: relative;
     }
 
     .task-progress-overlay {

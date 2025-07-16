@@ -54,6 +54,9 @@ public class Project
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    [Column("holiday_dates")]
+    public string? HolidayDatesJson { get; set; }
+
     // Navigation properties
     public ICollection<ProjectMember> Members { get; set; } = new List<ProjectMember>();
 }

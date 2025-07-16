@@ -4,6 +4,7 @@ using ProjectManagementSystem.ProjectService.Data.Entities;
 using ProjectManagementSystem.Shared.Common.Constants;
 using ProjectManagementSystem.Shared.Models.DTOs;
 using ProjectManagementSystem.Shared.Common.Models;
+using System.Text.Json;
 
 namespace ProjectManagementSystem.ProjectService.Services;
 
@@ -18,6 +19,29 @@ public class ProjectService : IProjectService
         _context = context;
         _logger = logger;
         _organizationService = organizationService;
+    }
+
+    private static List<DateTime> DeserializeHolidayDates(string? holidayDatesJson)
+    {
+        if (string.IsNullOrEmpty(holidayDatesJson))
+            return new List<DateTime>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<DateTime>>(holidayDatesJson) ?? new List<DateTime>();
+        }
+        catch
+        {
+            return new List<DateTime>();
+        }
+    }
+
+    private static string? SerializeHolidayDates(List<DateTime>? holidayDates)
+    {
+        if (holidayDates == null || !holidayDates.Any())
+            return null;
+
+        return JsonSerializer.Serialize(holidayDates);
     }
 
     public async Task<PagedResult<ProjectDto>> GetProjectsAsync(Guid organizationId, int pageNumber = 1, int pageSize = 10)
@@ -42,7 +66,8 @@ public class ProjectService : IProjectService
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt,
                 OrganizationId = p.OrganizationId,
-                CreatedByUserId = p.CreatedByUserId
+                CreatedByUserId = p.CreatedByUserId,
+                HolidayDates = DeserializeHolidayDates(p.HolidayDatesJson)
             })
             .ToListAsync();
 
@@ -77,7 +102,8 @@ public class ProjectService : IProjectService
                 CreatedAt = p.CreatedAt,
                 UpdatedAt = p.UpdatedAt,
                 OrganizationId = p.OrganizationId,
-                CreatedByUserId = p.CreatedByUserId
+                CreatedByUserId = p.CreatedByUserId,
+                HolidayDates = DeserializeHolidayDates(p.HolidayDatesJson)
             })
             .ToListAsync();
 
@@ -124,6 +150,7 @@ public class ProjectService : IProjectService
             UpdatedAt = project.UpdatedAt,
             OrganizationId = project.OrganizationId,
             CreatedByUserId = project.CreatedByUserId,
+            HolidayDates = DeserializeHolidayDates(project.HolidayDatesJson),
             Organization = organization
         };
     }
@@ -139,7 +166,8 @@ public class ProjectService : IProjectService
             StartDate = createProjectDto.StartDate,
             EndDate = createProjectDto.EndDate,
             OrganizationId = createProjectDto.OrganizationId,
-            CreatedByUserId = createdByUserId
+            CreatedByUserId = createdByUserId,
+            HolidayDatesJson = SerializeHolidayDates(createProjectDto.HolidayDates)
         };
 
         _context.Projects.Add(project);
@@ -169,7 +197,8 @@ public class ProjectService : IProjectService
             CreatedAt = project.CreatedAt,
             UpdatedAt = project.UpdatedAt,
             OrganizationId = project.OrganizationId,
-            CreatedByUserId = project.CreatedByUserId
+            CreatedByUserId = project.CreatedByUserId,
+            HolidayDates = DeserializeHolidayDates(project.HolidayDatesJson)
         };
     }
 
@@ -200,6 +229,9 @@ public class ProjectService : IProjectService
         if (updateProjectDto.EndDate.HasValue)
             project.EndDate = updateProjectDto.EndDate;
 
+        if (updateProjectDto.HolidayDates != null)
+            project.HolidayDatesJson = SerializeHolidayDates(updateProjectDto.HolidayDates);
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Project {ProjectId} updated", projectId);
@@ -216,7 +248,8 @@ public class ProjectService : IProjectService
             CreatedAt = project.CreatedAt,
             UpdatedAt = project.UpdatedAt,
             OrganizationId = project.OrganizationId,
-            CreatedByUserId = project.CreatedByUserId
+            CreatedByUserId = project.CreatedByUserId,
+            HolidayDates = DeserializeHolidayDates(project.HolidayDatesJson)
         };
     }
 

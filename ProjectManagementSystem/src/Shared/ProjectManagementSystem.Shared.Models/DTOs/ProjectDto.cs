@@ -15,6 +15,7 @@ public class ProjectDto
     public DateTime UpdatedAt { get; set; }
     public Guid OrganizationId { get; set; }
     public int CreatedByUserId { get; set; }
+    public List<DateTime> HolidayDates { get; set; } = new();
     public OrganizationDto? Organization { get; set; }
 }
 
@@ -36,6 +37,8 @@ public class CreateProjectDto
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     
+    public List<DateTime>? HolidayDates { get; set; }
+    
     [Required]
     public Guid OrganizationId { get; set; }
 }
@@ -52,6 +55,7 @@ public class UpdateProjectDto
     public string? Priority { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+    public List<DateTime>? HolidayDates { get; set; }
 }
 
 public class ProjectMemberDto
