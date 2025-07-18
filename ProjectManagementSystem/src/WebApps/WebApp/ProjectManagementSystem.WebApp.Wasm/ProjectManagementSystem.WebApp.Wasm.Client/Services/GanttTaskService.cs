@@ -13,20 +13,40 @@ namespace ProjectManagementSystem.WebApp.Wasm.Client.Services
             
             foreach (var task in tasks)
             {
+                var hasStartDate = task.StartDate.HasValue;
+                var hasDueDate = task.DueDate.HasValue;
+                var hasDates = hasStartDate || hasDueDate;
+                
                 var ganttTask = new GanttTask
                 {
                     Id = task.Id.ToString(),
                     Name = task.Title,
-                    Start = task.StartDate ?? task.CreatedAt,
-                    End = task.DueDate ?? task.CreatedAt.AddDays(1),
+                    Start = task.StartDate ?? DateTime.MinValue,
+                    End = task.DueDate ?? DateTime.MinValue,
                     Progress = CalculateProgress(task.Status),
                     TaskId = task.Id,
                     Status = task.Status,
                     Priority = task.Priority,
                     AssignedTo = task.AssignedTo?.FirstName + " " + task.AssignedTo?.LastName,
                     ParentTaskId = task.ParentTaskId,
-                    Dependencies = ConvertDependencies(task.DependsOnTaskIds)
+                    Dependencies = ConvertDependencies(task.DependsOnTaskIds),
+                    HasDates = hasDates
                 };
+                
+                // If only one date is provided, set reasonable defaults
+                if (hasDates)
+                {
+                    if (hasStartDate && !hasDueDate)
+                    {
+                        // If only start date is provided, set end date to start date + 1 day
+                        ganttTask.End = ganttTask.Start.AddDays(1);
+                    }
+                    else if (!hasStartDate && hasDueDate)
+                    {
+                        // If only due date is provided, set start date to due date - 1 day
+                        ganttTask.Start = ganttTask.End.AddDays(-1);
+                    }
+                }
 
                 ganttTasks.Add(ganttTask);
             }

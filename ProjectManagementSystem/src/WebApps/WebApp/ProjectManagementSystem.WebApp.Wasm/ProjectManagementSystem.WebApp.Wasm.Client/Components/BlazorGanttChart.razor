@@ -68,25 +68,44 @@
                                 {
                                     <div class="gantt-task-row @(GetTaskCssClass(task))">
                                         <div class="gantt-cell" style="width: 200px; padding-left: @(GetIndentLevel(task) * 20 + 12)px;">
-                                            @if (HasChildren(task))
+                                            @if (task.TaskId == Guid.Empty)
                                             {
-                                                <i class="bi @(IsExpanded(task) ? "bi-chevron-down" : "bi-chevron-right") me-1 expand-icon" 
-                                                   @onclick="@(() => ToggleExpand(task))"></i>
+                                                <!-- Separator row -->
+                                                <i class="bi @(undatedTasksExpanded ? "bi-chevron-down" : "bi-chevron-right") me-1 expand-icon" 
+                                                   @onclick="ToggleUndatedTasks"></i>
+                                                <span class="separator-text" @onclick="ToggleUndatedTasks" style="cursor: pointer;">@task.Name</span>
                                             }
                                             else
                                             {
-                                                <span class="me-3"></span>
+                                                @if (HasChildren(task))
+                                                {
+                                                    <i class="bi @(IsExpanded(task) ? "bi-chevron-down" : "bi-chevron-right") me-1 expand-icon" 
+                                                       @onclick="@(() => ToggleExpand(task))"></i>
+                                                }
+                                                else
+                                                {
+                                                    <span class="me-3"></span>
+                                                }
+                                                <span class="task-name @(!task.HasDates ? "no-dates" : "")" title="@task.Name">@task.Name</span>
                                             }
-                                            <span class="task-name" title="@task.Name">@task.Name</span>
                                         </div>
                                         <div class="gantt-cell" style="width: 100px;">
-                                            @task.AssignedTo
+                                            @if (task.TaskId != Guid.Empty)
+                                            {
+                                                @task.AssignedTo
+                                            }
                                         </div>
                                         <div class="gantt-cell" style="width: 80px;">
-                                            <span class="badge bg-@GetStatusBadgeColor(task.Status)">@task.Status</span>
+                                            @if (task.TaskId != Guid.Empty && !string.IsNullOrEmpty(task.Status))
+                                            {
+                                                <span class="badge bg-@GetStatusBadgeColor(task.Status)">@task.Status</span>
+                                            }
                                         </div>
                                         <div class="gantt-cell" style="width: 80px;">
-                                            @(task.Progress)%
+                                            @if (task.TaskId != Guid.Empty)
+                                            {
+                                                <span>@(task.Progress)%</span>
+                                            }
                                         </div>
                                     </div>
                                 }
@@ -111,23 +130,26 @@
                                                     <div class="timeline-column @GetTimelineColumnClass(date)" 
                                                          style="width: @(GetDateCellWidth())px; left: @(GetColumnPosition(date))px;"></div>
                                                 }
-                                                <!-- Task bar -->
-                                                <div class="task-bar @GetTaskBarClass(task)" 
-                                                     style="@GetTaskBarStyle(task)"
-                                                     title="@GetTaskTooltip(task)"
-                                                     @onclick="@(() => OnTaskClick.InvokeAsync(task))">
-                                                    <!-- Progress-based segments -->
-                                                    @{
-                                                        var progressSegments = GetProgressSegments(task);
-                                                    }
-                                                    @foreach (var segment in progressSegments)
-                                                    {
-                                                        <div class="task-progress-segment" style="@segment.Style"></div>
-                                                    }
-                                                    <div class="task-bar-content">
-                                                        <span class="task-bar-name">@GetTaskBarLabel(task)</span>
+                                                <!-- Task bar - only render if task has dates -->
+                                                @if (task.HasDates && task.TaskId != Guid.Empty)
+                                                {
+                                                    <div class="task-bar @GetTaskBarClass(task)" 
+                                                         style="@GetTaskBarStyle(task)"
+                                                         title="@GetTaskTooltip(task)"
+                                                         @onclick="@(() => OnTaskClick.InvokeAsync(task))">
+                                                        <!-- Progress-based segments -->
+                                                        @{
+                                                            var progressSegments = GetProgressSegments(task);
+                                                        }
+                                                        @foreach (var segment in progressSegments)
+                                                        {
+                                                            <div class="task-progress-segment" style="@segment.Style"></div>
+                                                        }
+                                                        <div class="task-bar-content">
+                                                            <span class="task-bar-name">@GetTaskBarLabel(task)</span>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                }
                                             </div>
                                         </div>
                                     }
@@ -169,6 +191,7 @@
     private List<DateTime> DateRange = new();
     private List<GanttTask> SortedTasks = new();
     private Dictionary<string, bool> expandedTasks = new();
+    private bool undatedTasksExpanded = true;
     private const int TaskRowHeight = 40;
     private const int DateCellWidth = 50;
 
@@ -220,9 +243,11 @@
 
     private void CalculateDateRange()
     {
-        if (!Tasks.Any()) 
+        var tasksWithDates = Tasks.Where(t => t.HasDates).ToList();
+        
+        if (!tasksWithDates.Any()) 
         {
-            // If no tasks, create a default range for current month
+            // If no tasks with dates, create a default range for current month
             var today = DateTime.Today;
             DateRange.Clear();
             
@@ -252,8 +277,8 @@
             return;
         }
 
-        var minDate = Tasks.Min(t => t.Start).Date;
-        var maxDate = Tasks.Max(t => t.End).Date;
+        var minDate = tasksWithDates.Min(t => t.Start).Date;
+        var maxDate = tasksWithDates.Max(t => t.End).Date;
 
         DateRange.Clear();
         var current = minDate;
@@ -304,16 +329,51 @@
         var processed = new HashSet<Guid>();
         SortedTasks.Clear();
 
-        // Process parent tasks first
-        foreach (var task in Tasks.Where(t => t.ParentTaskId == null))
+        // Separate tasks with dates and without dates
+        var tasksWithDates = Tasks.Where(t => t.HasDates).ToList();
+        var tasksWithoutDates = Tasks.Where(t => !t.HasDates).ToList();
+
+        // Process parent tasks with dates first
+        foreach (var task in tasksWithDates.Where(t => t.ParentTaskId == null))
         {
             AddTaskWithChildren(task, taskDict, processed);
         }
 
-        // Add remaining orphaned tasks
-        foreach (var task in Tasks.Where(t => !processed.Contains(t.TaskId)))
+        // Add remaining orphaned tasks with dates
+        foreach (var task in tasksWithDates.Where(t => !processed.Contains(t.TaskId)))
         {
             SortedTasks.Add(task);
+        }
+        
+        // Add separator marker task if we have both dated and undated tasks
+        if (tasksWithDates.Any() && tasksWithoutDates.Any())
+        {
+            SortedTasks.Add(new GanttTask 
+            { 
+                Id = "separator", 
+                TaskId = Guid.Empty,
+                Name = "--- タスク（日付未設定） ---",
+                HasDates = false,
+                Status = "",
+                Priority = "",
+                Progress = 0
+            });
+            
+            // Only add undated tasks if the section is expanded
+            if (undatedTasksExpanded)
+            {
+                // Process parent tasks without dates
+                foreach (var task in tasksWithoutDates.Where(t => t.ParentTaskId == null))
+                {
+                    AddTaskWithChildren(task, taskDict, processed);
+                }
+
+                // Add remaining orphaned tasks without dates
+                foreach (var task in tasksWithoutDates.Where(t => !processed.Contains(t.TaskId)))
+                {
+                    SortedTasks.Add(task);
+                }
+            }
         }
     }
 
@@ -371,6 +431,13 @@
     {
         var classes = new List<string>();
         
+        // Check if this is a separator row
+        if (task.TaskId == Guid.Empty)
+        {
+            classes.Add("separator");
+            return string.Join(" ", classes);
+        }
+        
         if (task.ParentTaskId.HasValue)
         {
             classes.Add("child-task");
@@ -382,6 +449,11 @@
 
         classes.Add($"priority-{task.Priority?.ToLower()}");
         classes.Add($"status-{task.Status?.ToLower().Replace(" ", "-")}");
+        
+        if (!task.HasDates)
+        {
+            classes.Add("no-dates");
+        }
 
         return string.Join(" ", classes);
     }
@@ -757,6 +829,10 @@
 
     private string GetTaskTooltip(GanttTask task)
     {
+        if (!task.HasDates)
+        {
+            return $"{task.Name}\n日付: 未設定\n進捗: {task.Progress}%\n担当者: {task.AssignedTo ?? "未割り当て"}";
+        }
         return $"{task.Name}\n開始: {task.Start:yyyy/MM/dd}\n終了: {task.End:yyyy/MM/dd}\n進捗: {task.Progress}%\n担当者: {task.AssignedTo ?? "未割り当て"}";
     }
 
@@ -771,6 +847,13 @@
             "done" => "success",
             _ => "secondary"
         };
+    }
+    
+    private void ToggleUndatedTasks()
+    {
+        undatedTasksExpanded = !undatedTasksExpanded;
+        SortTasks();
+        StateHasChanged();
     }
 }
 
@@ -857,7 +940,7 @@
         flex-shrink: 0;
         background-color: #fafafa;
         border-right: 1px solid #dee2e6;
-        overflow-y: auto;
+        overflow-y: hidden;
         overflow-x: hidden;
     }
 
@@ -882,6 +965,7 @@
 
     .gantt-task-list {
         overflow-y: visible;
+        will-change: transform;
     }
 
     .gantt-task-row {
@@ -1082,6 +1166,30 @@
     .priority-high .task-name { color: #fd7e14; }
     .priority-medium .task-name { color: #ffc107; }
     .priority-low .task-name { color: #28a745; }
+    
+    /* Separator styling */
+    .separator-text {
+        font-weight: 600;
+        color: #6c757d;
+        font-style: italic;
+        display: inline-block;
+        user-select: none;
+    }
+    
+    .separator-text:hover {
+        color: #495057;
+    }
+    
+    /* Tasks without dates */
+    .task-name.no-dates {
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    .gantt-task-row.separator {
+        background-color: #e9ecef;
+        font-weight: 600;
+    }
 </style>
 
 <script>
@@ -1089,35 +1197,30 @@
         const fixedPanel = document.querySelector('.gantt-fixed-panel');
         const scrollablePanel = document.querySelector('.gantt-scrollable-panel');
         const scrollableHeader = document.querySelector('.gantt-scrollable-header');
+        const taskList = document.querySelector('.gantt-task-list');
         
-        if (fixedPanel && scrollablePanel) {
+        if (fixedPanel && scrollablePanel && taskList) {
             // Remove existing event listeners to prevent duplicates
-            fixedPanel.removeEventListener('scroll', syncVerticalScroll);
-            scrollablePanel.removeEventListener('scroll', syncVerticalScroll);
+            scrollablePanel.removeEventListener('scroll', syncScroll);
             
-            // Sync vertical scrolling between fixed panel and scrollable panel
-            function syncVerticalScroll(e) {
-                const target = e.target;
-                if (target === fixedPanel && scrollablePanel.scrollTop !== target.scrollTop) {
-                    scrollablePanel.scrollTop = target.scrollTop;
-                } else if (target === scrollablePanel && fixedPanel.scrollTop !== target.scrollTop) {
-                    fixedPanel.scrollTop = target.scrollTop;
+            // Sync vertical scrolling: scrollable panel controls the fixed panel's content
+            function syncScroll(e) {
+                // Sync vertical scroll by translating the task list
+                if (taskList) {
+                    taskList.style.transform = `translateY(-${e.target.scrollTop}px)`;
+                }
+                
+                // Sync horizontal scroll with header
+                if (scrollableHeader && scrollableHeader.scrollLeft !== e.target.scrollLeft) {
+                    scrollableHeader.scrollLeft = e.target.scrollLeft;
                 }
             }
             
-            fixedPanel.addEventListener('scroll', syncVerticalScroll);
-            scrollablePanel.addEventListener('scroll', syncVerticalScroll);
+            scrollablePanel.addEventListener('scroll', syncScroll);
             
-            // Sync horizontal scrolling between scrollable header and scrollable panel
+            // Sync horizontal scrolling from header to panel
             if (scrollableHeader) {
-                scrollablePanel.removeEventListener('scroll', syncHorizontalScrollFromPanel);
                 scrollableHeader.removeEventListener('scroll', syncHorizontalScrollFromHeader);
-                
-                function syncHorizontalScrollFromPanel(e) {
-                    if (scrollableHeader.scrollLeft !== e.target.scrollLeft) {
-                        scrollableHeader.scrollLeft = e.target.scrollLeft;
-                    }
-                }
                 
                 function syncHorizontalScrollFromHeader(e) {
                     if (scrollablePanel.scrollLeft !== e.target.scrollLeft) {
@@ -1125,7 +1228,6 @@
                     }
                 }
                 
-                scrollablePanel.addEventListener('scroll', syncHorizontalScrollFromPanel);
                 scrollableHeader.addEventListener('scroll', syncHorizontalScrollFromHeader);
             }
         }

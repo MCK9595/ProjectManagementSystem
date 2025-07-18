@@ -16,5 +16,8 @@ namespace ProjectManagementSystem.WebApp.Wasm.Client.Models
         public string Priority { get; set; } = string.Empty;
         public string? AssignedTo { get; set; }
         public Guid? ParentTaskId { get; set; }
+        
+        // Flag to indicate if this task has valid start/end dates
+        public bool HasDates { get; set; } = true;
     }
 }
