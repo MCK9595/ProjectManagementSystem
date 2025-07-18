@@ -7,18 +7,22 @@
     <div class="gantt-controls mb-3">
         <div class="btn-group" role="group">
             <button type="button" class="btn @(currentViewMode == ViewMode.Day ? "btn-primary" : "btn-outline-primary")" 
-                    @onclick="@(() => ChangeViewMode(ViewMode.Day))">
+                    @onclick="@(async () => await ChangeViewMode(ViewMode.Day))">
                 日
             </button>
             <button type="button" class="btn @(currentViewMode == ViewMode.Week ? "btn-primary" : "btn-outline-primary")" 
-                    @onclick="@(() => ChangeViewMode(ViewMode.Week))">
+                    @onclick="@(async () => await ChangeViewMode(ViewMode.Week))">
                 週
             </button>
             <button type="button" class="btn @(currentViewMode == ViewMode.Month ? "btn-primary" : "btn-outline-primary")" 
-                    @onclick="@(() => ChangeViewMode(ViewMode.Month))">
+                    @onclick="@(async () => await ChangeViewMode(ViewMode.Month))">
                 月
             </button>
         </div>
+        
+        <button type="button" class="btn btn-outline-success ms-2" @onclick="ScrollToToday">
+            <i class="bi bi-calendar-event"></i> Today
+        </button>
         
         @if (ShowRefreshButton)
         {
@@ -180,6 +184,8 @@
         if (firstRender)
         {
             await SyncScrollPositions();
+            // Auto-scroll to today's position on initial load
+            await ScrollToToday();
         }
     }
 
@@ -188,11 +194,16 @@
         await JSRuntime.InvokeVoidAsync("syncGanttScrollPositions");
     }
 
-    private void ChangeViewMode(ViewMode mode)
+    private async Task ChangeViewMode(ViewMode mode)
     {
         currentViewMode = mode;
         CalculateDateRange();
         StateHasChanged();
+        await InvokeAsync(async () =>
+        {
+            await Task.Delay(50); // Wait for rendering to complete
+            await ScrollToToday();
+        });
     }
 
     public void RefreshChart()
@@ -200,6 +211,11 @@
         CalculateDateRange();
         SortTasks();
         StateHasChanged();
+    }
+
+    private async Task ScrollToToday()
+    {
+        await JSRuntime.InvokeVoidAsync("scrollGanttToPosition", GetTodayPosition());
     }
 
     private void CalculateDateRange()
@@ -490,6 +506,27 @@
     {
         var index = DateRange.IndexOf(date);
         return index * GetDateCellWidth();
+    }
+
+    private double GetTodayPosition()
+    {
+        var today = DateTime.Today;
+        var todayIndex = -1;
+        
+        switch (currentViewMode)
+        {
+            case ViewMode.Day:
+                todayIndex = DateRange.FindIndex(d => d.Date == today);
+                break;
+            case ViewMode.Week:
+                todayIndex = DateRange.FindIndex(d => GetWeekNumber(d) == GetWeekNumber(today) && d.Year == today.Year);
+                break;
+            case ViewMode.Month:
+                todayIndex = DateRange.FindIndex(d => d.Month == today.Month && d.Year == today.Year);
+                break;
+        }
+        
+        return todayIndex >= 0 ? todayIndex * GetDateCellWidth() : 0;
     }
 
     private List<ProgressSegment> GetProgressSegments(GanttTask task)
@@ -1091,6 +1128,21 @@
                 scrollablePanel.addEventListener('scroll', syncHorizontalScrollFromPanel);
                 scrollableHeader.addEventListener('scroll', syncHorizontalScrollFromHeader);
             }
+        }
+    };
+
+    window.scrollGanttToPosition = function(position) {
+        const scrollablePanel = document.querySelector('.gantt-scrollable-panel');
+        const scrollableHeader = document.querySelector('.gantt-scrollable-header');
+        
+        if (scrollablePanel && scrollableHeader) {
+            // Calculate the scroll position to center the today's column
+            const containerWidth = scrollablePanel.clientWidth;
+            const scrollLeft = Math.max(0, position - containerWidth / 2);
+            
+            // Scroll both header and panel horizontally
+            scrollablePanel.scrollLeft = scrollLeft;
+            scrollableHeader.scrollLeft = scrollLeft;
         }
     };
 </script>
