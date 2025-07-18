@@ -66,27 +66,29 @@
                             {
                                 @if (IsTaskVisible(task))
                                 {
-                                    <div class="gantt-task-row @(GetTaskCssClass(task))">
+                                    <div class="gantt-task-row @(GetTaskCssClass(task))" 
+                                         @onclick="@(() => HandleRowClick(task))"
+                                         title="@(task.TaskId != Guid.Empty ? GetTaskTooltip(task) : "")">
                                         <div class="gantt-cell" style="width: 200px; padding-left: @(GetIndentLevel(task) * 20 + 12)px;">
                                             @if (task.TaskId == Guid.Empty)
                                             {
                                                 <!-- Separator row -->
                                                 <i class="bi @(undatedTasksExpanded ? "bi-chevron-down" : "bi-chevron-right") me-1 expand-icon" 
-                                                   @onclick="ToggleUndatedTasks"></i>
-                                                <span class="separator-text" @onclick="ToggleUndatedTasks" style="cursor: pointer;">@task.Name</span>
+                                                   @onclick="ToggleUndatedTasks" @onclick:stopPropagation="true"></i>
+                                                <span class="separator-text" @onclick="ToggleUndatedTasks" @onclick:stopPropagation="true" style="cursor: pointer;">@task.Name</span>
                                             }
                                             else
                                             {
                                                 @if (HasChildren(task))
                                                 {
                                                     <i class="bi @(IsExpanded(task) ? "bi-chevron-down" : "bi-chevron-right") me-1 expand-icon" 
-                                                       @onclick="@(() => ToggleExpand(task))"></i>
+                                                       @onclick="@(() => ToggleExpand(task))" @onclick:stopPropagation="true"></i>
                                                 }
                                                 else
                                                 {
                                                     <span class="me-3"></span>
                                                 }
-                                                <span class="task-name @(!task.HasDates ? "no-dates" : "")" title="@task.Name">@task.Name</span>
+                                                <span class="task-name @(!task.HasDates ? "no-dates" : "")">@task.Name</span>
                                             }
                                         </div>
                                         <div class="gantt-cell" style="width: 100px;">
@@ -855,6 +857,15 @@
         SortTasks();
         StateHasChanged();
     }
+    
+    private async Task HandleRowClick(GanttTask task)
+    {
+        // Only handle click for actual tasks, not separator
+        if (task.TaskId != Guid.Empty && OnTaskClick.HasDelegate)
+        {
+            await OnTaskClick.InvokeAsync(task);
+        }
+    }
 }
 
 <style>
@@ -980,6 +991,14 @@
     .gantt-task-row:hover {
         background-color: #f8f9fa;
     }
+    
+    .gantt-task-row:not(.separator) {
+        cursor: pointer;
+    }
+    
+    .gantt-task-row.separator {
+        cursor: default;
+    }
 
     .gantt-task-row.child-task {
         background-color: #f8f9fa;
@@ -1001,6 +1020,7 @@
         cursor: pointer;
         color: #6c757d;
         font-size: 12px;
+        z-index: 1;
     }
 
     .expand-icon:hover {
