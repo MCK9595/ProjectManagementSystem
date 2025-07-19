@@ -1,0 +1,201 @@
+.task-table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+/* Table Styles */
+.task-table {
+    margin-bottom: 0;
+}
+
+.task-table thead th {
+    border-top: none;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    background-color: #f8f9fa !important;
+}
+
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.sortable-header:hover {
+    background-color: #e9ecef !important;
+}
+
+.sortable-header i {
+    font-size: 0.8em;
+    margin-left: 0.25rem;
+    opacity: 0.6;
+}
+
+/* Row Styles */
+.task-row {
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    border-left: 3px solid transparent;
+}
+
+.task-row:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left-color: #007bff;
+}
+
+.task-row:focus {
+    outline: 2px solid #007bff;
+    outline-offset: -2px;
+    background-color: #f8f9fa;
+}
+
+.task-overdue {
+    background-color: #fff5f5;
+    border-left-color: #dc3545 !important;
+}
+
+.task-overdue:hover {
+    background-color: #ffebee;
+}
+
+/* Task Title Cell */
+.task-title-cell {
+    max-width: 300px;
+}
+
+.task-title {
+    font-weight: 500;
+    color: #212529;
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+
+.task-title-cell .text-truncate {
+    max-width: 100%;
+}
+
+/* User Avatar */
+.user-avatar {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* Progress Bar */
+.progress-info {
+    min-width: 80px;
+}
+
+.progress-info .progress {
+    margin-bottom: 0.25rem;
+}
+
+.progress-info .progress-bar {
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+/* Mobile Responsive */
+@media (max-width: 767.98px) {
+    .task-table-container {
+        padding: 1rem;
+        margin: 0 -15px;
+        border-radius: 0;
+    }
+    
+    .task-title-cell {
+        max-width: 200px;
+    }
+    
+    .table-responsive {
+        border: none;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .task-table-container {
+        padding: 0.75rem;
+    }
+    
+    .task-title-cell {
+        max-width: 150px;
+    }
+    
+    .btn-group-sm .btn {
+        padding: 0.125rem 0.25rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* Sticky Header */
+.sticky-top {
+    top: 0;
+    z-index: 1020;
+}
+
+/* Empty State */
+.table tbody td {
+    vertical-align: middle;
+}
+
+/* Filter Controls */
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.form-select, .form-control {
+    border-color: #ced4da;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Button Improvements */
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge Spacing */
+.badge + .badge {
+    margin-left: 0.25rem;
+}
+
+/* Accessibility */
+.task-row:focus-visible {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Loading State */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Table Footer */
+.task-table-container .btn-link {
+    color: #007bff;
+    text-decoration: none;
+    padding: 0;
+}
+
+.task-table-container .btn-link:hover {
+    text-decoration: underline;
+}

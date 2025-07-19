@@ -8,6 +8,7 @@
 @using ProjectManagementSystem.WebApp.Wasm.Client.Components.Project
 @using ProjectManagementSystem.WebApp.Wasm.Client.Components.Project.Dashboard
 @using ProjectManagementSystem.WebApp.Wasm.Client.Components.Project.Gantt
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Project.Tasks
 @using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
 @using ProjectManagementSystem.WebApp.Wasm.Client.Services
 @using TaskStatusConst = ProjectManagementSystem.WebApp.Wasm.Client.Constants.TaskStatus
@@ -114,73 +115,15 @@ else
     
     private RenderFragment tasksContent => builder =>
     {
-        if (isLoadingTasks)
-        {
-            builder.OpenComponent<LoadingSpinner>(0);
-            builder.AddAttribute(1, "IsVisible", true);
-            builder.AddAttribute(2, "Message", "Loading tasks...");
-            builder.CloseComponent();
-        }
-        else if (tasks?.Any() == true)
-        {
-            builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "class", "task-list");
-            
-            // Create Task button
-            if (CanCreateTasks())
-            {
-                builder.OpenElement(2, "div");
-                builder.AddAttribute(3, "class", "d-flex justify-content-between align-items-center mb-3");
-                builder.OpenElement(4, "h5");
-                builder.AddAttribute(5, "class", "mb-0");
-                builder.AddContent(6, $"Tasks ({tasks.Count})");
-                builder.CloseElement(); // h5
-                builder.OpenElement(7, "button");
-                builder.AddAttribute(8, "class", "btn btn-primary btn-sm");
-                builder.AddAttribute(9, "onclick", EventCallback.Factory.Create(this, CreateTask));
-                builder.OpenElement(10, "i");
-                builder.AddAttribute(11, "class", "fas fa-plus me-1");
-                builder.CloseElement(); // i
-                builder.AddContent(12, "Create Task");
-                builder.CloseElement(); // button
-                builder.CloseElement(); // div
-            }
-            
-            // Task cards
-            builder.OpenElement(13, "div");
-            builder.AddAttribute(14, "class", "row g-3");
-            foreach (var task in tasks.OrderByDescending(t => t.CreatedAt))
-            {
-                builder.OpenElement(15, "div");
-                builder.AddAttribute(16, "class", "col-12");
-                builder.OpenComponent<TaskCard>(17);
-                builder.AddAttribute(18, "Task", task);
-                builder.AddAttribute(19, "ShowStatus", true);
-                builder.AddAttribute(20, "ShowPriority", true);
-                builder.AddAttribute(21, "ShowDueDate", true);
-                builder.AddAttribute(22, "ShowAssignee", true);
-                builder.AddAttribute(23, "Clickable", true);
-                builder.AddAttribute(24, "OnClick", EventCallback.Factory.Create<TaskDto>(this, (t) => ViewTask(t)));
-                builder.CloseComponent();
-                builder.CloseElement(); // div col-12
-            }
-            builder.CloseElement(); // div row
-            
-            builder.CloseElement(); // div task-list
-        }
-        else
-        {
-            builder.OpenComponent<EmptyState>(0);
-            builder.AddAttribute(1, "IsVisible", true);
-            builder.AddAttribute(2, "IconClass", "fas fa-tasks");
-            builder.AddAttribute(3, "Title", "No tasks");
-            builder.AddAttribute(4, "Description", "This project doesn't have any tasks yet.");
-            builder.AddAttribute(5, "ShowAction", CanCreateTasks());
-            builder.AddAttribute(6, "ActionText", "Create Task");
-            builder.AddAttribute(7, "ActionIconClass", "fas fa-plus");
-            builder.AddAttribute(8, "OnActionClick", EventCallback.Factory.Create(this, CreateTask));
-            builder.CloseComponent();
-        }
+        builder.OpenComponent<ProjectTaskTable>(0);
+        builder.AddAttribute(1, "Tasks", tasks);
+        builder.AddAttribute(2, "IsLoading", isLoadingTasks);
+        builder.AddAttribute(3, "ShowCreateAction", CanCreateTasks());
+        builder.AddAttribute(4, "CanEditTasks", CanEditProject()); // Assuming same permissions for editing tasks
+        builder.AddAttribute(5, "OnTaskClick", EventCallback.Factory.Create<TaskDto>(this, ViewTask));
+        builder.AddAttribute(6, "OnEditTaskClick", EventCallback.Factory.Create<TaskDto>(this, ViewTask)); // For now, both go to view
+        builder.AddAttribute(7, "OnCreateTaskClick", EventCallback.Factory.Create(this, CreateTask));
+        builder.CloseComponent();
     };
     
     private RenderFragment ganttContent => builder =>

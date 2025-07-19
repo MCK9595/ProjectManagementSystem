@@ -1,0 +1,429 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+
+<div class="task-table-container">
+    <!-- Header Controls -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Search tasks..." 
+                       @bind="searchTerm" @oninput="OnSearchChanged" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex gap-2">
+                <!-- Status Filter -->
+                <select class="form-select" @bind="statusFilter" @bind:after="OnFiltersChanged">
+                    <option value="">All Status</option>
+                    <option value="todo">To Do</option>
+                    <option value="inprogress">In Progress</option>
+                    <option value="inreview">In Review</option>
+                    <option value="done">Done</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                
+                <!-- Priority Filter -->
+                <select class="form-select" @bind="priorityFilter" @bind:after="OnFiltersChanged">
+                    <option value="">All Priority</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+                
+                @if (ShowCreateAction)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="HandleCreateTaskClick">
+                        <i class="fas fa-plus me-1"></i>Create Task
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Table -->
+    <div class="table-responsive">
+        <table class="table table-hover task-table">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th scope="col" class="sortable-header" @onclick="() => OnSort(nameof(TaskDto.TaskNumber))">
+                        # <i class="fas @GetSortIcon(nameof(TaskDto.TaskNumber))"></i>
+                    </th>
+                    <th scope="col" class="sortable-header" @onclick="() => OnSort(nameof(TaskDto.Title))">
+                        Title <i class="fas @GetSortIcon(nameof(TaskDto.Title))"></i>
+                    </th>
+                    <th scope="col" class="sortable-header d-none d-md-table-cell" @onclick="() => OnSort(nameof(TaskDto.Status))">
+                        Status <i class="fas @GetSortIcon(nameof(TaskDto.Status))"></i>
+                    </th>
+                    <th scope="col" class="sortable-header d-none d-lg-table-cell" @onclick="() => OnSort(nameof(TaskDto.Priority))">
+                        Priority <i class="fas @GetSortIcon(nameof(TaskDto.Priority))"></i>
+                    </th>
+                    <th scope="col" class="sortable-header d-none d-lg-table-cell" @onclick="() => OnSort(nameof(TaskDto.AssignedTo))">
+                        Assignee <i class="fas @GetSortIcon(nameof(TaskDto.AssignedTo))"></i>
+                    </th>
+                    <th scope="col" class="sortable-header d-none d-xl-table-cell" @onclick="() => OnSort(nameof(TaskDto.StartDate))">
+                        Start Date <i class="fas @GetSortIcon(nameof(TaskDto.StartDate))"></i>
+                    </th>
+                    <th scope="col" class="sortable-header" @onclick="() => OnSort(nameof(TaskDto.DueDate))">
+                        Due Date <i class="fas @GetSortIcon(nameof(TaskDto.DueDate))"></i>
+                    </th>
+                    <th scope="col" class="d-none d-xl-table-cell">Progress</th>
+                    <th scope="col" class="d-none d-lg-table-cell">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (filteredTasks?.Any() == true)
+                {
+                    @foreach (var task in filteredTasks)
+                    {
+                        <tr class="task-row @(IsTaskOverdue(task) ? "task-overdue" : "")" 
+                            tabindex="0" 
+                            @onclick="() => HandleTaskClick(task)"
+                            @onkeydown="@(async (e) => await OnTaskKeyDown(e, task))">
+                            
+                            <td class="fw-bold text-muted">
+                                #@task.TaskNumber
+                            </td>
+                            
+                            <td>
+                                <div class="task-title-cell">
+                                    <div class="task-title">@task.Title</div>
+                                    @if (!string.IsNullOrEmpty(task.Description))
+                                    {
+                                        <small class="text-muted d-block text-truncate">@task.Description</small>
+                                    }
+                                    <!-- Mobile badges -->
+                                    <div class="d-md-none mt-1">
+                                        <StatusBadge Value="@task.Status" Type="StatusBadge.BadgeType.Status" Size="StatusBadge.BadgeSize.Small" />
+                                        <StatusBadge Value="@task.Priority" Type="StatusBadge.BadgeType.Priority" Size="StatusBadge.BadgeSize.Small" />
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td class="d-none d-md-table-cell">
+                                <StatusBadge Value="@task.Status" Type="StatusBadge.BadgeType.Status" Size="StatusBadge.BadgeSize.Small" />
+                            </td>
+                            
+                            <td class="d-none d-lg-table-cell">
+                                <StatusBadge Value="@task.Priority" Type="StatusBadge.BadgeType.Priority" Size="StatusBadge.BadgeSize.Small" />
+                            </td>
+                            
+                            <td class="d-none d-lg-table-cell">
+                                @if (!string.IsNullOrEmpty(task.AssignedTo?.Username))
+                                {
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar me-2">
+                                            @task.AssignedTo.Username.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <span>@task.AssignedTo.Username</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Unassigned</span>
+                                }
+                            </td>
+                            
+                            <td class="d-none d-xl-table-cell text-muted">
+                                @if (task.StartDate.HasValue)
+                                {
+                                    @task.StartDate.Value.ToString("MMM dd")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            
+                            <td class="@(IsTaskOverdue(task) ? "text-danger fw-bold" : "")">
+                                @if (task.DueDate.HasValue)
+                                {
+                                    <div>
+                                        @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                        @if (IsTaskOverdue(task))
+                                        {
+                                            <small class="d-block">(@GetDaysOverdue(task) days overdue)</small>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No due date</span>
+                                }
+                            </td>
+                            
+                            <td class="d-none d-xl-table-cell">
+                                @if (task.EstimatedHours.HasValue || task.ActualHours.HasValue)
+                                {
+                                    <div class="progress-info">
+                                        @if (task.ActualHours.HasValue && task.EstimatedHours.HasValue)
+                                        {
+                                            var percentage = Math.Min((double)(task.ActualHours.Value / task.EstimatedHours.Value) * 100, 100);
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar" style="width: @percentage%"></div>
+                                            </div>
+                                            <small class="text-muted">@task.ActualHours.Value.ToString("F1")h / @task.EstimatedHours.Value.ToString("F1")h</small>
+                                        }
+                                        else if (task.EstimatedHours.HasValue)
+                                        {
+                                            <small class="text-muted">Est: @task.EstimatedHours.Value.ToString("F1")h</small>
+                                        }
+                                        else if (task.ActualHours.HasValue)
+                                        {
+                                            <small class="text-muted">Actual: @task.ActualHours.Value.ToString("F1")h</small>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            
+                            <td class="d-none d-lg-table-cell">
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                            @onclick="() => HandleTaskClick(task)" @onclick:stopPropagation="true"
+                                            title="View Task">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    @if (CanEditTasks)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                                @onclick="() => HandleEditTaskClick(task)" @onclick:stopPropagation="true"
+                                                title="Edit Task">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            @if (IsLoading)
+                            {
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span>Loading tasks...</span>
+                            }
+                            else if (!string.IsNullOrEmpty(searchTerm) || !string.IsNullOrEmpty(statusFilter) || !string.IsNullOrEmpty(priorityFilter))
+                            {
+                                <div class="text-muted">
+                                    <i class="fas fa-search fa-2x mb-2"></i>
+                                    <div>No tasks match your filters</div>
+                                    <button type="button" class="btn btn-link btn-sm" @onclick="ClearFilters">
+                                        Clear Filters
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-muted">
+                                    <i class="fas fa-tasks fa-2x mb-2"></i>
+                                    <div>No tasks found</div>
+                                    @if (ShowCreateAction)
+                                    {
+                                        <button type="button" class="btn btn-primary btn-sm mt-2" @onclick="HandleCreateTaskClick">
+                                            <i class="fas fa-plus me-1"></i>Create First Task
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Table Footer with count -->
+    @if (filteredTasks?.Any() == true)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <small class="text-muted">
+                Showing @filteredTasks.Count() of @(Tasks?.Count() ?? 0) tasks
+            </small>
+            @if (filteredTasks.Count() != (Tasks?.Count() ?? 0))
+            {
+                <button type="button" class="btn btn-link btn-sm" @onclick="ClearFilters">
+                    Show All Tasks
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<TaskDto>? Tasks { get; set; }
+    [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public bool ShowCreateAction { get; set; } = false;
+    [Parameter] public bool CanEditTasks { get; set; } = false;
+    [Parameter] public EventCallback<TaskDto> OnTaskClick { get; set; }
+    [Parameter] public EventCallback<TaskDto> OnEditTaskClick { get; set; }
+    [Parameter] public EventCallback OnCreateTaskClick { get; set; }
+    
+    private string searchTerm = "";
+    private string statusFilter = "";
+    private string priorityFilter = "";
+    private string sortField = nameof(TaskDto.CreatedAt);
+    private bool sortAscending = false;
+    
+    private IEnumerable<TaskDto> filteredTasks => GetFilteredAndSortedTasks();
+    
+    protected override void OnParametersSet()
+    {
+        StateHasChanged();
+    }
+    
+    private IEnumerable<TaskDto> GetFilteredAndSortedTasks()
+    {
+        if (Tasks == null) return Enumerable.Empty<TaskDto>();
+        
+        var filtered = Tasks.AsEnumerable();
+        
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filtered = filtered.Where(t => 
+                t.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (t.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+        }
+        
+        // Apply status filter
+        if (!string.IsNullOrWhiteSpace(statusFilter))
+        {
+            filtered = filtered.Where(t => t.Status.Equals(statusFilter, StringComparison.OrdinalIgnoreCase));
+        }
+        
+        // Apply priority filter
+        if (!string.IsNullOrWhiteSpace(priorityFilter))
+        {
+            filtered = filtered.Where(t => t.Priority.Equals(priorityFilter, StringComparison.OrdinalIgnoreCase));
+        }
+        
+        // Apply sorting
+        filtered = ApplySort(filtered);
+        
+        return filtered;
+    }
+    
+    private IEnumerable<TaskDto> ApplySort(IEnumerable<TaskDto> tasks)
+    {
+        return sortField switch
+        {
+            nameof(TaskDto.TaskNumber) => sortAscending ? tasks.OrderBy(t => t.TaskNumber) : tasks.OrderByDescending(t => t.TaskNumber),
+            nameof(TaskDto.Title) => sortAscending ? tasks.OrderBy(t => t.Title) : tasks.OrderByDescending(t => t.Title),
+            nameof(TaskDto.Status) => sortAscending ? tasks.OrderBy(t => t.Status) : tasks.OrderByDescending(t => t.Status),
+            nameof(TaskDto.Priority) => sortAscending ? tasks.OrderBy(t => GetPriorityOrder(t.Priority)) : tasks.OrderByDescending(t => GetPriorityOrder(t.Priority)),
+            nameof(TaskDto.AssignedTo) => sortAscending ? tasks.OrderBy(t => t.AssignedTo?.Username ?? "") : tasks.OrderByDescending(t => t.AssignedTo?.Username ?? ""),
+            nameof(TaskDto.StartDate) => sortAscending ? tasks.OrderBy(t => t.StartDate ?? DateTime.MaxValue) : tasks.OrderByDescending(t => t.StartDate ?? DateTime.MinValue),
+            nameof(TaskDto.DueDate) => sortAscending ? tasks.OrderBy(t => t.DueDate ?? DateTime.MaxValue) : tasks.OrderByDescending(t => t.DueDate ?? DateTime.MinValue),
+            nameof(TaskDto.CreatedAt) => sortAscending ? tasks.OrderBy(t => t.CreatedAt) : tasks.OrderByDescending(t => t.CreatedAt),
+            _ => tasks.OrderByDescending(t => t.CreatedAt)
+        };
+    }
+    
+    private int GetPriorityOrder(string priority)
+    {
+        return priority.ToLower() switch
+        {
+            "critical" => 4,
+            "high" => 3,
+            "medium" => 2,
+            "low" => 1,
+            _ => 0
+        };
+    }
+    
+    private void OnSort(string field)
+    {
+        if (sortField == field)
+        {
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            sortField = field;
+            sortAscending = true;
+        }
+    }
+    
+    private string GetSortIcon(string field)
+    {
+        if (sortField != field) return "fa-sort text-muted";
+        return sortAscending ? "fa-sort-up" : "fa-sort-down";
+    }
+    
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        await Task.Delay(300); // Debounce
+        StateHasChanged();
+    }
+    
+    private void OnFiltersChanged()
+    {
+        StateHasChanged();
+    }
+    
+    private void ClearFilters()
+    {
+        searchTerm = "";
+        statusFilter = "";
+        priorityFilter = "";
+        StateHasChanged();
+    }
+    
+    private bool IsTaskOverdue(TaskDto task)
+    {
+        if (!task.DueDate.HasValue) return false;
+        if (task.Status.ToLower() is "done" or "cancelled") return false;
+        return task.DueDate.Value.Date < DateTime.Now.Date;
+    }
+    
+    private int GetDaysOverdue(TaskDto task)
+    {
+        if (!IsTaskOverdue(task)) return 0;
+        return (DateTime.Now.Date - task.DueDate!.Value.Date).Days;
+    }
+    
+    private async Task OnTaskKeyDown(KeyboardEventArgs e, TaskDto task)
+    {
+        if (e.Key == "Enter" || e.Key == " ")
+        {
+            await HandleTaskClick(task);
+        }
+    }
+    
+    private async Task HandleTaskClick(TaskDto task)
+    {
+        if (OnTaskClick.HasDelegate)
+        {
+            await OnTaskClick.InvokeAsync(task);
+        }
+    }
+    
+    private async Task HandleEditTaskClick(TaskDto task)
+    {
+        if (OnEditTaskClick.HasDelegate)
+        {
+            await OnEditTaskClick.InvokeAsync(task);
+        }
+    }
+    
+    private async Task HandleCreateTaskClick()
+    {
+        if (OnCreateTaskClick.HasDelegate)
+        {
+            await OnCreateTaskClick.InvokeAsync();
+        }
+    }
+}
