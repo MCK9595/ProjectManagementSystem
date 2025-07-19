@@ -1,0 +1,134 @@
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+
+<div class="role-selector">
+    @if (IsEditing)
+    {
+        <div class="dropdown">
+            <select class="form-select form-select-sm" 
+                    value="@SelectedRole" 
+                    @onchange="HandleRoleChange"
+                    disabled="@IsDisabled">
+                @foreach (var role in AvailableRoles)
+                {
+                    <option value="@role.Value">@role.DisplayName</option>
+                }
+            </select>
+            
+            @if (ShowActions)
+            {
+                <div class="role-actions mt-2">
+                    <button type="button" class="btn btn-sm btn-success me-1" 
+                            @onclick="HandleSave" 
+                            disabled="@(IsDisabled || SelectedRole == OriginalRole)">
+                        <i class="fas fa-check me-1"></i>変更
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" 
+                            @onclick="HandleCancel"
+                            disabled="@IsDisabled">
+                        <i class="fas fa-times me-1"></i>キャンセル
+                    </button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="role-display" @onclick="HandleEdit">
+            <StatusBadge Value="@CurrentRole" 
+                       Type="StatusBadge.BadgeType.Role" 
+                       Size="@BadgeSize"
+                       Clickable="@(!IsDisabled && AllowInlineEdit)"
+                       ShowTooltip="true" />
+            @if (!IsDisabled && AllowInlineEdit)
+            {
+                <i class="fas fa-edit ms-1 text-muted role-edit-icon"></i>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string CurrentRole { get; set; } = "";
+    [Parameter] public bool IsEditing { get; set; } = false;
+    [Parameter] public bool IsDisabled { get; set; } = false;
+    [Parameter] public bool AllowInlineEdit { get; set; } = true;
+    [Parameter] public bool ShowActions { get; set; } = true;
+    [Parameter] public StatusBadge.BadgeSize BadgeSize { get; set; } = StatusBadge.BadgeSize.Small;
+    [Parameter] public List<RoleOption>? CustomRoles { get; set; }
+    [Parameter] public EventCallback<string> OnRoleChanged { get; set; }
+    [Parameter] public EventCallback OnEditStart { get; set; }
+    [Parameter] public EventCallback OnEditCancel { get; set; }
+
+    private string SelectedRole { get; set; } = "";
+    private string OriginalRole { get; set; } = "";
+
+    private List<RoleOption> AvailableRoles => CustomRoles ?? DefaultProjectRoles;
+
+    private static readonly List<RoleOption> DefaultProjectRoles = new()
+    {
+        new("ProjectManager", "Project Manager"),
+        new("ProjectEditor", "Project Editor"),
+        new("ProjectViewer", "Project Viewer")
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (!IsEditing)
+        {
+            SelectedRole = CurrentRole;
+            OriginalRole = CurrentRole;
+        }
+    }
+
+    private async Task HandleEdit()
+    {
+        if (!IsDisabled && AllowInlineEdit && !IsEditing)
+        {
+            SelectedRole = CurrentRole;
+            OriginalRole = CurrentRole;
+            
+            if (OnEditStart.HasDelegate)
+            {
+                await OnEditStart.InvokeAsync();
+            }
+        }
+    }
+
+    private async Task HandleRoleChange(ChangeEventArgs e)
+    {
+        if (e.Value?.ToString() is string newRole)
+        {
+            SelectedRole = newRole;
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        if (SelectedRole != OriginalRole && OnRoleChanged.HasDelegate)
+        {
+            await OnRoleChanged.InvokeAsync(SelectedRole);
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        SelectedRole = OriginalRole;
+        
+        if (OnEditCancel.HasDelegate)
+        {
+            await OnEditCancel.InvokeAsync();
+        }
+    }
+
+    public class RoleOption
+    {
+        public string Value { get; set; }
+        public string DisplayName { get; set; }
+
+        public RoleOption(string value, string displayName)
+        {
+            Value = value;
+            DisplayName = displayName;
+        }
+    }
+}

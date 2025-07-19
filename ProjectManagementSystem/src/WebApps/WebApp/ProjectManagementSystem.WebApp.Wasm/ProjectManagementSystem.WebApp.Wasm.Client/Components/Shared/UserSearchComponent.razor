@@ -1,0 +1,221 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Models.Common
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+@inject IUserService UserService
+
+<div class="user-search-component">
+    <div class="search-input-container">
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="fas fa-search"></i>
+            </span>
+            <input type="text" 
+                   class="form-control" 
+                   placeholder="@Placeholder"
+                   value="@searchTerm"
+                   @oninput="HandleSearchInput"
+                   @onkeypress="HandleKeyPress"
+                   disabled="@IsDisabled" />
+            @if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <button class="btn btn-outline-secondary" type="button" @onclick="ClearSearch">
+                    <i class="fas fa-times"></i>
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (IsLoading)
+    {
+        <div class="search-results loading">
+            <div class="d-flex align-items-center p-3">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                <span>Searching users...</span>
+            </div>
+        </div>
+    }
+    else if (searchResults?.Any() == true)
+    {
+        <div class="search-results">
+            <div class="results-header">
+                <small class="text-muted">
+                    Found @searchResults.Count @(searchResults.Count == 1 ? "user" : "users")
+                </small>
+            </div>
+            <div class="results-list">
+                @foreach (var user in searchResults.Take(MaxResults))
+                {
+                    <div class="user-result-item @(IsUserExcluded(user) ? "excluded" : "")" 
+                         @onclick="@(() => HandleUserSelect(user))">
+                        <div class="user-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">@user.FullName</div>
+                            <div class="user-details">
+                                <small class="user-email">@user.Email</small>
+                                <span class="mx-1">•</span>
+                                <small class="user-username">@@@user.Username</small>
+                            </div>
+                        </div>
+                        <div class="user-actions">
+                            @if (IsUserExcluded(user))
+                            {
+                                <small class="text-muted">@GetExclusionReason(user)</small>
+                            }
+                            else
+                            {
+                                <i class="fas fa-plus text-primary"></i>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (searchResults.Count > MaxResults)
+                {
+                    <div class="more-results">
+                        <small class="text-muted">
+                            And @(searchResults.Count - MaxResults) more...
+                        </small>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(searchTerm) && !IsLoading)
+    {
+        <div class="search-results empty">
+            <div class="p-3 text-center">
+                <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                <div class="text-muted">No users found matching "@searchTerm"</div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger alert-sm mt-2">
+            @ErrorMessage
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Placeholder { get; set; } = "Search for users by name, email, or username...";
+    [Parameter] public bool IsDisabled { get; set; } = false;
+    [Parameter] public int MaxResults { get; set; } = 10;
+    [Parameter] public List<int> ExcludedUserIds { get; set; } = new();
+    [Parameter] public EventCallback<UserListDto> OnUserSelected { get; set; }
+    [Parameter] public Func<UserListDto, string?>? GetExclusionReason { get; set; }
+
+    private string searchTerm = "";
+    private List<UserListDto> searchResults = new();
+    private bool IsLoading = false;
+    private string? ErrorMessage;
+    private System.Threading.Timer? searchTimer;
+
+    protected override void OnInitialized()
+    {
+        GetExclusionReason ??= (user) => ExcludedUserIds.Contains(user.Id) ? "Already a member" : null;
+    }
+
+    private async Task HandleSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        
+        // Reset timer
+        searchTimer?.Dispose();
+        
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            searchResults.Clear();
+            ErrorMessage = null;
+            StateHasChanged();
+            return;
+        }
+        
+        // Debounce search for 300ms
+        searchTimer = new System.Threading.Timer(async _ =>
+        {
+            await InvokeAsync(PerformSearch);
+        }, null, 300, Timeout.Infinite);
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            searchTimer?.Dispose();
+            await PerformSearch();
+        }
+    }
+
+    private async Task PerformSearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+            return;
+
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+            StateHasChanged();
+
+            var searchRequest = new UserSearchRequest
+            {
+                SearchTerm = searchTerm,
+                PageNumber = 1,
+                PageSize = MaxResults * 2, // Get more to account for filtering
+                IsActive = true // Only show active users
+            };
+
+            var result = await UserService.GetUsersAsync(searchRequest);
+            searchResults = result?.Items.ToList() ?? new List<UserListDto>();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to search users. Please try again.";
+            searchResults.Clear();
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task HandleUserSelect(UserListDto user)
+    {
+        if (IsUserExcluded(user) || IsDisabled)
+            return;
+
+        if (OnUserSelected.HasDelegate)
+        {
+            await OnUserSelected.InvokeAsync(user);
+        }
+
+        // Clear search after selection
+        searchTerm = "";
+        searchResults.Clear();
+        StateHasChanged();
+    }
+
+    private void ClearSearch()
+    {
+        searchTerm = "";
+        searchResults.Clear();
+        ErrorMessage = null;
+        searchTimer?.Dispose();
+        StateHasChanged();
+    }
+
+    private bool IsUserExcluded(UserListDto user)
+    {
+        return GetExclusionReason?.Invoke(user) != null;
+    }
+
+    public void Dispose()
+    {
+        searchTimer?.Dispose();
+    }
+}

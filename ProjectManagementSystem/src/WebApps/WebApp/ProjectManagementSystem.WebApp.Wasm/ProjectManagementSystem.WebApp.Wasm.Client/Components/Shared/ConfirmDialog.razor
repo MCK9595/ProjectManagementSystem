@@ -1,0 +1,76 @@
+@if (IsVisible)
+{
+    <div class="modal fade show" style="display: flex;" tabindex="-1" role="dialog" aria-hidden="false" @onclick="HandleCancel">
+        <div class="modal-dialog modal-dialog-centered" role="document" @onclick:stopPropagation="true">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        @if (!string.IsNullOrEmpty(IconClass))
+                        {
+                            <i class="@IconClass me-2"></i>
+                        }
+                        @Title
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="HandleCancel" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">@Message</p>
+                    @if (!string.IsNullOrEmpty(Details))
+                    {
+                        <div class="alert alert-warning d-flex align-items-start">
+                            <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                            <small>@Details</small>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="HandleCancel" disabled="@IsProcessing">
+                        @CancelText
+                    </button>
+                    <button type="button" class="btn @ConfirmButtonClass" @onclick="HandleConfirm" disabled="@IsProcessing">
+                        @if (IsProcessing)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        }
+                        else if (!string.IsNullOrEmpty(ConfirmIconClass))
+                        {
+                            <i class="@ConfirmIconClass me-2"></i>
+                        }
+                        @ConfirmText
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public string Title { get; set; } = "Confirm Action";
+    [Parameter] public string Message { get; set; } = "Are you sure you want to proceed?";
+    [Parameter] public string? Details { get; set; }
+    [Parameter] public string IconClass { get; set; } = "fas fa-question-circle text-warning";
+    [Parameter] public string ConfirmText { get; set; } = "Confirm";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public string ConfirmButtonClass { get; set; } = "btn-primary";
+    [Parameter] public string ConfirmIconClass { get; set; } = "";
+    [Parameter] public bool IsProcessing { get; set; } = false;
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private async Task HandleConfirm()
+    {
+        if (OnConfirm.HasDelegate && !IsProcessing)
+        {
+            await OnConfirm.InvokeAsync();
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        if (OnCancel.HasDelegate && !IsProcessing)
+        {
+            await OnCancel.InvokeAsync();
+        }
+    }
+}

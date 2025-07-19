@@ -1,0 +1,274 @@
+.project-gantt-chart {
+    background: white;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.gantt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--bs-border-color-translucent, rgba(0, 0, 0, 0.1));
+    background: var(--bs-light, #f8f9fa);
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.gantt-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--bs-dark, #343a40);
+    display: flex;
+    align-items: center;
+}
+
+.gantt-title i {
+    color: var(--bs-primary, #007bff);
+}
+
+.gantt-controls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.gantt-controls .btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.gantt-controls .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 123, 255, 0.25);
+}
+
+.gantt-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.gantt-chart-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    position: relative;
+    overflow: auto;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 0.375rem;
+    background: white;
+}
+
+.gantt-chart-container ::deep .gantt-container {
+    width: 100%;
+    height: 100%;
+}
+
+/* Loading state */
+.gantt-content ::deep .loading-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+/* Empty state customization */
+.gantt-content ::deep .empty-state-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: 2rem;
+}
+
+.gantt-content ::deep .empty-state-icon {
+    font-size: 4rem;
+    color: var(--bs-primary, #007bff);
+    margin-bottom: 1.5rem;
+}
+
+.gantt-content ::deep .empty-state-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.gantt-content ::deep .empty-state-description {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .gantt-header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    .gantt-title {
+        font-size: 1rem;
+    }
+    
+    .gantt-controls {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .gantt-controls .btn {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.7rem;
+    }
+    
+    .gantt-content {
+        padding: 0.75rem;
+    }
+    
+    .gantt-chart-container {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 576px) {
+    .gantt-header {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .gantt-title {
+        font-size: 0.9rem;
+    }
+    
+    .gantt-controls .btn {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .gantt-content {
+        padding: 0.5rem;
+    }
+    
+    .gantt-chart-container {
+        min-height: 250px;
+    }
+    
+    .gantt-content ::deep .empty-state-container {
+        min-height: 200px;
+        padding: 1rem;
+    }
+    
+    .gantt-content ::deep .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .gantt-content ::deep .empty-state-title {
+        font-size: 1.2rem;
+    }
+    
+    .gantt-content ::deep .empty-state-description {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Custom scrollbar for gantt container */
+.gantt-chart-container {
+    scrollbar-width: thin;
+    scrollbar-color: var(--bs-secondary, #6c757d) transparent;
+}
+
+.gantt-chart-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.gantt-chart-container::-webkit-scrollbar-track {
+    background: var(--bs-light, #f8f9fa);
+    border-radius: 4px;
+}
+
+.gantt-chart-container::-webkit-scrollbar-thumb {
+    background-color: var(--bs-secondary, #6c757d);
+    border-radius: 4px;
+}
+
+.gantt-chart-container::-webkit-scrollbar-thumb:hover {
+    background-color: var(--bs-dark, #343a40);
+}
+
+.gantt-chart-container::-webkit-scrollbar-corner {
+    background: var(--bs-light, #f8f9fa);
+}
+
+/* Animation */
+.project-gantt-chart {
+    animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Gantt chart loading animation */
+.gantt-chart-container {
+    transition: all 0.3s ease-in-out;
+}
+
+.gantt-chart-container.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Accessibility */
+.gantt-controls .btn:focus {
+    outline: 2px solid var(--bs-primary, #007bff);
+    outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .project-gantt-chart {
+        border-width: 2px;
+    }
+    
+    .gantt-chart-container {
+        border-width: 2px;
+    }
+    
+    .gantt-controls .btn {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .project-gantt-chart,
+    .gantt-chart-container,
+    .gantt-controls .btn {
+        animation: none;
+        transition: none;
+    }
+    
+    .gantt-controls .btn:hover {
+        transform: none;
+    }
+}

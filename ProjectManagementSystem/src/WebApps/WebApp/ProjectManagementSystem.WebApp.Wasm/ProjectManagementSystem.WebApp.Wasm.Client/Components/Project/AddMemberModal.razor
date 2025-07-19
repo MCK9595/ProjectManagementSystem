@@ -1,0 +1,259 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+
+@if (IsVisible)
+{
+    <div class="modal fade show" style="display: flex;" tabindex="-1" role="dialog" aria-hidden="false" @onclick="HandleCancel">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document" @onclick:stopPropagation="true">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Add Project Member
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="HandleCancel" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body">
+                    @if (currentStep == AddMemberStep.SearchUser)
+                    {
+                        <div class="step-content">
+                            <h6 class="step-title">
+                                <span class="step-number">1</span>
+                                Select a user from your organization
+                            </h6>
+                            
+                            <OrganizationUserDropdown 
+                                OrganizationId="@OrganizationId"
+                                Label="Organization Member"
+                                Placeholder="Search and select a member..."
+                                ExcludedUserIds="@ExcludedUserIds"
+                                IsDisabled="@IsProcessing"
+                                OnUserSelected="HandleOrgUserSelected" />
+                                
+                            @if (!string.IsNullOrEmpty(ErrorMessage))
+                            {
+                                <div class="alert alert-danger mt-3">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>@ErrorMessage
+                                </div>
+                            }
+                        </div>
+                    }
+                    else if (currentStep == AddMemberStep.SelectRole && selectedUser != null)
+                    {
+                        <div class="step-content">
+                            <h6 class="step-title">
+                                <span class="step-number">2</span>
+                                Select role for @selectedUser.FullName
+                            </h6>
+                            
+                            <div class="selected-user-info">
+                                <div class="user-card">
+                                    <div class="user-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="user-details">
+                                        <div class="user-name">@selectedUser.FullName</div>
+                                        <div class="user-email">@selectedUser.Email</div>
+                                        <div class="user-username">@@@selectedUser.Username</div>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            @onclick="GoBackToSearch"
+                                            disabled="@IsProcessing">
+                                        <i class="fas fa-edit me-1"></i>Change User
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="role-selection mt-4">
+                                <label class="form-label">Project Role</label>
+                                <div class="role-options">
+                                    @foreach (var role in AvailableRoles)
+                                    {
+                                        <div class="role-option">
+                                            <input type="radio" 
+                                                   class="btn-check" 
+                                                   name="projectRole" 
+                                                   id="role-@role.Value" 
+                                                   value="@role.Value"
+                                                   checked="@(selectedRole == role.Value)"
+                                                   @onchange="@((e) => selectedRole = e.Value?.ToString() ?? "")"
+                                                   disabled="@IsProcessing" />
+                                            <label class="btn btn-outline-primary" for="role-@role.Value">
+                                                <div class="role-info">
+                                                    <div class="role-name">@role.DisplayName</div>
+                                                    <small class="role-description">@GetRoleDescription(role.Value)</small>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(ErrorMessage))
+                            {
+                                <div class="alert alert-danger mt-3">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>@ErrorMessage
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                
+                <div class="modal-footer">
+                    <div class="step-indicator">
+                        <span class="step @(currentStep == AddMemberStep.SearchUser ? "active" : (selectedUser != null ? "completed" : ""))">1</span>
+                        <span class="step-separator"></span>
+                        <span class="step @(currentStep == AddMemberStep.SelectRole ? "active" : "")">2</span>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" @onclick="HandleCancel" disabled="@IsProcessing">
+                            Cancel
+                        </button>
+                        
+                        @if (currentStep == AddMemberStep.SelectRole)
+                        {
+                            <button type="button" class="btn btn-primary" 
+                                    @onclick="HandleAddMember" 
+                                    disabled="@(IsProcessing || string.IsNullOrEmpty(selectedRole))">
+                                @if (IsProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-plus me-2"></i>
+                                }
+                                Add Member
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public Guid OrganizationId { get; set; }
+    [Parameter] public List<int> ExcludedUserIds { get; set; } = new();
+    [Parameter] public List<RoleSelector.RoleOption>? CustomRoles { get; set; }
+    [Parameter] public bool IsProcessing { get; set; } = false;
+    [Parameter] public EventCallback<AddMemberRequest> OnAddMember { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private AddMemberStep currentStep = AddMemberStep.SearchUser;
+    private UserListDto? selectedUser;
+    private string selectedRole = "";
+    private string? ErrorMessage;
+
+    private List<RoleSelector.RoleOption> AvailableRoles => CustomRoles ?? DefaultProjectRoles;
+
+    private static readonly List<RoleSelector.RoleOption> DefaultProjectRoles = new()
+    {
+        new("ProjectManager", "Project Manager"),
+        new("ProjectEditor", "Project Editor"),
+        new("ProjectViewer", "Project Viewer")
+    };
+
+    protected override void OnParametersSet()
+    {
+        if (!IsVisible)
+        {
+            ResetModal();
+        }
+    }
+
+    private void ResetModal()
+    {
+        currentStep = AddMemberStep.SearchUser;
+        selectedUser = null;
+        selectedRole = "";
+        ErrorMessage = null;
+    }
+
+    private void HandleOrgUserSelected(OrganizationMemberDto orgMember)
+    {
+        if (orgMember.User != null)
+        {
+            selectedUser = new UserListDto
+            {
+                Id = orgMember.User.Id,
+                Username = orgMember.User.Username,
+                Email = orgMember.User.Email,
+                FirstName = orgMember.User.FirstName,
+                LastName = orgMember.User.LastName,
+                Role = orgMember.User.Role,
+                IsActive = orgMember.User.IsActive,
+                CreatedAt = orgMember.User.CreatedAt,
+                LastLoginAt = orgMember.User.LastLoginAt
+            };
+            selectedRole = DefaultProjectRoles.FirstOrDefault()?.Value ?? "";
+            currentStep = AddMemberStep.SelectRole;
+            ErrorMessage = null;
+            StateHasChanged();
+        }
+    }
+
+    private void GoBackToSearch()
+    {
+        currentStep = AddMemberStep.SearchUser;
+        selectedUser = null;
+        selectedRole = "";
+        ErrorMessage = null;
+    }
+
+    private async Task HandleAddMember()
+    {
+        if (selectedUser == null || string.IsNullOrEmpty(selectedRole))
+        {
+            ErrorMessage = "Please select a user and role.";
+            return;
+        }
+
+        var request = new AddMemberRequest
+        {
+            User = selectedUser,
+            Role = selectedRole
+        };
+
+        if (OnAddMember.HasDelegate)
+        {
+            await OnAddMember.InvokeAsync(request);
+        }
+    }
+
+    private async Task HandleCancel()
+    {
+        ResetModal();
+        
+        if (OnCancel.HasDelegate)
+        {
+            await OnCancel.InvokeAsync();
+        }
+    }
+
+    private string GetRoleDescription(string role)
+    {
+        return role switch
+        {
+            "ProjectManager" => "Full access to project settings and members",
+            "ProjectEditor" => "Can create and edit tasks and project content",
+            "ProjectViewer" => "Read-only access to project information",
+            _ => "Standard project access"
+        };
+    }
+
+    public enum AddMemberStep
+    {
+        SearchUser,
+        SelectRole
+    }
+
+    public class AddMemberRequest
+    {
+        public required UserListDto User { get; set; }
+        public required string Role { get; set; }
+    }
+}

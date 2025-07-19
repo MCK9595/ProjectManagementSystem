@@ -1,0 +1,169 @@
+@if (!string.IsNullOrEmpty(Value))
+{
+    <span class="badge @GetBadgeClass() @SizeClass @(Clickable ? "badge-clickable" : "")" 
+          @onclick="HandleClick"
+          title="@(ShowTooltip ? GetTooltipText() : "")">
+        @if (!string.IsNullOrEmpty(IconClass))
+        {
+            <i class="@IconClass me-1"></i>
+        }
+        @GetDisplayText()
+    </span>
+}
+
+@code {
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public BadgeType Type { get; set; } = BadgeType.Status;
+    [Parameter] public BadgeSize Size { get; set; } = BadgeSize.Medium;
+    [Parameter] public bool ShowTooltip { get; set; } = false;
+    [Parameter] public bool Clickable { get; set; } = false;
+    [Parameter] public string IconClass { get; set; } = "";
+    [Parameter] public EventCallback<string> OnClick { get; set; }
+    [Parameter] public string CustomClass { get; set; } = "";
+    
+    private string SizeClass => Size switch
+    {
+        BadgeSize.Small => "badge-sm",
+        BadgeSize.Medium => "",
+        BadgeSize.Large => "badge-lg",
+        _ => ""
+    };
+    
+    private string GetBadgeClass()
+    {
+        var baseClass = "badge";
+        var typeClass = Type switch
+        {
+            BadgeType.Status => GetStatusClass(),
+            BadgeType.Priority => GetPriorityClass(),
+            BadgeType.Role => GetRoleClass(),
+            BadgeType.Custom => CustomClass,
+            _ => "badge-secondary"
+        };
+        
+        return $"{baseClass} {typeClass}";
+    }
+    
+    private string GetStatusClass()
+    {
+        return Value.ToLower() switch
+        {
+            "todo" => "badge-secondary",
+            "inprogress" => "badge-primary",
+            "inreview" => "badge-warning",
+            "done" => "badge-success",
+            "cancelled" => "badge-danger",
+            _ => "badge-secondary"
+        };
+    }
+    
+    private string GetPriorityClass()
+    {
+        return Value.ToLower() switch
+        {
+            "critical" => "badge-danger",
+            "high" => "badge-warning text-dark",
+            "medium" => "badge-info",
+            "low" => "badge-success",
+            _ => "badge-secondary"
+        };
+    }
+    
+    private string GetRoleClass()
+    {
+        return Value.ToLower() switch
+        {
+            "systemadmin" => "badge-danger",
+            "organizationowner" => "badge-warning text-dark",
+            "organizationmember" => "badge-info",
+            "projectmanager" => "badge-primary",
+            "projectmember" => "badge-success",
+            _ => "badge-secondary"
+        };
+    }
+    
+    private string GetDisplayText()
+    {
+        return Type switch
+        {
+            BadgeType.Status => FormatStatus(Value),
+            BadgeType.Priority => FormatPriority(Value),
+            BadgeType.Role => FormatRole(Value),
+            _ => Value
+        };
+    }
+    
+    private string FormatStatus(string status)
+    {
+        return status.ToLower() switch
+        {
+            "todo" => "To Do",
+            "inprogress" => "In Progress",
+            "inreview" => "In Review",
+            "done" => "Done",
+            "cancelled" => "Cancelled",
+            _ => status
+        };
+    }
+    
+    private string FormatPriority(string priority)
+    {
+        return priority.ToLower() switch
+        {
+            "critical" => "Critical",
+            "high" => "High",
+            "medium" => "Medium",
+            "low" => "Low",
+            _ => priority
+        };
+    }
+    
+    private string FormatRole(string role)
+    {
+        return role.ToLower() switch
+        {
+            "systemadmin" => "System Admin",
+            "organizationowner" => "Organization Owner",
+            "organizationmember" => "Organization Member",
+            "projectmanager" => "Project Manager",
+            "projectmember" => "Project Member",
+            _ => role
+        };
+    }
+    
+    private string GetTooltipText()
+    {
+        return Type switch
+        {
+            BadgeType.Status => $"Status: {FormatStatus(Value)}",
+            BadgeType.Priority => $"Priority: {FormatPriority(Value)}",
+            BadgeType.Role => $"Role: {FormatRole(Value)}",
+            _ => Value
+        };
+    }
+    
+    private async Task HandleClick()
+    {
+        if (Clickable && OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(Value);
+        }
+    }
+}
+
+@code {
+    public enum BadgeType
+    {
+        Status,
+        Priority,
+        Role,
+        Custom
+    }
+    
+    public enum BadgeSize
+    {
+        Small,
+        Medium,
+        Large
+    }
+}

@@ -1,0 +1,104 @@
+@if (IsVisible)
+{
+    <div class="toast-container">
+        <div class="toast fade show @GetToastClass()" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="@GetIconClass() me-2"></i>
+                <strong class="me-auto">@GetTitle()</strong>
+                <small class="text-muted">@(DateTime.Now.ToString("HH:mm"))</small>
+                <button type="button" class="btn-close ms-2" @onclick="HandleClose" aria-label="Close"></button>
+            </div>
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <div class="toast-body">
+                    @Message
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = false;
+    [Parameter] public string Message { get; set; } = "";
+    [Parameter] public ToastType Type { get; set; } = ToastType.Info;
+    [Parameter] public int AutoHideAfterMs { get; set; } = 5000;
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Timer? autoHideTimer;
+
+    protected override void OnParametersSet()
+    {
+        if (IsVisible && AutoHideAfterMs > 0)
+        {
+            autoHideTimer?.Dispose();
+            autoHideTimer = new Timer(async _ =>
+            {
+                await InvokeAsync(async () =>
+                {
+                    await HandleClose();
+                    StateHasChanged();
+                });
+            }, null, AutoHideAfterMs, Timeout.Infinite);
+        }
+    }
+
+    private async Task HandleClose()
+    {
+        autoHideTimer?.Dispose();
+        
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    private string GetToastClass()
+    {
+        return Type switch
+        {
+            ToastType.Success => "toast-success",
+            ToastType.Error => "toast-error",
+            ToastType.Warning => "toast-warning",
+            ToastType.Info => "toast-info",
+            _ => "toast-info"
+        };
+    }
+
+    private string GetIconClass()
+    {
+        return Type switch
+        {
+            ToastType.Success => "fas fa-check-circle text-success",
+            ToastType.Error => "fas fa-exclamation-circle text-danger",
+            ToastType.Warning => "fas fa-exclamation-triangle text-warning",
+            ToastType.Info => "fas fa-info-circle text-info",
+            _ => "fas fa-info-circle text-info"
+        };
+    }
+
+    private string GetTitle()
+    {
+        return Type switch
+        {
+            ToastType.Success => "Success",
+            ToastType.Error => "Error",
+            ToastType.Warning => "Warning",
+            ToastType.Info => "Information",
+            _ => "Notification"
+        };
+    }
+
+    public void Dispose()
+    {
+        autoHideTimer?.Dispose();
+    }
+
+    public enum ToastType
+    {
+        Success,
+        Error,
+        Warning,
+        Info
+    }
+}

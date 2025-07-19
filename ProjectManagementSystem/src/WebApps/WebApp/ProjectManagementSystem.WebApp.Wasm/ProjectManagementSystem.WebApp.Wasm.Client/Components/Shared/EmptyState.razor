@@ -1,0 +1,66 @@
+@if (IsVisible)
+{
+    <div class="empty-state-container">
+        <div class="empty-state-content">
+            @if (!string.IsNullOrEmpty(IconClass))
+            {
+                <div class="empty-state-icon">
+                    <i class="@IconClass"></i>
+                </div>
+            }
+            
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <h4 class="empty-state-title">@Title</h4>
+            }
+            
+            @if (!string.IsNullOrEmpty(Description))
+            {
+                <p class="empty-state-description">@Description</p>
+            }
+            
+            @if (ShowAction && !string.IsNullOrEmpty(ActionText))
+            {
+                <div class="empty-state-action">
+                    <button type="button" 
+                            class="btn @ActionButtonClass" 
+                            @onclick="OnActionClick">
+                        @if (!string.IsNullOrEmpty(ActionIconClass))
+                        {
+                            <i class="@ActionIconClass me-2"></i>
+                        }
+                        @ActionText
+                    </button>
+                </div>
+            }
+            
+            @if (ChildContent != null)
+            {
+                <div class="empty-state-custom">
+                    @ChildContent
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = true;
+    [Parameter] public string IconClass { get; set; } = "fas fa-inbox";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public bool ShowAction { get; set; } = false;
+    [Parameter] public string ActionText { get; set; } = "";
+    [Parameter] public string ActionIconClass { get; set; } = "";
+    [Parameter] public string ActionButtonClass { get; set; } = "btn-primary";
+    [Parameter] public EventCallback OnActionClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    
+    private async Task HandleActionClick()
+    {
+        if (OnActionClick.HasDelegate)
+        {
+            await OnActionClick.InvokeAsync();
+        }
+    }
+}

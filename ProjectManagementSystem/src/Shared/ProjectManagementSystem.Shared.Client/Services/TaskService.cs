@@ -23,6 +23,9 @@ public interface ITaskService
     Task<TaskCommentDto?> CreateTaskCommentAsync(Guid taskId, CreateTaskCommentDto commentDto);
     Task<TaskCommentDto?> UpdateTaskCommentAsync(int commentId, UpdateTaskCommentDto commentDto, Guid taskId);
     Task<bool> DeleteTaskCommentAsync(int commentId, Guid taskId);
+    
+    // ダッシュボード統計メソッド
+    Task<ProjectDashboardStatsDto?> GetProjectDashboardStatsAsync(Guid projectId);
 }
 
 public class TaskService : ITaskService
@@ -508,5 +511,43 @@ public class TaskService : ITaskService
         }
 
         return false;
+    }
+
+    public async Task<ProjectDashboardStatsDto?> GetProjectDashboardStatsAsync(Guid projectId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"/api/tasks/project/{projectId}/dashboard-stats");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonContent = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<ProjectDashboardStatsDto>>(jsonContent, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                if (apiResponse?.Success == true)
+                {
+                    return apiResponse.Data;
+                }
+                else
+                {
+                    _logger.LogWarning("API returned failure response for get project dashboard stats {ProjectId}: {Message}", projectId, apiResponse?.Message);
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("HTTP request failed for get project dashboard stats {ProjectId} - StatusCode: {StatusCode}, Content: {ErrorContent}", 
+                    projectId, response.StatusCode, errorContent);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception in GetProjectDashboardStatsAsync for project {ProjectId}", projectId);
+        }
+
+        return null;
     }
 }

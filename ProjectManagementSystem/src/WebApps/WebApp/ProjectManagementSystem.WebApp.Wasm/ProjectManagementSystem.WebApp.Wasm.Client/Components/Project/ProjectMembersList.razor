@@ -1,0 +1,390 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Project
+@inject IProjectService ProjectService
+@inject ILogger<ProjectMembersList> Logger
+
+<div class="project-members-list" @onclick="CloseAllDropdowns">
+    @if (IsLoading)
+    {
+        <LoadingSpinner IsVisible="true" Message="Loading members..." />
+    }
+    else if (Members?.Any() == true)
+    {
+        <div class="members-container">
+            <div class="members-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="members-title">
+                        <i class="fas fa-users me-2"></i>Project Members (@Members.Count)
+                    </h5>
+                    @if (CanManageMembers)
+                    {
+                        <button type="button" class="btn btn-primary btn-sm" @onclick="ShowAddMemberModal">
+                            <i class="fas fa-user-plus me-1"></i>Add Member
+                        </button>
+                    }
+                </div>
+            </div>
+            
+            <div class="members-grid">
+                <div class="row g-3">
+                    @foreach (var member in Members)
+                    {
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <div class="member-card">
+                                <div class="member-card-header">
+                                    <div class="member-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="member-info">
+                                        <h6 class="member-name">@(member.User?.Username ?? "Unknown User")</h6>
+                                        <small class="member-email">@(member.User?.Email ?? "")</small>
+                                    </div>
+                                    @if (CanManageMembers && CanModifyMember(member))
+                                    {
+                                        <div class="member-actions">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                                        id="dropdownMenuButton-@member.Id" 
+                                                        @onclick="@(() => ToggleDropdown(member.Id))"
+                                                        @onclick:stopPropagation="true"
+                                                        aria-expanded="@(activeDropdownId == member.Id)">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu @(activeDropdownId == member.Id ? "show" : "")" @onclick:stopPropagation="true">
+                                                    <li>
+                                                        <button class="dropdown-item" @onclick="@(() => StartEditRole(member))">
+                                                            <i class="fas fa-edit me-2"></i>Change Role
+                                                        </button>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <button class="dropdown-item text-danger" @onclick="@(() => ShowRemoveConfirmation(member))">
+                                                            <i class="fas fa-user-minus me-2"></i>Remove Member
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                
+                                <div class="member-card-body">
+                                    <div class="member-role">
+                                        <RoleSelector CurrentRole="@member.Role"
+                                                    IsEditing="@(editingMemberId == member.Id)"
+                                                    IsDisabled="@(isProcessing || !CanModifyMember(member))"
+                                                    AllowInlineEdit="@(CanManageMembers && CanModifyMember(member))"
+                                                    BadgeSize="StatusBadge.BadgeSize.Small"
+                                                    OnRoleChanged="@((newRole) => HandleRoleChange(member, newRole))"
+                                                    OnEditStart="@(() => StartEditRole(member))"
+                                                    OnEditCancel="@(() => CancelEditRole())" />
+                                    </div>
+                                    
+                                    <div class="member-details">
+                                        <small class="text-muted">
+                                            Joined @member.JoinedAt.ToString("MMM dd, yyyy")
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <EmptyState IsVisible="true"
+                   IconClass="fas fa-users"
+                   Title="No members"
+                   Description="This project doesn't have any members yet."
+                   ShowAction="@CanManageMembers"
+                   ActionText="Add Member"
+                   ActionIconClass="fas fa-user-plus"
+                   ActionButtonClass="btn-primary"
+                   OnActionClick="ShowAddMemberModal" />
+    }
+    
+    <!-- Add Member Modal -->
+    <AddMemberModal IsVisible="@showAddMemberModal"
+                   OrganizationId="@OrganizationId"
+                   ExcludedUserIds="@GetExcludedUserIds()"
+                   IsProcessing="@isProcessing"
+                   OnAddMember="HandleAddMember"
+                   OnCancel="HideAddMemberModal" />
+    
+    <!-- Remove Member Confirmation Dialog -->
+    <ConfirmDialog IsVisible="@showRemoveConfirmation"
+                  Title="Remove Member"
+                  Message="@($"Are you sure you want to remove {memberToRemove?.User?.Username} from this project?")"
+                  Details="This action cannot be undone. The user will lose access to this project."
+                  IconClass="fas fa-exclamation-triangle text-warning"
+                  ConfirmText="Remove"
+                  ConfirmButtonClass="btn-danger"
+                  ConfirmIconClass="fas fa-user-minus"
+                  IsProcessing="@isProcessing"
+                  OnConfirm="ConfirmRemoveMember"
+                  OnCancel="HideRemoveConfirmation" />
+    
+    <!-- Toast Notifications -->
+    <ToastNotification IsVisible="@showSuccessToast"
+                      Message="@successMessage"
+                      Type="ToastNotification.ToastType.Success"
+                      OnClose="HideSuccessToast" />
+    
+    <ToastNotification IsVisible="@showErrorToast"
+                      Message="@errorMessage"
+                      Type="ToastNotification.ToastType.Error"
+                      OnClose="HideErrorToast" />
+</div>
+
+@code {
+    [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public List<ProjectMemberDto>? Members { get; set; }
+    [Parameter] public bool CanManageMembers { get; set; } = false;
+    [Parameter] public Guid ProjectId { get; set; }
+    [Parameter] public Guid OrganizationId { get; set; }
+    [Parameter] public int CurrentUserId { get; set; }
+    [Parameter] public bool IsSystemAdmin { get; set; } = false;
+    [Parameter] public EventCallback OnMembersChanged { get; set; }
+    [Parameter] public EventCallback<string> OnError { get; set; }
+    
+    private bool showAddMemberModal = false;
+    private bool showRemoveConfirmation = false;
+    private bool isProcessing = false;
+    private int editingMemberId = 0;
+    private ProjectMemberDto? memberToRemove;
+    private int activeDropdownId = 0;
+    
+    private bool showSuccessToast = false;
+    private bool showErrorToast = false;
+    private string successMessage = "";
+    private string errorMessage = "";
+    
+    private List<int> GetExcludedUserIds()
+    {
+        return Members?.Select(m => m.UserId).ToList() ?? new List<int>();
+    }
+    
+    private bool IsProtectedRole(string role)
+    {
+        return role == "ProjectOwner";
+    }
+    
+    private bool CanModifyMember(ProjectMemberDto member)
+    {
+        // System admins can modify anyone
+        if (IsSystemAdmin) return true;
+        
+        // Project owners cannot be modified by anyone except system admins
+        if (member.Role == "ProjectOwner") return false;
+        
+        // Project managers can modify other project managers and lower roles
+        // but not themselves
+        if (member.Role == "ProjectManager" && member.UserId == CurrentUserId) return false;
+        
+        return true;
+    }
+    
+    private void ToggleDropdown(int memberId)
+    {
+        activeDropdownId = activeDropdownId == memberId ? 0 : memberId;
+        StateHasChanged();
+    }
+    
+    
+    private void ShowAddMemberModal()
+    {
+        showAddMemberModal = true;
+    }
+    
+    private void HideAddMemberModal()
+    {
+        showAddMemberModal = false;
+        activeDropdownId = 0; // Close any open dropdowns
+    }
+    
+    private async Task HandleAddMember(AddMemberModal.AddMemberRequest request)
+    {
+        try
+        {
+            isProcessing = true;
+            
+            var addMemberDto = new AddProjectMemberDto
+            {
+                UserId = request.User.Id,
+                Role = request.Role
+            };
+            
+            var newMember = await ProjectService.AddMemberAsync(ProjectId, addMemberDto);
+            
+            if (newMember != null)
+            {
+                HideAddMemberModal();
+                ShowSuccessToast($"{request.User.FullName} has been added to the project as {request.Role}.");
+                
+                if (OnMembersChanged.HasDelegate)
+                {
+                    await OnMembersChanged.InvokeAsync();
+                }
+            }
+            else
+            {
+                await NotifyError("Failed to add member. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to add member to project {ProjectId}", ProjectId);
+            await NotifyError("An error occurred while adding the member.");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+    
+    private void ShowRemoveConfirmation(ProjectMemberDto member)
+    {
+        memberToRemove = member;
+        showRemoveConfirmation = true;
+        activeDropdownId = 0; // Close dropdown when showing confirmation
+    }
+    
+    private void HideRemoveConfirmation()
+    {
+        showRemoveConfirmation = false;
+        memberToRemove = null;
+    }
+    
+    private async Task ConfirmRemoveMember()
+    {
+        if (memberToRemove == null) return;
+        
+        try
+        {
+            isProcessing = true;
+            
+            var success = await ProjectService.RemoveMemberAsync(ProjectId, memberToRemove.UserId);
+            
+            if (success)
+            {
+                var memberName = memberToRemove.User?.Username ?? "the member";
+                HideRemoveConfirmation();
+                ShowSuccessToast($"{memberName} has been removed from the project.");
+                
+                if (OnMembersChanged.HasDelegate)
+                {
+                    await OnMembersChanged.InvokeAsync();
+                }
+            }
+            else
+            {
+                await NotifyError("Failed to remove member. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to remove member {UserId} from project {ProjectId}", memberToRemove.UserId, ProjectId);
+            await NotifyError("An error occurred while removing the member.");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+    
+    private void StartEditRole(ProjectMemberDto member)
+    {
+        editingMemberId = member.Id;
+        activeDropdownId = 0; // Close dropdown when starting edit
+    }
+    
+    private void CancelEditRole()
+    {
+        editingMemberId = 0;
+    }
+    
+    private async Task HandleRoleChange(ProjectMemberDto member, string newRole)
+    {
+        try
+        {
+            isProcessing = true;
+            
+            var success = await ProjectService.UpdateMemberRoleAsync(ProjectId, member.UserId, newRole);
+            
+            if (success)
+            {
+                // Update the member role locally
+                var memberName = member.User?.Username ?? "the member";
+                member.Role = newRole;
+                editingMemberId = 0;
+                ShowSuccessToast($"{memberName}'s role has been updated to {newRole}.");
+                
+                if (OnMembersChanged.HasDelegate)
+                {
+                    await OnMembersChanged.InvokeAsync();
+                }
+            }
+            else
+            {
+                await NotifyError("Failed to update member role. Please try again.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to update role for member {UserId} in project {ProjectId}", member.UserId, ProjectId);
+            await NotifyError("An error occurred while updating the member role.");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+    
+    private async Task NotifyError(string message)
+    {
+        if (OnError.HasDelegate)
+        {
+            await OnError.InvokeAsync(message);
+        }
+        
+        // Also show toast notification
+        ShowErrorToast(message);
+    }
+    
+    private void ShowSuccessToast(string message)
+    {
+        successMessage = message;
+        showSuccessToast = true;
+        StateHasChanged();
+    }
+    
+    private void ShowErrorToast(string message)
+    {
+        errorMessage = message;
+        showErrorToast = true;
+        StateHasChanged();
+    }
+    
+    private void HideSuccessToast()
+    {
+        showSuccessToast = false;
+        successMessage = "";
+    }
+    
+    private void HideErrorToast()
+    {
+        showErrorToast = false;
+        errorMessage = "";
+    }
+    
+    private void CloseAllDropdowns()
+    {
+        activeDropdownId = 0;
+        StateHasChanged();
+    }
+}

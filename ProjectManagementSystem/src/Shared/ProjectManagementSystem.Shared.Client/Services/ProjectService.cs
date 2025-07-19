@@ -398,7 +398,7 @@ public class ProjectService : IProjectService
         try
         {
             var request = new { Role = role };
-            var response = await _httpClient.PutAsJsonAsync($"/api/projects/{projectId}/members/{userId}/role", request);
+            var response = await _httpClient.PutAsJsonAsync($"/api/projects/{projectId}/members/{userId}", request);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)

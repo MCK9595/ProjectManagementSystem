@@ -1,0 +1,64 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+
+<div class="user-tasks">
+    <div class="user-tasks-header">
+        <h5 class="tasks-title">
+            <i class="fas fa-user-tasks me-2"></i>My Tasks
+        </h5>
+        <small class="tasks-subtitle">Your assigned incomplete tasks</small>
+    </div>
+    
+    <div class="tasks-content">
+        @if (IsLoading)
+        {
+            <LoadingSpinner IsVisible="true" Message="Loading your tasks..." Size="LoadingSpinner.SpinnerSize.Small" />
+        }
+        else if (UserTasksList?.Any() == true)
+        {
+            <div class="tasks-body">
+                <div class="task-list">
+                    @foreach (var task in UserTasksList)
+                    {
+                        <TaskCard Task="null" 
+                                 DashboardTask="task"
+                                 ShowStatus="true"
+                                 ShowPriority="true"
+                                 ShowDueDate="true"
+                                 ShowAssignee="false"
+                                 ShowDescription="false"
+                                 ShowActions="false"
+                                 Clickable="true"
+                                 OnClick="OnTaskClick" />
+                    }
+                </div>
+                
+                @if (ShowViewAll && HasMoreTasks)
+                {
+                    <div class="tasks-footer">
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100" @onclick="OnViewAllClick">
+                            <i class="fas fa-eye me-1"></i>View All My Tasks
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <EmptyState IsVisible="true"
+                       IconClass="fas fa-clipboard-check"
+                       Title="No tasks assigned"
+                       Description="You don't have any incomplete tasks assigned to you in this project."
+                       ShowAction="false" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public List<DashboardTaskDto>? UserTasksList { get; set; }
+    [Parameter] public bool ShowViewAll { get; set; } = true;
+    [Parameter] public bool HasMoreTasks { get; set; } = false;
+    [Parameter] public EventCallback<TaskDto> OnTaskClick { get; set; }
+    [Parameter] public EventCallback OnViewAllClick { get; set; }
+}

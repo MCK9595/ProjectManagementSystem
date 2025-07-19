@@ -1,0 +1,79 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+@using ProjectManagementSystem.WebApp.Wasm.Client.Models
+
+<div class="project-gantt-chart">
+    <div class="gantt-header">
+        <h5 class="gantt-title">
+            <i class="fas fa-chart-gantt me-2"></i>Project Gantt Chart
+        </h5>
+        <div class="gantt-controls">
+            <button type="button" class="btn btn-outline-primary btn-sm" @onclick="RefreshChart">
+                <i class="fas fa-refresh me-1"></i>Refresh
+            </button>
+        </div>
+    </div>
+    
+    <div class="gantt-content">
+        @if (IsLoading)
+        {
+            <LoadingSpinner IsVisible="true" Message="Loading Gantt chart..." />
+        }
+        else if (Tasks?.Any() == true)
+        {
+            <div class="gantt-chart-container">
+                <BlazorGanttChart ProjectId="@ProjectId" Tasks="@ConvertToGanttTasks()" />
+            </div>
+        }
+        else
+        {
+            <EmptyState IsVisible="true"
+                       IconClass="fas fa-chart-gantt"
+                       Title="No tasks available"
+                       Description="Create some tasks to see them in the Gantt chart."
+                       ShowAction="@ShowCreateAction"
+                       ActionText="Create Task"
+                       ActionIconClass="fas fa-plus"
+                       ActionButtonClass="btn-primary"
+                       OnActionClick="OnCreateTaskClick" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public Guid ProjectId { get; set; }
+    [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public List<TaskDto>? Tasks { get; set; }
+    [Parameter] public bool ShowCreateAction { get; set; } = false;
+    [Parameter] public EventCallback OnRefreshClick { get; set; }
+    [Parameter] public EventCallback OnCreateTaskClick { get; set; }
+    
+    private async Task RefreshChart()
+    {
+        if (OnRefreshClick.HasDelegate)
+        {
+            await OnRefreshClick.InvokeAsync();
+        }
+    }
+    
+    private List<GanttTask> ConvertToGanttTasks()
+    {
+        if (Tasks == null || !Tasks.Any())
+            return new List<GanttTask>();
+            
+        return Tasks.Select(task => new GanttTask
+        {
+            Id = task.Id.ToString(),
+            TaskId = task.Id,
+            Name = task.Title,
+            Start = task.StartDate ?? DateTime.Now,
+            End = task.DueDate ?? DateTime.Now.AddDays(1),
+            Progress = task.Status == "Done" ? 100 : (task.Status == "InProgress" ? 50 : 0),
+            Priority = task.Priority,
+            Status = task.Status,
+            AssignedTo = task.AssignedTo?.Username ?? "",
+            ParentTaskId = task.ParentTaskId,
+            HasDates = task.StartDate.HasValue && task.DueDate.HasValue
+        }).ToList();
+    }
+}

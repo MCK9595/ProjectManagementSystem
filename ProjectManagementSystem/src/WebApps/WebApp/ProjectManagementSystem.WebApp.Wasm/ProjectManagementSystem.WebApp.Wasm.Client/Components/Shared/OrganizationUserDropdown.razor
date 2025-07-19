@@ -1,0 +1,251 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.Shared.Models.Common
+@using ProjectManagementSystem.Shared.Client.Services
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+@inject IOrganizationService OrganizationService
+@inject ILogger<OrganizationUserDropdown> Logger
+
+<div class="organization-user-dropdown">
+    <label class="form-label">@Label</label>
+    
+    <div class="dropdown">
+        <div class="form-select-wrapper">
+            <input type="text" 
+                   class="form-control dropdown-toggle" 
+                   placeholder="@Placeholder"
+                   value="@searchTerm"
+                   @oninput="HandleSearchInput"
+                   @onclick="ToggleDropdown"
+                   @onfocus="ShowDropdown"
+                   disabled="@IsDisabled"
+                   autocomplete="off"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="@(isDropdownOpen ? "true" : "false")" />
+            
+            @if (selectedUser != null)
+            {
+                <button type="button" class="clear-btn" @onclick="ClearSelection" disabled="@IsDisabled">
+                    <i class="fas fa-times"></i>
+                </button>
+            }
+        </div>
+        
+        <div class="dropdown-menu @(isDropdownOpen ? "show" : "")" style="width: 100%;">
+            @if (IsLoading)
+            {
+                <div class="dropdown-item-text text-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                    <span>Loading members...</span>
+                </div>
+            }
+            else if (filteredMembers?.Any() == true)
+            {
+                <h6 class="dropdown-header">Organization Members</h6>
+                @foreach (var member in filteredMembers)
+                {
+                    var isExcluded = IsUserExcluded(member);
+                    <button type="button" 
+                            class="dropdown-item @(isExcluded ? "disabled" : "")" 
+                            @onclick="@(() => SelectUser(member))"
+                            disabled="@isExcluded">
+                        <div class="member-item">
+                            <div class="member-info">
+                                <div class="member-name">@member.User?.FirstName @member.User?.LastName</div>
+                                <small class="member-details">
+                                    @member.User?.Email • @@@member.User?.Username
+                                </small>
+                            </div>
+                            @if (isExcluded)
+                            {
+                                <small class="text-muted exclusion-reason">@GetExclusionReason(member)</small>
+                            }
+                        </div>
+                    </button>
+                }
+            }
+            else if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <div class="dropdown-item-text text-center text-muted">
+                    No members found matching "@searchTerm"
+                </div>
+            }
+            else
+            {
+                <div class="dropdown-item-text text-center text-muted">
+                    No organization members available
+                </div>
+            }
+        </div>
+    </div>
+    
+    @if (selectedUser != null)
+    {
+        <div class="selected-user-display mt-2">
+            <div class="alert alert-info py-2">
+                <i class="fas fa-user-check me-2"></i>
+                Selected: <strong>@selectedUser.User?.FirstName @selectedUser.User?.LastName</strong> 
+                (@selectedUser.User?.Email)
+            </div>
+        </div>
+    }
+    
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger alert-sm mt-2">
+            @ErrorMessage
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid OrganizationId { get; set; }
+    [Parameter] public string Label { get; set; } = "Select User";
+    [Parameter] public string Placeholder { get; set; } = "Search and select a member...";
+    [Parameter] public bool IsDisabled { get; set; } = false;
+    [Parameter] public List<int> ExcludedUserIds { get; set; } = new();
+    [Parameter] public EventCallback<OrganizationMemberDto> OnUserSelected { get; set; }
+    [Parameter] public Func<OrganizationMemberDto, string?>? GetExclusionReason { get; set; }
+
+    private List<OrganizationMemberDto> allMembers = new();
+    private List<OrganizationMemberDto> filteredMembers = new();
+    private OrganizationMemberDto? selectedUser;
+    private string searchTerm = "";
+    private bool IsLoading = false;
+    private bool isDropdownOpen = false;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        GetExclusionReason ??= (member) => 
+            ExcludedUserIds.Contains(member.UserId) ? "Already a project member" : null;
+            
+        await LoadOrganizationMembers();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reload members if organization changes
+        if (OrganizationId != Guid.Empty)
+        {
+            await LoadOrganizationMembers();
+        }
+    }
+
+    private async Task LoadOrganizationMembers()
+    {
+        if (OrganizationId == Guid.Empty) return;
+
+        try
+        {
+            IsLoading = true;
+            ErrorMessage = null;
+
+            var result = await OrganizationService.GetOrganizationMembersAsync(OrganizationId, 1, 100);
+            if (result?.Items != null)
+            {
+                allMembers = result.Items.ToList();
+                filteredMembers = allMembers;
+            }
+            else
+            {
+                allMembers = new List<OrganizationMemberDto>();
+                filteredMembers = new List<OrganizationMemberDto>();
+                ErrorMessage = "Failed to load organization members.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load organization members for {OrganizationId}", OrganizationId);
+            ErrorMessage = "An error occurred while loading members.";
+            allMembers = new List<OrganizationMemberDto>();
+            filteredMembers = new List<OrganizationMemberDto>();
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void HandleSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        FilterMembers();
+        ShowDropdown();
+    }
+
+    private void FilterMembers()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredMembers = allMembers;
+        }
+        else
+        {
+            var term = searchTerm.ToLower();
+            filteredMembers = allMembers.Where(m =>
+                m.User?.FirstName?.ToLower().Contains(term) == true ||
+                m.User?.LastName?.ToLower().Contains(term) == true ||
+                m.User?.Email?.ToLower().Contains(term) == true ||
+                m.User?.Username?.ToLower().Contains(term) == true
+            ).ToList();
+        }
+    }
+
+    private void ToggleDropdown()
+    {
+        if (!IsDisabled)
+        {
+            isDropdownOpen = !isDropdownOpen;
+        }
+    }
+
+    private void ShowDropdown()
+    {
+        if (!IsDisabled)
+        {
+            isDropdownOpen = true;
+        }
+    }
+
+    private void HideDropdown()
+    {
+        isDropdownOpen = false;
+    }
+
+    private async Task SelectUser(OrganizationMemberDto member)
+    {
+        if (IsUserExcluded(member) || IsDisabled)
+            return;
+
+        selectedUser = member;
+        searchTerm = $"{member.User?.FirstName} {member.User?.LastName}";
+        HideDropdown();
+
+        if (OnUserSelected.HasDelegate)
+        {
+            await OnUserSelected.InvokeAsync(member);
+        }
+    }
+
+    private void ClearSelection()
+    {
+        selectedUser = null;
+        searchTerm = "";
+        FilterMembers();
+    }
+
+    private bool IsUserExcluded(OrganizationMemberDto member)
+    {
+        return GetExclusionReason?.Invoke(member) != null;
+    }
+
+    // Handle clicks outside to close dropdown
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // In a real app, you'd add a click handler to close dropdown when clicking outside
+        }
+    }
+}

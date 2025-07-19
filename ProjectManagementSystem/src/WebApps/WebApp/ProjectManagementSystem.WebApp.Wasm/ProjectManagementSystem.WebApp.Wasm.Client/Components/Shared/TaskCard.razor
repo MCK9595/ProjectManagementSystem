@@ -1,0 +1,223 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+
+<div class="task-card @(Clickable ? "task-card-clickable" : "") @(IsOverdue ? "task-card-overdue" : "")" 
+     @onclick="HandleClick">
+     
+    <div class="task-card-header">
+        <div class="task-card-title">
+            @if (Task != null && !string.IsNullOrEmpty(Task.Title))
+            {
+                <h6 class="task-title">@Task.Title</h6>
+            }
+            else if (DashboardTask != null && !string.IsNullOrEmpty(DashboardTask.Title))
+            {
+                <h6 class="task-title">@DashboardTask.Title</h6>
+            }
+            else if (!string.IsNullOrEmpty(Title))
+            {
+                <h6 class="task-title">@Title</h6>
+            }
+        </div>
+        
+        <div class="task-card-actions">
+            @if (ShowStatus)
+            {
+                <StatusBadge Value="@GetStatusValue()" Type="StatusBadge.BadgeType.Status" Size="StatusBadge.BadgeSize.Small" />
+            }
+            @if (ShowPriority)
+            {
+                <StatusBadge Value="@GetPriorityValue()" Type="StatusBadge.BadgeType.Priority" Size="StatusBadge.BadgeSize.Small" />
+            }
+        </div>
+    </div>
+    
+    @if (ShowDescription && !string.IsNullOrEmpty(GetDescription()))
+    {
+        <div class="task-card-description">
+            <p class="task-description">@GetDescription()</p>
+        </div>
+    }
+    
+    <div class="task-card-details">
+        @if (ShowDueDate && GetDueDate().HasValue)
+        {
+            <div class="task-detail">
+                <i class="fas fa-calendar-alt me-1"></i>
+                <span class="@(IsOverdue ? "text-danger" : "")">
+                    @GetDueDate()?.ToString("MMM dd, yyyy")
+                    @if (IsOverdue && DaysOverdue > 0)
+                    {
+                        <small class="text-danger">(@DaysOverdue days overdue)</small>
+                    }
+                </span>
+            </div>
+        }
+        
+        @if (ShowAssignee && !string.IsNullOrEmpty(GetAssignedToUserName()))
+        {
+            <div class="task-detail">
+                <i class="fas fa-user me-1"></i>
+                <span>@GetAssignedToUserName()</span>
+            </div>
+        }
+        
+        @if (ShowTaskNumber)
+        {
+            <div class="task-detail">
+                <i class="fas fa-hashtag me-1"></i>
+                <span>@GetTaskNumber()</span>
+            </div>
+        }
+    </div>
+    
+    @if (ShowActions)
+    {
+        <div class="task-card-footer">
+            @if (ChildContent != null)
+            {
+                @ChildContent
+            }
+            else
+            {
+                <div class="task-actions">
+                    <button type="button" class="btn btn-sm btn-outline-primary" @onclick="@(() => HandleViewClick())" @onclick:stopPropagation="true">
+                        <i class="fas fa-eye me-1"></i>View
+                    </button>
+                    @if (CanEdit)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="@(() => HandleEditClick())" @onclick:stopPropagation="true">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public TaskDto? Task { get; set; }
+    [Parameter] public DashboardTaskDto? DashboardTask { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public bool ShowStatus { get; set; } = true;
+    [Parameter] public bool ShowPriority { get; set; } = true;
+    [Parameter] public bool ShowDueDate { get; set; } = true;
+    [Parameter] public bool ShowAssignee { get; set; } = true;
+    [Parameter] public bool ShowTaskNumber { get; set; } = false;
+    [Parameter] public bool ShowDescription { get; set; } = false;
+    [Parameter] public bool ShowActions { get; set; } = false;
+    [Parameter] public bool Clickable { get; set; } = false;
+    [Parameter] public bool CanEdit { get; set; } = false;
+    [Parameter] public int DaysOverdue { get; set; } = 0;
+    [Parameter] public EventCallback<TaskDto> OnClick { get; set; }
+    [Parameter] public EventCallback<TaskDto> OnViewClick { get; set; }
+    [Parameter] public EventCallback<TaskDto> OnEditClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    
+    private bool IsOverdue 
+    { 
+        get 
+        {
+            if (DaysOverdue > 0) return true;
+            
+            var dueDate = GetDueDate();
+            if (!dueDate.HasValue) return false;
+            
+            var status = GetStatusValue().ToLower();
+            return dueDate.Value.Date < DateTime.Now.Date && 
+                   status != "done" && 
+                   status != "cancelled";
+        }
+    }
+    
+    private string GetStatusValue()
+    {
+        return Task?.Status ?? DashboardTask?.Status ?? "";
+    }
+    
+    private string GetPriorityValue()
+    {
+        return Task?.Priority ?? DashboardTask?.Priority ?? "";
+    }
+    
+    private string GetDescription()
+    {
+        return Task?.Description ?? Description;
+    }
+    
+    private DateTime? GetDueDate()
+    {
+        return Task?.DueDate ?? DashboardTask?.DueDate;
+    }
+    
+    private string GetAssignedToUserName()
+    {
+        return Task?.AssignedTo?.Username ?? DashboardTask?.AssignedToUserName ?? "";
+    }
+    
+    private int GetTaskNumber()
+    {
+        return Task?.TaskNumber ?? 0;
+    }
+    
+    private async Task HandleClick()
+    {
+        if (Clickable && OnClick.HasDelegate)
+        {
+            var taskDto = GetTaskDto();
+            if (taskDto != null)
+            {
+                await OnClick.InvokeAsync(taskDto);
+            }
+        }
+    }
+    
+    private async Task HandleViewClick()
+    {
+        if (OnViewClick.HasDelegate)
+        {
+            var taskDto = GetTaskDto();
+            if (taskDto != null)
+            {
+                await OnViewClick.InvokeAsync(taskDto);
+            }
+        }
+    }
+    
+    private async Task HandleEditClick()
+    {
+        if (OnEditClick.HasDelegate)
+        {
+            var taskDto = GetTaskDto();
+            if (taskDto != null)
+            {
+                await OnEditClick.InvokeAsync(taskDto);
+            }
+        }
+    }
+    
+    private TaskDto? GetTaskDto()
+    {
+        if (Task != null)
+        {
+            return Task;
+        }
+        else if (DashboardTask != null)
+        {
+            // Convert DashboardTaskDto to TaskDto for compatibility
+            return new TaskDto
+            {
+                Id = DashboardTask.Id,
+                Title = DashboardTask.Title,
+                Status = DashboardTask.Status,
+                Priority = DashboardTask.Priority,
+                DueDate = DashboardTask.DueDate,
+                StartDate = DashboardTask.StartDate,
+                AssignedToUserId = DashboardTask.AssignedToUserId
+            };
+        }
+        return null;
+    }
+}

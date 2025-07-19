@@ -1,0 +1,36 @@
+@if (IsVisible)
+{
+    <div class="loading-container @(Overlay ? "loading-overlay" : "")">
+        <div class="spinner-container">
+            <div class="loading-spinner @SizeClass"></div>
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <div class="loading-message">@Message</div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = true;
+    [Parameter] public string Message { get; set; } = "";
+    [Parameter] public bool Overlay { get; set; } = false;
+    [Parameter] public SpinnerSize Size { get; set; } = SpinnerSize.Medium;
+    
+    private string SizeClass => Size switch
+    {
+        SpinnerSize.Small => "spinner-sm",
+        SpinnerSize.Medium => "spinner-md",
+        SpinnerSize.Large => "spinner-lg",
+        _ => "spinner-md"
+    };
+}
+
+@code {
+    public enum SpinnerSize
+    {
+        Small,
+        Medium,
+        Large
+    }
+}

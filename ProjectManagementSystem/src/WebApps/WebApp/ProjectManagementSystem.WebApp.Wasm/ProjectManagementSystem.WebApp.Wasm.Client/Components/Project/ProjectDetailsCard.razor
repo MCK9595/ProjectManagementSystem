@@ -1,0 +1,270 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (Project != null)
+{
+    <div class="project-details-card">
+        @if (IsEditMode)
+        {
+            <EditForm Model="Project" OnValidSubmit="HandleSaveClick">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="alert alert-danger" />
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-edit me-2"></i>Edit Project
+                            </h5>
+                            <div class="card-actions">
+                                <button type="button" class="btn btn-outline-secondary me-2" @onclick="HandleCancelClick">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </button>
+                                <button type="submit" class="btn btn-primary" disabled="@IsSaving">
+                                    @if (IsSaving)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-2"></span>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-save me-1"></i>
+                                    }
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="project-name" class="form-label">Project Name *</label>
+                                <InputText id="project-name" 
+                                          @bind-Value="Project.Name" 
+                                          class="form-control" 
+                                          placeholder="Enter project name" />
+                                <ValidationMessage For="@(() => Project.Name)" />
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="project-description" class="form-label">Description</label>
+                                <InputTextArea id="project-description" 
+                                              @bind-Value="Project.Description" 
+                                              class="form-control" 
+                                              rows="4" 
+                                              placeholder="Enter project description" />
+                                <ValidationMessage For="@(() => Project.Description)" />
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="project-start-date" class="form-label">Start Date</label>
+                                <InputDate id="project-start-date" 
+                                          @bind-Value="Project.StartDate" 
+                                          class="form-control" />
+                                <ValidationMessage For="@(() => Project.StartDate)" />
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="project-end-date" class="form-label">End Date</label>
+                                <InputDate id="project-end-date" 
+                                          @bind-Value="Project.EndDate" 
+                                          class="form-control" />
+                                <ValidationMessage For="@(() => Project.EndDate)" />
+                            </div>
+                        </div>
+                        
+                        @if (ShowHolidayManagement)
+                        {
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Project Holidays</label>
+                                    <div class="holiday-management">
+                                        <div class="input-group mb-2">
+                                            <InputDate @bind-Value="newHolidayDate" class="form-control" />
+                                            <button type="button" class="btn btn-outline-primary" @onclick="AddHoliday">
+                                                <i class="fas fa-plus me-1"></i>Add Holiday
+                                            </button>
+                                        </div>
+                                        
+                                        @if (Project.HolidayDates?.Any() == true)
+                                        {
+                                            <div class="holidays-list">
+                                                @foreach (var holiday in Project.HolidayDates.OrderBy(h => h))
+                                                {
+                                                    <div class="holiday-item">
+                                                        <span class="holiday-date">@holiday.ToString("MMM dd, yyyy")</span>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="@(() => RemoveHoliday(holiday))">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </EditForm>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Project Information
+                        </h5>
+                        @if (CanEdit)
+                        {
+                            <button type="button" class="btn btn-outline-primary" @onclick="HandleEditClick">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                        }
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="project-info">
+                        <div class="info-group">
+                            <div class="info-item">
+                                <label class="info-label">Project Name</label>
+                                <div class="info-value">@Project.Name</div>
+                            </div>
+                            
+                            @if (!string.IsNullOrEmpty(Project.Description))
+                            {
+                                <div class="info-item">
+                                    <label class="info-label">Description</label>
+                                    <div class="info-value">@Project.Description</div>
+                                </div>
+                            }
+                            
+                            <div class="info-item">
+                                <label class="info-label">Duration</label>
+                                <div class="info-value">
+                                    @if (Project.StartDate.HasValue && Project.EndDate.HasValue)
+                                    {
+                                        var duration = (Project.EndDate.Value - Project.StartDate.Value).Days;
+                                        <span>@Project.StartDate.Value.ToString("MMM dd, yyyy") - @Project.EndDate.Value.ToString("MMM dd, yyyy")</span>
+                                        <small class="text-muted">(@duration days)</small>
+                                    }
+                                    else if (Project.StartDate.HasValue)
+                                    {
+                                        <span>Started @Project.StartDate.Value.ToString("MMM dd, yyyy")</span>
+                                    }
+                                    else if (Project.EndDate.HasValue)
+                                    {
+                                        <span>Ends @Project.EndDate.Value.ToString("MMM dd, yyyy")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No dates set</span>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <label class="info-label">Created</label>
+                                <div class="info-value">
+                                    @Project.CreatedAt.ToString("MMM dd, yyyy") at @Project.CreatedAt.ToString("HH:mm")
+                                </div>
+                            </div>
+                            
+                            @if (Project.HolidayDates?.Any() == true)
+                            {
+                                <div class="info-item">
+                                    <label class="info-label">Project Holidays</label>
+                                    <div class="info-value">
+                                        <div class="holidays-display">
+                                            @foreach (var holiday in Project.HolidayDates.OrderBy(h => h))
+                                            {
+                                                <span class="holiday-badge">@holiday.ToString("MMM dd, yyyy")</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <LoadingSpinner IsVisible="true" Message="Loading project details..." />
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public ProjectDto? Project { get; set; }
+    [Parameter] public bool IsEditMode { get; set; } = false;
+    [Parameter] public bool CanEdit { get; set; } = false;
+    [Parameter] public bool ShowHolidayManagement { get; set; } = true;
+    [Parameter] public bool IsSaving { get; set; } = false;
+    [Parameter] public EventCallback OnEditClick { get; set; }
+    [Parameter] public EventCallback OnCancelClick { get; set; }
+    [Parameter] public EventCallback<ProjectDto> OnSaveClick { get; set; }
+    
+    private DateTime? newHolidayDate;
+    
+    private async Task HandleEditClick()
+    {
+        if (OnEditClick.HasDelegate)
+        {
+            await OnEditClick.InvokeAsync();
+        }
+    }
+    
+    private async Task HandleCancelClick()
+    {
+        if (OnCancelClick.HasDelegate)
+        {
+            await OnCancelClick.InvokeAsync();
+        }
+    }
+    
+    private async Task HandleSaveClick()
+    {
+        if (OnSaveClick.HasDelegate && Project != null)
+        {
+            await OnSaveClick.InvokeAsync(Project);
+        }
+    }
+    
+    private void AddHoliday()
+    {
+        if (newHolidayDate.HasValue && Project != null)
+        {
+            if (Project.HolidayDates == null)
+            {
+                Project.HolidayDates = new List<DateTime>();
+            }
+            
+            if (!Project.HolidayDates.Any(h => h.Date == newHolidayDate.Value.Date))
+            {
+                Project.HolidayDates.Add(newHolidayDate.Value.Date);
+                newHolidayDate = null;
+            }
+        }
+    }
+    
+    private void RemoveHoliday(DateTime holiday)
+    {
+        if (Project?.HolidayDates != null)
+        {
+            Project.HolidayDates.Remove(holiday);
+        }
+    }
+}

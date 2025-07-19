@@ -31,4 +31,7 @@ public interface ITaskService
     
     // User deletion support method
     Task<bool> CleanupUserDependenciesAsync(int userId);
+    
+    // Dashboard statistics method
+    Task<ProjectDashboardStatsDto> GetProjectDashboardStatsAsync(Guid projectId, int? currentUserId = null);
 }

@@ -1,0 +1,106 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+
+<div class="project-tabs">
+    <nav class="nav nav-tabs" role="tablist">
+        <a class="nav-link @(ActiveTab == "overview" ? "active" : "")" 
+           href="#overview" 
+           role="tab" 
+           @onclick="@(() => HandleTabClick("overview"))"
+           @onclick:preventDefault="true">
+            <i class="fas fa-chart-line me-1"></i>Overview
+        </a>
+        
+        <a class="nav-link @(ActiveTab == "members" ? "active" : "")" 
+           href="#members" 
+           role="tab" 
+           @onclick="@(() => HandleTabClick("members"))"
+           @onclick:preventDefault="true">
+            <i class="fas fa-users me-1"></i>Members
+            @if (MemberCount > 0)
+            {
+                <span class="badge bg-secondary ms-1">@MemberCount</span>
+            }
+        </a>
+        
+        <a class="nav-link @(ActiveTab == "tasks" ? "active" : "")" 
+           href="#tasks" 
+           role="tab" 
+           @onclick="@(() => HandleTabClick("tasks"))"
+           @onclick:preventDefault="true">
+            <i class="fas fa-tasks me-1"></i>Tasks
+            @if (TaskCount > 0)
+            {
+                <span class="badge bg-secondary ms-1">@TaskCount</span>
+            }
+        </a>
+        
+        <a class="nav-link @(ActiveTab == "gantt" ? "active" : "")" 
+           href="#gantt" 
+           role="tab" 
+           @onclick="@(() => HandleTabClick("gantt"))"
+           @onclick:preventDefault="true">
+            <i class="fas fa-chart-gantt me-1"></i>Gantt Chart
+        </a>
+    </nav>
+    
+    <div class="tab-content">
+        <div class="tab-pane @(ActiveTab == "overview" ? "active show" : "")" 
+             id="overview" 
+             role="tabpanel">
+            @if (ActiveTab == "overview")
+            {
+                @OverviewContent
+            }
+        </div>
+        
+        <div class="tab-pane @(ActiveTab == "members" ? "active show" : "")" 
+             id="members" 
+             role="tabpanel">
+            @if (ActiveTab == "members")
+            {
+                @MembersContent
+            }
+        </div>
+        
+        <div class="tab-pane @(ActiveTab == "tasks" ? "active show" : "")" 
+             id="tasks" 
+             role="tabpanel">
+            @if (ActiveTab == "tasks")
+            {
+                @TasksContent
+            }
+        </div>
+        
+        <div class="tab-pane @(ActiveTab == "gantt" ? "active show" : "")" 
+             id="gantt" 
+             role="tabpanel">
+            @if (ActiveTab == "gantt")
+            {
+                @GanttContent
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string ActiveTab { get; set; } = "overview";
+    [Parameter] public int MemberCount { get; set; } = 0;
+    [Parameter] public int TaskCount { get; set; } = 0;
+    [Parameter] public EventCallback<string> OnTabChanged { get; set; }
+    [Parameter] public RenderFragment? OverviewContent { get; set; }
+    [Parameter] public RenderFragment? MembersContent { get; set; }
+    [Parameter] public RenderFragment? TasksContent { get; set; }
+    [Parameter] public RenderFragment? GanttContent { get; set; }
+    
+    private async Task HandleTabClick(string tabName)
+    {
+        if (ActiveTab != tabName)
+        {
+            ActiveTab = tabName;
+            if (OnTabChanged.HasDelegate)
+            {
+                await OnTabChanged.InvokeAsync(tabName);
+            }
+        }
+    }
+}

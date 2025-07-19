@@ -40,6 +40,23 @@ public class TasksController : ControllerBase
         }
     }
 
+    [HttpGet("project/{projectId}/dashboard-stats")]
+    [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
+    public async Task<ActionResult<ApiResponse<ProjectDashboardStatsDto>>> GetProjectDashboardStats(Guid projectId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var stats = await _taskService.GetProjectDashboardStatsAsync(projectId, currentUserId);
+            return Ok(ApiResponse<ProjectDashboardStatsDto>.SuccessResult(stats));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting dashboard stats for project {ProjectId}", projectId);
+            return StatusCode(500, ApiResponse<ProjectDashboardStatsDto>.ErrorResult("Internal server error"));
+        }
+    }
+
     [HttpGet("user/{userId}")]
     [Authorize(Roles = $"{Roles.SystemAdmin},{Roles.OrganizationOwner},{Roles.OrganizationMember},{Roles.ProjectManager},{Roles.ProjectMember}")]
     public async Task<ActionResult<ApiResponse<PagedResult<TaskDto>>>> GetUserTasks(

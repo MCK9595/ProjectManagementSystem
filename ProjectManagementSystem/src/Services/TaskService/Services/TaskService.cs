@@ -658,4 +658,227 @@ public class TaskService : ITaskService
 
         return false;
     }
+
+    public async Task<ProjectDashboardStatsDto> GetProjectDashboardStatsAsync(Guid projectId, int? currentUserId = null)
+    {
+        var allTasks = await _context.Tasks
+            .Where(t => t.ProjectId == projectId && t.IsActive)
+            .ToListAsync();
+
+        var now = DateTime.UtcNow;
+        var today = now.Date;
+
+        // Get project information for period filtering
+        var project = await _projectService.GetProjectAsync(projectId);
+
+        // Status breakdown
+        var statusBreakdown = new StatusBreakdownDto
+        {
+            TodoCount = allTasks.Count(t => t.Status == TaskStatusConstants.ToDo),
+            InProgressCount = allTasks.Count(t => t.Status == TaskStatusConstants.InProgress),
+            InReviewCount = allTasks.Count(t => t.Status == TaskStatusConstants.InReview),
+            DoneCount = allTasks.Count(t => t.Status == TaskStatusConstants.Done),
+            CancelledCount = allTasks.Count(t => t.Status == TaskStatusConstants.Cancelled),
+            TotalCount = allTasks.Count
+        };
+
+        // Priority breakdown
+        var priorityBreakdown = new PriorityBreakdownDto
+        {
+            CriticalCount = allTasks.Count(t => t.Priority == Priority.Critical),
+            HighCount = allTasks.Count(t => t.Priority == Priority.High),
+            MediumCount = allTasks.Count(t => t.Priority == Priority.Medium),
+            LowCount = allTasks.Count(t => t.Priority == Priority.Low),
+            TotalCount = allTasks.Count
+        };
+
+        // Overdue tasks (due date passed and not completed)
+        var overdueTasksCount = allTasks.Count(t => 
+            t.DueDate.HasValue && 
+            t.DueDate.Value.Date < today && 
+            t.Status != TaskStatusConstants.Done && 
+            t.Status != TaskStatusConstants.Cancelled);
+
+        // Today due tasks
+        var todayDueTasksCount = allTasks.Count(t => 
+            t.DueDate.HasValue && 
+            t.DueDate.Value.Date == today &&
+            t.Status != TaskStatusConstants.Done && 
+            t.Status != TaskStatusConstants.Cancelled);
+
+        // Completion rate
+        var completionRate = allTasks.Count > 0 
+            ? (decimal)statusBreakdown.DoneCount / allTasks.Count * 100 
+            : 0;
+
+        // Recent activities (last 7 days)
+        var sevenDaysAgo = now.AddDays(-7);
+        var recentTasks = allTasks
+            .Where(t => t.CreatedAt >= sevenDaysAgo || t.UpdatedAt >= sevenDaysAgo)
+            .OrderByDescending(t => Math.Max(t.CreatedAt.Ticks, t.UpdatedAt.Ticks))
+            .Take(10)
+            .ToList();
+
+        var recentActivities = new List<RecentTaskActivityDto>();
+        foreach (var task in recentTasks)
+        {
+            string assignedToUserName = null;
+            if (task.AssignedToUserId.HasValue)
+            {
+                try
+                {
+                    var user = await _userService.GetUserByIdAsync(task.AssignedToUserId.Value);
+                    assignedToUserName = user?.Username;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to get user name for user {UserId}", task.AssignedToUserId.Value);
+                }
+            }
+
+            var isRecentlyCreated = task.CreatedAt >= sevenDaysAgo;
+            var isRecentlyUpdated = task.UpdatedAt >= sevenDaysAgo && task.UpdatedAt > task.CreatedAt;
+
+            if (isRecentlyCreated)
+            {
+                recentActivities.Add(new RecentTaskActivityDto
+                {
+                    Id = task.Id,
+                    Title = task.Title,
+                    Status = task.Status,
+                    Priority = task.Priority,
+                    DueDate = task.DueDate,
+                    ActivityType = "Created",
+                    ActivityDate = task.CreatedAt,
+                    AssignedToUserName = assignedToUserName
+                });
+            }
+            else if (isRecentlyUpdated)
+            {
+                recentActivities.Add(new RecentTaskActivityDto
+                {
+                    Id = task.Id,
+                    Title = task.Title,
+                    Status = task.Status,
+                    Priority = task.Priority,
+                    DueDate = task.DueDate,
+                    ActivityType = "Updated",
+                    ActivityDate = task.UpdatedAt,
+                    AssignedToUserName = assignedToUserName
+                });
+            }
+        }
+
+        // 具体的なタスクリストの生成
+        var todayDueTasks = await CreateDashboardTaskListAsync(
+            allTasks.Where(t => t.DueDate.HasValue && 
+                               t.DueDate.Value.Date == today &&
+                               t.Status != TaskStatusConstants.Done && 
+                               t.Status != TaskStatusConstants.Cancelled)
+                    .Take(10)
+                    .ToList());
+
+        var overdueTasks = await CreateDashboardTaskListAsync(
+            allTasks.Where(t => t.DueDate.HasValue && 
+                               t.DueDate.Value.Date < today && 
+                               t.Status != TaskStatusConstants.Done && 
+                               t.Status != TaskStatusConstants.Cancelled)
+                    .OrderBy(t => t.DueDate)
+                    .Take(10)
+                    .ToList());
+
+        // Set days overdue for overdue tasks
+        foreach (var task in overdueTasks)
+        {
+            if (allTasks.FirstOrDefault(t => t.Id == task.Id)?.DueDate is DateTime dueDate)
+            {
+                task.DaysOverdue = (int)(today - dueDate.Date).TotalDays;
+            }
+        }
+
+        // Active tasks in project period (not completed, within project timeframe)
+        var activeTasksInPeriod = new List<DashboardTaskDto>();
+        if (project?.StartDate.HasValue == true || project?.EndDate.HasValue == true)
+        {
+            var projectStart = project.StartDate?.Date;
+            var projectEnd = project.EndDate?.Date;
+            
+            var periodTasks = allTasks.Where(t => 
+                t.Status != TaskStatusConstants.Done && 
+                t.Status != TaskStatusConstants.Cancelled &&
+                (projectStart == null || (t.StartDate?.Date >= projectStart || t.DueDate?.Date >= projectStart || today >= projectStart)) &&
+                (projectEnd == null || (t.StartDate?.Date <= projectEnd || t.DueDate?.Date <= projectEnd || today <= projectEnd)))
+                .OrderBy(t => t.DueDate ?? DateTime.MaxValue)
+                .Take(10)
+                .ToList();
+                
+            activeTasksInPeriod = await CreateDashboardTaskListAsync(periodTasks);
+        }
+
+        // User assigned tasks (if currentUserId provided)
+        var userAssignedTasks = new List<DashboardTaskDto>();
+        if (currentUserId.HasValue)
+        {
+            var userTasks = allTasks.Where(t => 
+                t.AssignedToUserId == currentUserId.Value &&
+                t.Status != TaskStatusConstants.Done && 
+                t.Status != TaskStatusConstants.Cancelled)
+                .OrderBy(t => t.DueDate ?? DateTime.MaxValue)
+                .Take(10)
+                .ToList();
+                
+            userAssignedTasks = await CreateDashboardTaskListAsync(userTasks);
+        }
+
+        return new ProjectDashboardStatsDto
+        {
+            StatusBreakdown = statusBreakdown,
+            PriorityBreakdown = priorityBreakdown,
+            OverdueTasksCount = overdueTasksCount,
+            TodayDueTasksCount = todayDueTasksCount,
+            CompletionRate = completionRate,
+            RecentActivities = recentActivities.OrderByDescending(a => a.ActivityDate).ToList(),
+            TodayDueTasks = todayDueTasks,
+            OverdueTasks = overdueTasks,
+            ActiveTasksInPeriod = activeTasksInPeriod,
+            UserAssignedTasks = userAssignedTasks
+        };
+    }
+
+    private async Task<List<DashboardTaskDto>> CreateDashboardTaskListAsync(List<Data.Entities.Task> tasks)
+    {
+        var dashboardTasks = new List<DashboardTaskDto>();
+        
+        foreach (var task in tasks)
+        {
+            string? assignedToUserName = null;
+            if (task.AssignedToUserId.HasValue)
+            {
+                try
+                {
+                    var user = await _userService.GetUserByIdAsync(task.AssignedToUserId.Value);
+                    assignedToUserName = user?.Username;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to get user name for user {UserId}", task.AssignedToUserId.Value);
+                }
+            }
+
+            dashboardTasks.Add(new DashboardTaskDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Status = task.Status,
+                Priority = task.Priority,
+                DueDate = task.DueDate,
+                StartDate = task.StartDate,
+                AssignedToUserName = assignedToUserName,
+                AssignedToUserId = task.AssignedToUserId,
+                DaysOverdue = 0 // Will be set separately for overdue tasks
+            });
+        }
+
+        return dashboardTasks;
+    }
 }

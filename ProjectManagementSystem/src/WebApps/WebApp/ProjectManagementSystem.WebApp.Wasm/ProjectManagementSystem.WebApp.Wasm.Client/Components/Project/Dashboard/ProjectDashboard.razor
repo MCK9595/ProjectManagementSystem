@@ -1,0 +1,154 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Project.Dashboard
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+
+<div class="project-dashboard">
+    @if (IsLoading)
+    {
+        <LoadingSpinner IsVisible="true" Message="Loading dashboard..." />
+    }
+    else
+    {
+        <!-- Key Metrics Row -->
+        <div class="dashboard-metrics">
+            <div class="row g-3">
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <MetricCard Title="Total Tasks"
+                               Value="@(DashboardStats?.StatusBreakdown?.TotalCount.ToString() ?? "0")"
+                               IconClass="fas fa-tasks"
+                               CardClass="metric-primary"
+                               IsLoading="@IsLoading" />
+                </div>
+                
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <MetricCard Title="Completed"
+                               Value="@(DashboardStats?.StatusBreakdown?.DoneCount.ToString() ?? "0")"
+                               IconClass="fas fa-check-circle"
+                               CardClass="metric-success"
+                               ShowProgress="true"
+                               Progress="@DashboardStats?.CompletionRate"
+                               IsLoading="@IsLoading" />
+                </div>
+                
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <MetricCard Title="In Progress"
+                               Value="@(DashboardStats?.StatusBreakdown?.InProgressCount.ToString() ?? "0")"
+                               IconClass="fas fa-spinner"
+                               CardClass="metric-info"
+                               IsLoading="@IsLoading" />
+                </div>
+                
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <MetricCard Title="Overdue"
+                               Value="@(DashboardStats?.OverdueTasksCount.ToString() ?? "0")"
+                               IconClass="fas fa-exclamation-triangle"
+                               CardClass="metric-danger"
+                               IsLoading="@IsLoading" />
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Progress and Alerts Row -->
+        <div class="dashboard-progress-alerts">
+            <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>Task Progress
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (DashboardStats?.StatusBreakdown != null)
+                            {
+                                <div class="progress-breakdown">
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <div class="progress-item">
+                                                <div class="progress-label">
+                                                    <StatusBadge Value="Todo" Type="StatusBadge.BadgeType.Status" Size="StatusBadge.BadgeSize.Small" />
+                                                    <span class="progress-count">@DashboardStats.StatusBreakdown.TodoCount</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="progress-item">
+                                                <div class="progress-label">
+                                                    <StatusBadge Value="InProgress" Type="StatusBadge.BadgeType.Status" Size="StatusBadge.BadgeSize.Small" />
+                                                    <span class="progress-count">@DashboardStats.StatusBreakdown.InProgressCount</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="progress-item">
+                                                <div class="progress-label">
+                                                    <StatusBadge Value="InReview" Type="StatusBadge.BadgeType.Status" Size="StatusBadge.BadgeSize.Small" />
+                                                    <span class="progress-count">@DashboardStats.StatusBreakdown.InReviewCount</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="progress-item">
+                                                <div class="progress-label">
+                                                    <StatusBadge Value="Done" Type="StatusBadge.BadgeType.Status" Size="StatusBadge.BadgeSize.Small" />
+                                                    <span class="progress-count">@DashboardStats.StatusBreakdown.DoneCount</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <LoadingSpinner IsVisible="true" Message="Loading progress data..." Size="LoadingSpinner.SpinnerSize.Small" />
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12 col-lg-6">
+                    <TaskAlerts IsLoading="@IsLoading"
+                               TodayDueTasks="@DashboardStats?.TodayDueTasks"
+                               OverdueTasks="@DashboardStats?.OverdueTasks"
+                               OnTaskClick="OnTaskClick" />
+                </div>
+            </div>
+        </div>
+        
+        <!-- Task Dashboard Grid - Active Tasks and User Tasks -->
+        <div class="dashboard-grid">
+            <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                    <ActiveTasks IsLoading="@IsLoading"
+                                ActiveTasksList="@DashboardStats?.ActiveTasksInPeriod"
+                                ShowViewAll="@ShowViewAllButtons"
+                                HasMoreTasks="@((DashboardStats?.ActiveTasksInPeriod?.Count ?? 0) >= 10)"
+                                ShowCreateAction="@CanCreateTasks"
+                                OnTaskClick="OnTaskClick"
+                                OnViewAllClick="OnViewAllActiveTasksClick"
+                                OnCreateTaskClick="OnCreateTaskClick" />
+                </div>
+                
+                <div class="col-12 col-lg-6">
+                    <UserTasks IsLoading="@IsLoading"
+                              UserTasksList="@DashboardStats?.UserAssignedTasks"
+                              ShowViewAll="@ShowViewAllButtons"
+                              HasMoreTasks="@((DashboardStats?.UserAssignedTasks?.Count ?? 0) >= 10)"
+                              OnTaskClick="OnTaskClick"
+                              OnViewAllClick="OnViewAllUserTasksClick" />
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public ProjectDashboardStatsDto? DashboardStats { get; set; }
+    [Parameter] public bool ShowViewAllButtons { get; set; } = true;
+    [Parameter] public bool CanCreateTasks { get; set; } = false;
+    [Parameter] public EventCallback<TaskDto> OnTaskClick { get; set; }
+    [Parameter] public EventCallback OnViewAllActiveTasksClick { get; set; }
+    [Parameter] public EventCallback OnViewAllUserTasksClick { get; set; }
+    [Parameter] public EventCallback OnCreateTaskClick { get; set; }
+}

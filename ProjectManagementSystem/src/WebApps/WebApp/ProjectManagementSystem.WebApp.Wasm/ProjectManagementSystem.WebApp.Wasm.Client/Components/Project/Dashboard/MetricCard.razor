@@ -1,0 +1,117 @@
+@if (IsVisible)
+{
+    <div class="metric-card @(Clickable ? "metric-card-clickable" : "") @CardClass" @onclick="HandleClick">
+        <div class="metric-card-header">
+            <div class="metric-icon">
+                <i class="@IconClass"></i>
+            </div>
+            <div class="metric-title">
+                <h6>@Title</h6>
+                @if (!string.IsNullOrEmpty(Subtitle))
+                {
+                    <small class="metric-subtitle">@Subtitle</small>
+                }
+            </div>
+        </div>
+        
+        <div class="metric-card-body">
+            <div class="metric-value">
+                @if (IsLoading)
+                {
+                    <div class="metric-loading">
+                        <div class="loading-placeholder"></div>
+                    </div>
+                }
+                else
+                {
+                    <span class="metric-number">@Value</span>
+                    @if (!string.IsNullOrEmpty(Unit))
+                    {
+                        <span class="metric-unit">@Unit</span>
+                    }
+                }
+            </div>
+            
+            @if (ShowChange && Change != 0)
+            {
+                <div class="metric-change @GetChangeClass()">
+                    <i class="@GetChangeIcon()"></i>
+                    <span>@Math.Abs(Change)@ChangeUnit</span>
+                </div>
+            }
+        </div>
+        
+        @if (ShowProgress && Progress.HasValue)
+        {
+            <div class="metric-progress">
+                <div class="progress">
+                    <div class="progress-bar @GetProgressBarClass()" 
+                         style="width: @(Progress.Value)%"
+                         role="progressbar" 
+                         aria-valuenow="@Progress.Value" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                </div>
+                <small class="progress-text">@string.Format("{0:F2}%", Progress.Value)</small>
+            </div>
+        }
+        
+        @if (ChildContent != null)
+        {
+            <div class="metric-extra">
+                @ChildContent
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; } = true;
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "0";
+    [Parameter] public string Unit { get; set; } = "";
+    [Parameter] public string IconClass { get; set; } = "fas fa-chart-line";
+    [Parameter] public string CardClass { get; set; } = "";
+    [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public bool ShowChange { get; set; } = false;
+    [Parameter] public decimal Change { get; set; } = 0;
+    [Parameter] public string ChangeUnit { get; set; } = "";
+    [Parameter] public bool ShowProgress { get; set; } = false;
+    [Parameter] public decimal? Progress { get; set; }
+    [Parameter] public bool Clickable { get; set; } = false;
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    
+    private string GetChangeClass()
+    {
+        return Change > 0 ? "metric-change-positive" : "metric-change-negative";
+    }
+    
+    private string GetChangeIcon()
+    {
+        return Change > 0 ? "fas fa-arrow-up" : "fas fa-arrow-down";
+    }
+    
+    private string GetProgressBarClass()
+    {
+        if (!Progress.HasValue) return "bg-primary";
+        
+        return Progress.Value switch
+        {
+            >= 80 => "bg-success",
+            >= 60 => "bg-info",
+            >= 40 => "bg-warning",
+            _ => "bg-danger"
+        };
+    }
+    
+    private async Task HandleClick()
+    {
+        if (Clickable && OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
+}

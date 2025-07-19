@@ -1,0 +1,151 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+
+<div class="project-header">
+    <div class="header-breadcrumb">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="/projects" class="text-decoration-none">
+                        <i class="fas fa-folder-open me-1"></i>Projects
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    @if (Project != null)
+                    {
+                        <span>@Project.Name</span>
+                    }
+                    else
+                    {
+                        <span>Loading...</span>
+                    }
+                </li>
+            </ol>
+        </nav>
+    </div>
+    
+    <div class="header-content">
+        <div class="header-title">
+            <h1 class="page-title">
+                @if (Project != null)
+                {
+                    @Project.Name
+                }
+                else
+                {
+                    <span>Loading Project...</span>
+                }
+            </h1>
+            @if (Project != null && !string.IsNullOrEmpty(Project.Description))
+            {
+                <p class="project-description">@Project.Description</p>
+            }
+        </div>
+        
+        <div class="header-actions">
+            @if (ShowBackButton)
+            {
+                <button type="button" class="btn btn-outline-secondary me-2" @onclick="OnBackClick">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </button>
+            }
+            
+            @if (ShowEditButton && CanEdit)
+            {
+                <button type="button" class="btn btn-primary" @onclick="OnEditClick">
+                    <i class="fas fa-edit me-1"></i>Edit Project
+                </button>
+            }
+            
+            @if (ChildContent != null)
+            {
+                @ChildContent
+            }
+        </div>
+    </div>
+    
+    @if (ShowProjectStats && Project != null)
+    {
+        <div class="header-stats">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <i class="fas fa-calendar-alt text-primary"></i>
+                    <div class="stat-content">
+                        <span class="stat-label">Start Date</span>
+                        <span class="stat-value">
+                            @if (Project.StartDate.HasValue)
+                            {
+                                @Project.StartDate.Value.ToString("MMM dd, yyyy")
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not set</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <i class="fas fa-calendar-check text-success"></i>
+                    <div class="stat-content">
+                        <span class="stat-label">End Date</span>
+                        <span class="stat-value">
+                            @if (Project.EndDate.HasValue)
+                            {
+                                @Project.EndDate.Value.ToString("MMM dd, yyyy")
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not set</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <i class="fas fa-users text-info"></i>
+                    <div class="stat-content">
+                        <span class="stat-label">Team Size</span>
+                        <span class="stat-value">@(MemberCount > 0 ? MemberCount.ToString() : "0") members</span>
+                    </div>
+                </div>
+                
+                <div class="stat-item">
+                    <i class="fas fa-tasks text-warning"></i>
+                    <div class="stat-content">
+                        <span class="stat-label">Tasks</span>
+                        <span class="stat-value">@(TaskCount > 0 ? TaskCount.ToString() : "0") tasks</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public ProjectDto? Project { get; set; }
+    [Parameter] public bool ShowBackButton { get; set; } = true;
+    [Parameter] public bool ShowEditButton { get; set; } = true;
+    [Parameter] public bool ShowProjectStats { get; set; } = false;
+    [Parameter] public bool CanEdit { get; set; } = false;
+    [Parameter] public int MemberCount { get; set; } = 0;
+    [Parameter] public int TaskCount { get; set; } = 0;
+    [Parameter] public EventCallback OnBackClick { get; set; }
+    [Parameter] public EventCallback OnEditClick { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    
+    private async Task HandleBackClick()
+    {
+        if (OnBackClick.HasDelegate)
+        {
+            await OnBackClick.InvokeAsync();
+        }
+    }
+    
+    private async Task HandleEditClick()
+    {
+        if (OnEditClick.HasDelegate)
+        {
+            await OnEditClick.InvokeAsync();
+        }
+    }
+}

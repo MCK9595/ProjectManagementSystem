@@ -1,0 +1,201 @@
+.project-tabs {
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.nav-tabs {
+    border-bottom: 2px solid var(--bs-border-color, #dee2e6);
+    padding: 0;
+    margin-bottom: 0;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 0;
+    padding: 1rem 1.5rem;
+    color: var(--bs-secondary, #6c757d);
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--bs-primary, #007bff);
+    background: var(--bs-light, #f8f9fa);
+    border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--bs-primary, #007bff);
+    background: transparent;
+    border-color: transparent;
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--bs-primary, #007bff);
+    border-radius: 2px 2px 0 0;
+}
+
+.nav-tabs .nav-link i {
+    font-size: 0.9rem;
+}
+
+.nav-tabs .nav-link .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.4rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:not(.active) .badge {
+    background-color: var(--bs-secondary, #6c757d) !important;
+}
+
+.nav-tabs .nav-link.active .badge {
+    background-color: var(--bs-primary, #007bff) !important;
+}
+
+.tab-content {
+    min-height: 400px;
+    padding: 1.5rem 0;
+    position: relative;
+}
+
+.tab-pane {
+    display: none;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.tab-pane.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.tab-pane.show {
+    animation: fadeInUp 0.3s ease-in-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .nav-tabs {
+        border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .nav-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .nav-tabs .nav-link.active::after {
+        height: 2px;
+        bottom: -1px;
+    }
+    
+    .tab-content {
+        padding: 1rem 0;
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 576px) {
+    .nav-tabs .nav-link {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    .nav-tabs .nav-link i {
+        font-size: 0.8rem;
+    }
+    
+    .nav-tabs .nav-link .badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.35rem;
+    }
+    
+    .tab-content {
+        padding: 0.75rem 0;
+        min-height: 250px;
+    }
+}
+
+/* Loading state for tab content */
+.tab-pane.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+/* Accessibility */
+.nav-tabs .nav-link:focus {
+    outline: 2px solid var(--bs-primary, #007bff);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+}
+
+.nav-tabs .nav-link:focus:not(.active) {
+    color: var(--bs-primary, #007bff);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .nav-tabs .nav-link.active::after {
+        height: 4px;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background: var(--bs-primary-bg-subtle, rgba(13, 110, 253, 0.1));
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .nav-tabs .nav-link,
+    .tab-pane {
+        transition: none;
+    }
+    
+    .tab-pane.show {
+        animation: none;
+    }
+}

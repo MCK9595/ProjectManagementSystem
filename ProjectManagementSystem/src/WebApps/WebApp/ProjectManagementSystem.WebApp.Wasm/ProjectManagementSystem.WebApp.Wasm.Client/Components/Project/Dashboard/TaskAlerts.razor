@@ -1,0 +1,120 @@
+@using ProjectManagementSystem.Shared.Models.DTOs
+@using ProjectManagementSystem.WebApp.Wasm.Client.Components.Shared
+
+<div class="task-alerts">
+    <div class="task-alerts-header">
+        <h5 class="alerts-title">
+            <i class="fas fa-exclamation-triangle me-2"></i>Task Alerts
+        </h5>
+        <small class="alerts-subtitle">Today's due and overdue tasks</small>
+    </div>
+    
+    <div class="alerts-content">
+        @if (IsLoading)
+        {
+            <LoadingSpinner IsVisible="true" Message="Loading alerts..." Size="LoadingSpinner.SpinnerSize.Small" />
+        }
+        else
+        {
+            <div class="alerts-tabs">
+                <nav class="nav nav-pills nav-justified" role="tablist">
+                    <a class="nav-link @(ActiveTab == "today" ? "active" : "")" 
+                       href="#today-alerts" 
+                       @onclick="@(() => SetActiveTab("today"))"
+                       @onclick:preventDefault="true">
+                        Today Due
+                        @if (TodayDueTasks?.Count > 0)
+                        {
+                            <span class="badge bg-warning ms-1">@TodayDueTasks.Count</span>
+                        }
+                    </a>
+                    <a class="nav-link @(ActiveTab == "overdue" ? "active" : "")" 
+                       href="#overdue-alerts" 
+                       @onclick="@(() => SetActiveTab("overdue"))"
+                       @onclick:preventDefault="true">
+                        Overdue
+                        @if (OverdueTasks?.Count > 0)
+                        {
+                            <span class="badge bg-danger ms-1">@OverdueTasks.Count</span>
+                        }
+                    </a>
+                </nav>
+            </div>
+            
+            <div class="alerts-body">
+                @if (ActiveTab == "today")
+                {
+                    @if (TodayDueTasks?.Any() == true)
+                    {
+                        <div class="task-list">
+                            @foreach (var task in TodayDueTasks)
+                            {
+                                <TaskCard Task="null" 
+                                         DashboardTask="task"
+                                         ShowStatus="true"
+                                         ShowPriority="true"
+                                         ShowDueDate="true"
+                                         ShowAssignee="true"
+                                         ShowDescription="false"
+                                         ShowActions="false"
+                                         Clickable="true"
+                                         OnClick="OnTaskClick" />
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <EmptyState IsVisible="true"
+                                   IconClass="fas fa-calendar-check"
+                                   Title="No tasks due today"
+                                   Description="Great job! No tasks are due today."
+                                   ShowAction="false" />
+                    }
+                }
+                else if (ActiveTab == "overdue")
+                {
+                    @if (OverdueTasks?.Any() == true)
+                    {
+                        <div class="task-list">
+                            @foreach (var task in OverdueTasks)
+                            {
+                                <TaskCard Task="null" 
+                                         DashboardTask="task"
+                                         ShowStatus="true"
+                                         ShowPriority="true"
+                                         ShowDueDate="true"
+                                         ShowAssignee="true"
+                                         ShowDescription="false"
+                                         ShowActions="false"
+                                         Clickable="true"
+                                         DaysOverdue="task.DaysOverdue"
+                                         OnClick="OnTaskClick" />
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <EmptyState IsVisible="true"
+                                   IconClass="fas fa-check-circle"
+                                   Title="No overdue tasks"
+                                   Description="Excellent! All tasks are on schedule."
+                                   ShowAction="false" />
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsLoading { get; set; } = false;
+    [Parameter] public List<DashboardTaskDto>? TodayDueTasks { get; set; }
+    [Parameter] public List<DashboardTaskDto>? OverdueTasks { get; set; }
+    [Parameter] public EventCallback<TaskDto> OnTaskClick { get; set; }
+    [Parameter] public string ActiveTab { get; set; } = "today";
+    
+    private void SetActiveTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+}
