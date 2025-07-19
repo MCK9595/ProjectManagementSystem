@@ -804,11 +804,66 @@ public class TaskService : ITaskService
             var projectEnd = project.EndDate?.Date;
             
             var periodTasks = allTasks.Where(t => 
-                t.Status != TaskStatusConstants.Done && 
-                t.Status != TaskStatusConstants.Cancelled &&
-                (projectStart == null || (t.StartDate?.Date >= projectStart || t.DueDate?.Date >= projectStart || today >= projectStart)) &&
-                (projectEnd == null || (t.StartDate?.Date <= projectEnd || t.DueDate?.Date <= projectEnd || today <= projectEnd)))
-                .OrderBy(t => t.DueDate ?? DateTime.MaxValue)
+            {
+                // Filter out completed or cancelled tasks
+                if (t.Status == TaskStatusConstants.Done || t.Status == TaskStatusConstants.Cancelled)
+                    return false;
+                
+                // Determine the task's effective period
+                var taskStart = t.StartDate?.Date;
+                var taskEnd = t.DueDate?.Date;
+                
+                // Active tasks criteria:
+                // 1. Task should be currently active (started but not finished)
+                // 2. Should overlap with project period (if project has dates)
+                
+                // Check if task is currently active based on dates
+                bool isCurrentlyActive = false;
+                
+                if (taskStart.HasValue && taskEnd.HasValue)
+                {
+                    // Task has both start and end dates
+                    // Active if: start date has passed and end date hasn't passed
+                    isCurrentlyActive = taskStart.Value <= today && taskEnd.Value >= today;
+                }
+                else if (taskStart.HasValue && !taskEnd.HasValue)
+                {
+                    // Task has only start date
+                    // Active if: start date has passed
+                    isCurrentlyActive = taskStart.Value <= today;
+                }
+                else if (!taskStart.HasValue && taskEnd.HasValue)
+                {
+                    // Task has only end date
+                    // Active if: end date hasn't passed
+                    isCurrentlyActive = taskEnd.Value >= today;
+                }
+                else
+                {
+                    // Task has no dates - consider active if status is not ToDo
+                    isCurrentlyActive = t.Status != TaskStatusConstants.ToDo;
+                }
+                
+                if (!isCurrentlyActive)
+                    return false;
+                
+                // Check if task period overlaps with project period (if project has dates)
+                if (projectStart.HasValue || projectEnd.HasValue)
+                {
+                    var taskEarliestDate = taskStart ?? taskEnd ?? today;
+                    var taskLatestDate = taskEnd ?? taskStart ?? today;
+                    
+                    // Check overlap with project period
+                    if (projectStart.HasValue && taskLatestDate < projectStart.Value)
+                        return false; // Task ends before project starts
+                        
+                    if (projectEnd.HasValue && taskEarliestDate > projectEnd.Value)
+                        return false; // Task starts after project ends
+                }
+                    
+                return true; // Task is active and within project period
+            })
+                .OrderBy(t => t.DueDate ?? t.StartDate ?? DateTime.MaxValue)
                 .Take(10)
                 .ToList();
                 

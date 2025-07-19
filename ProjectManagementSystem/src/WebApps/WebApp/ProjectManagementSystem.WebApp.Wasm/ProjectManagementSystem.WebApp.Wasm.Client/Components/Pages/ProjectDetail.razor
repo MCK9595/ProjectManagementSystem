@@ -124,9 +124,49 @@ else
         else if (tasks?.Any() == true)
         {
             builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "class", "tasks-placeholder");
-            builder.AddContent(2, "Tasks functionality - to be implemented with existing logic");
-            builder.CloseElement();
+            builder.AddAttribute(1, "class", "task-list");
+            
+            // Create Task button
+            if (CanCreateTasks())
+            {
+                builder.OpenElement(2, "div");
+                builder.AddAttribute(3, "class", "d-flex justify-content-between align-items-center mb-3");
+                builder.OpenElement(4, "h5");
+                builder.AddAttribute(5, "class", "mb-0");
+                builder.AddContent(6, $"Tasks ({tasks.Count})");
+                builder.CloseElement(); // h5
+                builder.OpenElement(7, "button");
+                builder.AddAttribute(8, "class", "btn btn-primary btn-sm");
+                builder.AddAttribute(9, "onclick", EventCallback.Factory.Create(this, CreateTask));
+                builder.OpenElement(10, "i");
+                builder.AddAttribute(11, "class", "fas fa-plus me-1");
+                builder.CloseElement(); // i
+                builder.AddContent(12, "Create Task");
+                builder.CloseElement(); // button
+                builder.CloseElement(); // div
+            }
+            
+            // Task cards
+            builder.OpenElement(13, "div");
+            builder.AddAttribute(14, "class", "row g-3");
+            foreach (var task in tasks.OrderByDescending(t => t.CreatedAt))
+            {
+                builder.OpenElement(15, "div");
+                builder.AddAttribute(16, "class", "col-12");
+                builder.OpenComponent<TaskCard>(17);
+                builder.AddAttribute(18, "Task", task);
+                builder.AddAttribute(19, "ShowStatus", true);
+                builder.AddAttribute(20, "ShowPriority", true);
+                builder.AddAttribute(21, "ShowDueDate", true);
+                builder.AddAttribute(22, "ShowAssignee", true);
+                builder.AddAttribute(23, "Clickable", true);
+                builder.AddAttribute(24, "OnClick", EventCallback.Factory.Create<TaskDto>(this, (t) => ViewTask(t)));
+                builder.CloseComponent();
+                builder.CloseElement(); // div col-12
+            }
+            builder.CloseElement(); // div row
+            
+            builder.CloseElement(); // div task-list
         }
         else
         {
@@ -152,6 +192,7 @@ else
         builder.AddAttribute(4, "ShowCreateAction", CanCreateTasks());
         builder.AddAttribute(5, "OnRefreshClick", EventCallback.Factory.Create(this, LoadTasks));
         builder.AddAttribute(6, "OnCreateTaskClick", EventCallback.Factory.Create(this, CreateTask));
+        builder.AddAttribute(7, "OnTaskClick", EventCallback.Factory.Create<Guid>(this, ViewTaskById));
         builder.CloseComponent();
     };
     
@@ -336,9 +377,14 @@ else
         Navigation.NavigateTo($"/tasks/{task.Id}");
     }
     
+    private void ViewTaskById(Guid taskId)
+    {
+        Navigation.NavigateTo($"/tasks/{taskId}");
+    }
+    
     private void CreateTask()
     {
-        Navigation.NavigateTo($"/projects/{Id}/tasks/create");
+        Navigation.NavigateTo($"/tasks/create?ProjectId={Id}");
     }
     
     private async Task HandleMembersChanged()

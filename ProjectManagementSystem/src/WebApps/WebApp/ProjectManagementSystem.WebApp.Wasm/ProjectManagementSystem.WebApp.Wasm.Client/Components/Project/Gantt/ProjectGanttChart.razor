@@ -22,7 +22,7 @@
         else if (Tasks?.Any() == true)
         {
             <div class="gantt-chart-container">
-                <BlazorGanttChart ProjectId="@ProjectId" Tasks="@ConvertToGanttTasks()" />
+                <BlazorGanttChart Tasks="@ConvertToGanttTasks()" OnTaskClick="HandleTaskClick" />
             </div>
         }
         else
@@ -47,12 +47,21 @@
     [Parameter] public bool ShowCreateAction { get; set; } = false;
     [Parameter] public EventCallback OnRefreshClick { get; set; }
     [Parameter] public EventCallback OnCreateTaskClick { get; set; }
+    [Parameter] public EventCallback<Guid> OnTaskClick { get; set; }
     
     private async Task RefreshChart()
     {
         if (OnRefreshClick.HasDelegate)
         {
             await OnRefreshClick.InvokeAsync();
+        }
+    }
+    
+    private async Task HandleTaskClick(GanttTask ganttTask)
+    {
+        if (ganttTask.TaskId != Guid.Empty && OnTaskClick.HasDelegate)
+        {
+            await OnTaskClick.InvokeAsync(ganttTask.TaskId);
         }
     }
     
