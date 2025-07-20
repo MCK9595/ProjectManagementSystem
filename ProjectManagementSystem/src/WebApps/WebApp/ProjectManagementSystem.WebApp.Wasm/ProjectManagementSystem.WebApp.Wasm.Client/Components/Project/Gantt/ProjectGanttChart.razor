@@ -77,7 +77,7 @@
             Name = task.Title,
             Start = task.StartDate ?? DateTime.Now,
             End = task.DueDate ?? DateTime.Now.AddDays(1),
-            Progress = task.Status == "Done" ? 100 : (task.Status == "InProgress" ? 50 : 0),
+            Progress = (int)task.ProgressPercentage, // Use calculated progress from TaskDto
             Priority = task.Priority,
             Status = task.Status,
             AssignedTo = task.AssignedTo?.Username ?? "",
