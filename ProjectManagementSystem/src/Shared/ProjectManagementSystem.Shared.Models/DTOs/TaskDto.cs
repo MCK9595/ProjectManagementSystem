@@ -21,12 +21,19 @@ public class TaskDto
     public int CreatedByUserId { get; set; }
     public int? AssignedToUserId { get; set; }
     public Guid? ParentTaskId { get; set; }
+    
+    // Navigation properties
     public ProjectDto? Project { get; set; }
     public UserDto? AssignedTo { get; set; }
     public TaskDto? ParentTask { get; set; }
     public ICollection<TaskDto> SubTasks { get; set; } = new List<TaskDto>();
     public ICollection<Guid> DependentTaskIds { get; set; } = new List<Guid>();
     public ICollection<Guid> DependsOnTaskIds { get; set; } = new List<Guid>();
+    
+    // Computed properties
+    public decimal ProgressPercentage { get; set; }
+    public bool IsParentTask => SubTasks.Any();
+    public bool CanEditStatus { get; set; } = true;
 }
 
 public class CreateTaskDto

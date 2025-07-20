@@ -144,6 +144,12 @@ public class TaskService : ITaskService
                     await _context.SaveChangesAsync();
                 }
 
+                // Update parent task status if this task has a parent
+                if (task.ParentTaskId.HasValue)
+                {
+                    await UpdateParentTaskStatusAsync(task.ParentTaskId.Value);
+                }
+
                 await transaction.CommitAsync();
 
                 _logger.LogInformation("Task {TaskTitle} (#{TaskNumber}) created by user {UserId}", 
@@ -227,31 +233,17 @@ public class TaskService : ITaskService
 
         await _context.SaveChangesAsync();
 
+        // Update parent task status and progress if this task has a parent
+        if (task.ParentTaskId.HasValue)
+        {
+            await UpdateParentTaskStatusAsync(task.ParentTaskId.Value);
+        }
+
         _logger.LogInformation("Task {TaskId} updated", taskId);
 
         return await MapTaskToDtoAsync(task);
     }
 
-    public async Task<bool> UpdateTaskStatusAsync(Guid taskId, string status)
-    {
-        var task = await _context.Tasks
-            .Where(t => t.Id == taskId && t.IsActive)
-            .FirstOrDefaultAsync();
-
-        if (task == null)
-            return false;
-
-        task.Status = status;
-        if (status == TaskStatusConstants.Done)
-            task.CompletedDate = DateTime.UtcNow;
-        else if (task.Status != TaskStatusConstants.Done)
-            task.CompletedDate = null;
-
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Task {TaskId} status updated to {Status}", taskId, status);
-        return true;
-    }
 
     public async Task<bool> AssignTaskAsync(Guid taskId, int assignedToUserId)
     {
@@ -278,8 +270,16 @@ public class TaskService : ITaskService
         if (task == null)
             return false;
 
+        var parentTaskId = task.ParentTaskId; // Store parent ID before deletion
+
         task.IsActive = false;
         await _context.SaveChangesAsync();
+
+        // Update parent task status and progress if this task had a parent
+        if (parentTaskId.HasValue)
+        {
+            await UpdateParentTaskStatusAsync(parentTaskId.Value);
+        }
 
         _logger.LogInformation("Task {TaskId} deleted (soft delete)", taskId);
         return true;
@@ -369,7 +369,10 @@ public class TaskService : ITaskService
             var project = await projectTask;
             var assignedUser = await assignedUserTask;
 
-            return new TaskDto
+            // Get subtasks for calculating progress and status
+            var subTasks = await GetSubTasksForProgressCalculationAsync(task.Id);
+            
+            var taskDto = new TaskDto
             {
                 Id = task.Id,
                 TaskNumber = task.TaskNumber,
@@ -389,8 +392,31 @@ public class TaskService : ITaskService
                 AssignedToUserId = task.AssignedToUserId,
                 ParentTaskId = task.ParentTaskId,
                 Project = project,
-                AssignedTo = assignedUser
+                AssignedTo = assignedUser,
+                SubTasks = subTasks.ToList()
             };
+
+            // Calculate progress and status for parent tasks
+            if (subTasks.Any())
+            {
+                taskDto.ProgressPercentage = CalculateParentTaskProgress(subTasks);
+                taskDto.Status = CalculateParentTaskStatus(subTasks);
+                taskDto.CanEditStatus = false; // Parent tasks cannot have their status edited directly
+                
+                _logger.LogDebug("Parent task {TaskId} ({TaskTitle}): {SubTaskCount} subtasks, calculated progress: {Progress}%, status: {Status}", 
+                    task.Id, task.Title, subTasks.Count(), taskDto.ProgressPercentage, taskDto.Status);
+            }
+            else
+            {
+                // For leaf tasks, calculate progress based on status or hours
+                taskDto.ProgressPercentage = CalculateLeafTaskProgress(task);
+                taskDto.CanEditStatus = true;
+                
+                _logger.LogDebug("Leaf task {TaskId} ({TaskTitle}): progress: {Progress}%, status: {Status}", 
+                    task.Id, task.Title, taskDto.ProgressPercentage, task.Status);
+            }
+
+            return taskDto;
         }
         catch (Exception ex)
         {
@@ -415,7 +441,9 @@ public class TaskService : ITaskService
                 ProjectId = task.ProjectId,
                 CreatedByUserId = task.CreatedByUserId,
                 AssignedToUserId = task.AssignedToUserId,
-                ParentTaskId = task.ParentTaskId
+                ParentTaskId = task.ParentTaskId,
+                ProgressPercentage = CalculateLeafTaskProgress(task),
+                CanEditStatus = true
             };
         }
     }
@@ -469,8 +497,20 @@ public class TaskService : ITaskService
             return false;
         }
 
+        var oldParentTaskId = task.ParentTaskId; // Store old parent ID
+
         task.ParentTaskId = parentTaskId;
         await _context.SaveChangesAsync();
+
+        // Update both old and new parent tasks
+        if (oldParentTaskId.HasValue)
+        {
+            await UpdateParentTaskStatusAsync(oldParentTaskId.Value);
+        }
+        if (parentTaskId.HasValue)
+        {
+            await UpdateParentTaskStatusAsync(parentTaskId.Value);
+        }
 
         _logger.LogInformation("Task {TaskId} parent set to {ParentTaskId}", taskId, parentTaskId);
         return true;
@@ -935,5 +975,256 @@ public class TaskService : ITaskService
         }
 
         return dashboardTasks;
+    }
+
+    // Progress and status calculation methods
+    private async Task<IEnumerable<TaskDto>> GetSubTasksForProgressCalculationAsync(Guid parentTaskId)
+    {
+        var subTaskEntities = await _context.Tasks
+            .Where(t => t.ParentTaskId == parentTaskId && t.IsActive)
+            .ToListAsync();
+
+        _logger.LogDebug("Found {SubTaskCount} active subtasks for parent task {ParentTaskId}", 
+            subTaskEntities.Count, parentTaskId);
+
+        var subTaskDtos = new List<TaskDto>();
+        foreach (var subTask in subTaskEntities)
+        {
+            // Recursively get subtasks for progress calculation (avoiding external service calls for performance)
+            var subSubTasks = await GetSubTasksForProgressCalculationAsync(subTask.Id);
+            
+            var subTaskDto = new TaskDto
+            {
+                Id = subTask.Id,
+                TaskNumber = subTask.TaskNumber,
+                Title = subTask.Title,
+                Description = subTask.Description,
+                Status = subTask.Status,
+                Priority = subTask.Priority,
+                StartDate = subTask.StartDate,
+                DueDate = subTask.DueDate,
+                CompletedDate = subTask.CompletedDate,
+                EstimatedHours = subTask.EstimatedHours,
+                ActualHours = subTask.ActualHours,
+                CreatedAt = subTask.CreatedAt,
+                UpdatedAt = subTask.UpdatedAt,
+                ProjectId = subTask.ProjectId,
+                CreatedByUserId = subTask.CreatedByUserId,
+                AssignedToUserId = subTask.AssignedToUserId,
+                ParentTaskId = subTask.ParentTaskId,
+                SubTasks = subSubTasks.ToList()
+            };
+
+            // Calculate progress for this subtask
+            if (subSubTasks.Any())
+            {
+                subTaskDto.ProgressPercentage = CalculateParentTaskProgress(subSubTasks);
+                subTaskDto.Status = CalculateParentTaskStatus(subSubTasks);
+                subTaskDto.CanEditStatus = false;
+                
+                _logger.LogDebug("Subtask {SubTaskId} ({SubTaskTitle}) is a parent with {GrandChildCount} children, progress: {Progress}%", 
+                    subTask.Id, subTask.Title, subSubTasks.Count(), subTaskDto.ProgressPercentage);
+            }
+            else
+            {
+                subTaskDto.ProgressPercentage = CalculateLeafTaskProgress(subTask);
+                subTaskDto.CanEditStatus = true;
+                
+                _logger.LogDebug("Subtask {SubTaskId} ({SubTaskTitle}) is a leaf with status '{Status}', progress: {Progress}%", 
+                    subTask.Id, subTask.Title, subTask.Status, subTaskDto.ProgressPercentage);
+            }
+
+            subTaskDtos.Add(subTaskDto);
+        }
+
+        _logger.LogDebug("Returning {SubTaskDtoCount} subtask DTOs for parent {ParentTaskId}", 
+            subTaskDtos.Count, parentTaskId);
+
+        return subTaskDtos;
+    }
+
+    private decimal CalculateParentTaskProgress(IEnumerable<TaskDto> subTasks)
+    {
+        if (!subTasks.Any())
+        {
+            _logger.LogDebug("Parent task has no subtasks, returning 0% progress");
+            return 0;
+        }
+
+        var subTasksList = subTasks.ToList();
+        var progressValues = subTasksList.Select(st => st.ProgressPercentage).ToList();
+        var averageProgress = progressValues.Average();
+        
+        _logger.LogDebug("Parent task progress calculation: {SubTaskCount} subtasks with progress values [{ProgressValues}] = Average {AverageProgress}%", 
+            subTasksList.Count, 
+            string.Join(", ", progressValues.Select(p => p.ToString("F1"))), 
+            averageProgress);
+        
+        return averageProgress;
+    }
+
+    private string CalculateParentTaskStatus(IEnumerable<TaskDto> subTasks)
+    {
+        if (!subTasks.Any())
+        {
+            _logger.LogDebug("Parent task has no subtasks, returning ToDo status");
+            return TaskStatusConstants.ToDo;
+        }
+
+        var subTasksList = subTasks.ToList();
+        var statusCounts = subTasksList.GroupBy(st => NormalizeStatus(st.Status))
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var totalSubTasks = subTasksList.Count;
+
+        _logger.LogDebug("Parent task status calculation: {SubTaskCount} subtasks with status counts: {StatusCounts}", 
+            totalSubTasks, string.Join(", ", statusCounts.Select(kvp => $"{kvp.Key}:{kvp.Value}")));
+
+        // If all subtasks are Todo, parent is Todo
+        if (statusCounts.ContainsKey("TODO") && statusCounts["TODO"] == totalSubTasks)
+        {
+            _logger.LogDebug("All subtasks are ToDo, parent status = ToDo");
+            return TaskStatusConstants.ToDo;
+        }
+
+        // If all subtasks are Done, parent is Done
+        if (statusCounts.ContainsKey("DONE") && statusCounts["DONE"] == totalSubTasks)
+        {
+            _logger.LogDebug("All subtasks are Done, parent status = Done");
+            return TaskStatusConstants.Done;
+        }
+
+        // If all subtasks are Cancelled, parent is Cancelled
+        if (statusCounts.ContainsKey("CANCELLED") && statusCounts["CANCELLED"] == totalSubTasks)
+        {
+            _logger.LogDebug("All subtasks are Cancelled, parent status = Cancelled");
+            return TaskStatusConstants.Cancelled;
+        }
+
+        // If there's at least one InProgress or higher (not Todo), parent is InProgress
+        var hasInProgressOrHigher = subTasksList.Any(st => 
+        {
+            var normalizedStatus = NormalizeStatus(st.Status);
+            return normalizedStatus == "INPROGRESS" || 
+                   normalizedStatus == "INREVIEW" ||
+                   normalizedStatus == "DONE";
+        });
+
+        if (hasInProgressOrHigher)
+        {
+            _logger.LogDebug("At least one subtask is InProgress or higher, parent status = InProgress");
+            return TaskStatusConstants.InProgress;
+        }
+
+        _logger.LogDebug("Default case, parent status = ToDo");
+        return TaskStatusConstants.ToDo;
+    }
+
+    private string NormalizeStatus(string status)
+    {
+        return status?.ToUpperInvariant() ?? "";
+    }
+
+    private decimal CalculateLeafTaskProgress(Data.Entities.Task task)
+    {
+        // Calculate progress based on status or actual vs estimated hours
+        if (task.EstimatedHours.HasValue && task.EstimatedHours.Value > 0 && task.ActualHours.HasValue)
+        {
+            // Use hour-based progress, capped at 100%
+            var hourProgress = Math.Min((task.ActualHours.Value / task.EstimatedHours.Value) * 100, 100);
+            _logger.LogDebug("Task {TaskId} hour-based progress: {Progress}% (Actual: {Actual}h, Estimated: {Estimated}h)", 
+                task.Id, hourProgress, task.ActualHours.Value, task.EstimatedHours.Value);
+            return hourProgress;
+        }
+
+        // Fallback to status-based progress with case-insensitive comparison
+        var statusProgress = GetStatusBasedProgress(task.Status);
+        _logger.LogDebug("Task {TaskId} status-based progress: {Progress}% (Status: '{Status}')", 
+            task.Id, statusProgress, task.Status);
+        return statusProgress;
+    }
+
+    private decimal GetStatusBasedProgress(string status)
+    {
+        // Use case-insensitive comparison to handle potential case mismatches
+        return status?.ToUpperInvariant() switch
+        {
+            "TODO" => 0,
+            "INPROGRESS" => 50,
+            "INREVIEW" => 80,
+            "DONE" => 100,
+            "CANCELLED" => 0,
+            _ => 0
+        };
+    }
+
+    // Override status update for parent tasks
+    public async Task<bool> UpdateTaskStatusAsync(Guid taskId, string status)
+    {
+        var task = await _context.Tasks
+            .Where(t => t.Id == taskId && t.IsActive)
+            .FirstOrDefaultAsync();
+
+        if (task == null)
+            return false;
+
+        // Check if this task has subtasks
+        var hasSubTasks = await _context.Tasks
+            .AnyAsync(t => t.ParentTaskId == taskId && t.IsActive);
+
+        if (hasSubTasks)
+        {
+            _logger.LogWarning("Cannot update status of parent task {TaskId} directly. Status is calculated from subtasks.", taskId);
+            return false; // Parent tasks cannot have their status updated directly
+        }
+
+        task.Status = status;
+        if (status == TaskStatusConstants.Done)
+            task.CompletedDate = DateTime.UtcNow;
+        else if (task.Status != TaskStatusConstants.Done)
+            task.CompletedDate = null;
+
+        await _context.SaveChangesAsync();
+
+        // Update parent task status if this task has a parent
+        if (task.ParentTaskId.HasValue)
+        {
+            await UpdateParentTaskStatusAsync(task.ParentTaskId.Value);
+        }
+
+        _logger.LogInformation("Task {TaskId} status updated to {Status}", taskId, status);
+        return true;
+    }
+
+    private async Task UpdateParentTaskStatusAsync(Guid parentTaskId)
+    {
+        var parentTask = await _context.Tasks
+            .Where(t => t.Id == parentTaskId && t.IsActive)
+            .FirstOrDefaultAsync();
+
+        if (parentTask == null)
+            return;
+
+        var subTasks = await GetSubTasksForProgressCalculationAsync(parentTaskId);
+        var newStatus = CalculateParentTaskStatus(subTasks);
+
+        if (parentTask.Status != newStatus)
+        {
+            parentTask.Status = newStatus;
+            if (newStatus == TaskStatusConstants.Done)
+                parentTask.CompletedDate = DateTime.UtcNow;
+            else
+                parentTask.CompletedDate = null;
+
+            await _context.SaveChangesAsync();
+
+            // Recursively update parent's parent if it exists
+            if (parentTask.ParentTaskId.HasValue)
+            {
+                await UpdateParentTaskStatusAsync(parentTask.ParentTaskId.Value);
+            }
+
+            _logger.LogInformation("Parent task {ParentTaskId} status automatically updated to {Status}", parentTaskId, newStatus);
+        }
     }
 }

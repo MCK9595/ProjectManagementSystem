@@ -3,11 +3,104 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 1.5rem;
+    width: 100%;
+    max-width: calc(100vw - 300px); /* Account for sidebar like Gantt chart */
+    overflow: hidden; /* Prevent outer container from scrolling */
+    box-sizing: border-box;
+    position: relative;
+    border: 1px solid #dee2e6;
 }
 
-/* Table Styles */
+/* Table Styles - content can exceed container width */
 .task-table {
     margin-bottom: 0;
+    table-layout: auto; /* Auto layout for flexible content */
+    width: max-content; /* Allow table to expand beyond container */
+    min-width: 100%; /* At least as wide as container */
+    border-collapse: separate;
+    border-spacing: 0;
+    /* Ensure table content can scroll horizontally */
+    white-space: nowrap;
+}
+
+/* Resizable columns */
+.task-table th {
+    position: relative;
+    overflow: hidden;
+    border-right: 1px solid #dee2e6;
+    user-select: none;
+}
+
+.task-table th:not(:last-child) {
+    resize: horizontal;
+    overflow: hidden;
+    min-width: 60px;
+    max-width: 400px;
+}
+
+.task-table th:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 4px;
+    height: 100%;
+    background: transparent;
+    cursor: col-resize;
+    z-index: 10;
+    border-right: 2px solid transparent;
+}
+
+.task-table th:not(:last-child):hover::after {
+    border-right-color: #007bff;
+    background: rgba(0, 123, 255, 0.1);
+}
+
+/* Resize handle visibility improvement */
+.task-table th:not(:last-child):active::after {
+    border-right-color: #0056b3;
+    background: rgba(0, 123, 255, 0.2);
+}
+
+/* Column widths - Fixed widths for consistent layout */
+.task-table .col-task-number {
+    width: 80px;
+    min-width: 80px;
+}
+
+.task-table .col-title {
+    width: 300px;
+    min-width: 250px;
+}
+
+.task-table .col-status {
+    width: 120px;
+    min-width: 120px;
+}
+
+.task-table .col-priority {
+    width: 120px;
+    min-width: 120px;
+}
+
+.task-table .col-assignee {
+    width: 150px;
+    min-width: 150px;
+}
+
+.task-table .col-start-date {
+    width: 120px;
+    min-width: 120px;
+}
+
+.task-table .col-due-date {
+    width: 140px;
+    min-width: 140px;
+}
+
+.task-table .col-progress {
+    width: 150px;
+    min-width: 150px;
 }
 
 .task-table thead th {
@@ -63,9 +156,36 @@
     background-color: #ffebee;
 }
 
+/* Level-based indentation styles */
+.task-row[data-level="1"] .task-title-cell {
+    border-left: 2px solid #e9ecef;
+    margin-left: 30px;
+}
+
+.task-row[data-level="2"] .task-title-cell {
+    border-left: 2px solid #e9ecef;
+    margin-left: 60px;
+}
+
+.task-row[data-level="3"] .task-title-cell {
+    border-left: 2px solid #e9ecef;
+    margin-left: 90px;
+}
+
 /* Task Title Cell */
 .task-title-cell {
-    max-width: 300px;
+    position: relative;
+    overflow: hidden;
+}
+
+.task-title-td {
+    padding-left: 0 !important;
+}
+
+.task-title-content {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .task-title {
@@ -77,6 +197,97 @@
 
 .task-title-cell .text-truncate {
     max-width: 100%;
+}
+
+/* Hierarchy Styles */
+.parent-task {
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+.parent-task:hover {
+    background-color: #e9ecef;
+}
+
+.parent-task .task-title {
+    font-weight: 600;
+}
+
+/* Expand/Collapse Button */
+.expand-toggle {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dee2e6;
+    border-radius: 3px;
+    background: #ffffff;
+    color: #495057;
+    transition: all 0.15s ease-in-out;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.expand-toggle:hover {
+    color: #007bff;
+    background: #f8f9fa;
+    border-color: #007bff;
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.expand-toggle:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+    background: #ffffff;
+}
+
+.expand-toggle i {
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* Tree Spacer */
+.tree-spacer {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* Tree Lines (optional - can be enabled later) */
+.tree-line {
+    position: absolute;
+    width: 1px;
+    background-color: #dee2e6;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+}
+
+.tree-line-horizontal {
+    position: absolute;
+    height: 1px;
+    background-color: #dee2e6;
+    left: 10px;
+    top: 50%;
+    width: 10px;
+}
+
+/* Folder Icon */
+.fa-folder {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* Subtask Count Badge */
+.parent-task .badge {
+    font-size: 0.65rem;
+    padding: 0.2em 0.5em;
+    background-color: #6c757d;
+    vertical-align: middle;
 }
 
 /* User Avatar */
@@ -96,31 +307,187 @@
 
 /* Progress Bar */
 .progress-info {
-    min-width: 80px;
+    min-width: 100px;
 }
 
 .progress-info .progress {
     margin-bottom: 0.25rem;
+    border-radius: 4px;
+    background-color: #e9ecef;
 }
 
 .progress-info .progress-bar {
+    transition: width 0.6s ease;
+    border-radius: 4px;
+}
+
+.progress-info .bg-success {
     background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
 }
 
+.progress-info .bg-info {
+    background: linear-gradient(90deg, #17a2b8 0%, #5bc0de 100%);
+}
+
+.progress-info .bg-warning {
+    background: linear-gradient(90deg, #ffc107 0%, #ffed4e 100%);
+}
+
+.progress-info .bg-secondary {
+    background: linear-gradient(90deg, #6c757d 0%, #868e96 100%);
+}
+
+/* Parent Task Badge */
+.badge-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.badge-sm {
+    font-size: 0.6rem;
+    padding: 0.15em 0.4em;
+}
+
 /* Mobile Responsive */
+/* Table wrapper - similar to gantt-wrapper */
+.table-responsive-wrapper {
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    overflow: hidden; /* Prevent wrapper from scrolling */
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+/* Table scroll container - similar to gantt-scrollable-panel */
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto; /* Only horizontal scroll allowed */
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #dee2e6 #f8f9fa;
+    position: relative;
+    box-sizing: border-box;
+    /* Constrain scrollable area like Gantt chart */
+    max-width: calc(100vw - 350px);
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #dee2e6;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+}
+
+/* Ensure table content doesn't overflow container */
+.table-responsive .task-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-responsive .task-table td,
+.table-responsive .task-table th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Task title cell gets special treatment */
+.table-responsive .task-table .task-title-cell {
+    white-space: normal;
+    word-wrap: break-word;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+.table-responsive .task-table .task-title-cell .task-title {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+/* Force specific columns to stay within bounds */
+.table-responsive .task-table .col-task-number,
+.table-responsive .task-table .col-status,
+.table-responsive .task-table .col-priority,
+.table-responsive .task-table .col-assignee,
+.table-responsive .task-table .col-start-date,
+.table-responsive .task-table .col-due-date,
+.table-responsive .task-table .col-progress {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 @media (max-width: 767.98px) {
     .task-table-container {
         padding: 1rem;
-        margin: 0 -15px;
+        margin: 0;
         border-radius: 0;
+        max-width: calc(100vw - 50px); /* Tighter constraints on mobile */
+        overflow: hidden;
     }
     
-    .task-title-cell {
-        max-width: 200px;
+    .table-responsive-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
     }
     
     .table-responsive {
-        border: none;
+        width: 100%;
+        max-width: calc(100vw - 80px);
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+    
+    .task-table {
+        width: max-content; /* Allow natural content width */
+        min-width: 1000px; /* Ensure horizontal scroll on mobile */
+    }
+    
+    /* Reduce indentation on mobile */
+    .task-row[data-level="1"] .task-title-cell,
+    .task-row[data-level="2"] .task-title-cell,
+    .task-row[data-level="3"] .task-title-cell {
+        margin-left: 0;
+        border-left: none;
+    }
+    
+    /* Show scroll hint on mobile */
+    .table-responsive::after {
+        content: '← Scroll horizontally to see more columns →';
+        position: sticky;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 5px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0.8;
+        z-index: 10;
     }
 }
 
